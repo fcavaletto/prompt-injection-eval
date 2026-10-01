@@ -77,6 +77,23 @@ def run_doctor(
             messages.extend(issues)
         else:
             messages.append(f"Ollama is reachable and model {model} is installed.")
+            info = OllamaProvider(base_url=base_url)
+            try:
+                details = info.model_info(model)
+            finally:
+                info.close()
+            if details:
+                messages.append(
+                    f"Model details: {details.get('parameter_size')} parameters, "
+                    f"quantization {details.get('quantization_level')}, "
+                    f"capabilities {details.get('capabilities')}."
+                )
+                if details.get("supports_thinking"):
+                    messages.append(
+                        "This model reports a thinking capability. Use --profile reasoning so "
+                        "the output budget covers the reasoning block, or --no-think to turn "
+                        "it off at the API."
+                    )
     else:
         ok = False
         messages.append(f"Unknown provider: {provider}. Use mock or ollama.")

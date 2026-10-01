@@ -13,7 +13,8 @@ from prompt_injection_eval.config import (
     default_model,
     env_base_url,
     env_keep_alive,
-    env_timeout,
+    env_timeout_override,
+    resolve_generation_limits,
 )
 from prompt_injection_eval.dataset import (
     DatasetError,
@@ -121,8 +122,12 @@ def run_cmd(
     difficulty: str | None = typer.Option(None, "--difficulty"),
     seed: int | None = typer.Option(None, "--seed"),
     temperature: float = typer.Option(0.0, "--temperature"),
-    max_tokens: int = typer.Option(256, "--max-tokens"),
-    timeout: float | None = typer.Option(None, "--timeout"),
+    max_tokens: int | None = typer.Option(
+        None, "--max-tokens", help="Default 256, or 4096 with --profile reasoning."
+    ),
+    timeout: float | None = typer.Option(
+        None, "--timeout", help="Seconds. Default 120, or 900 with --profile reasoning."
+    ),
     resume: bool = typer.Option(True, "--resume/--no-resume"),
     overwrite: bool = typer.Option(False, "--overwrite"),
     verbose: bool = typer.Option(False, "--verbose"),
@@ -130,6 +135,16 @@ def run_cmd(
     base_url: str | None = typer.Option(None, "--base-url", envvar="PIE_OLLAMA_BASE_URL"),
     task_mode: str = typer.Option("strict", "--task-mode", help="strict or lenient task scoring."),
     concurrency: int = typer.Option(1, "--concurrency"),
+    think: bool | None = typer.Option(
+        None,
+        "--think/--no-think",
+        help="Forward Ollama's think flag. Omit to keep the model's default.",
+    ),
+    profile: str = typer.Option(
+        "default",
+        "--profile",
+        help="'reasoning' raises max tokens and timeout for models that emit chain-of-thought.",
+    ),
 ) -> None:
     """Run the evaluation sequentially and append JSONL results as each unit finishes."""
     if condition not in {"baseline", "defended", "both"}:
@@ -141,7 +156,13 @@ def run_cmd(
     if task_mode not in {"strict", "lenient"}:
         typer.echo("Task mode must be strict or lenient.", err=True)
         raise typer.Exit(code=1)
+    if profile not in {"default", "reasoning"}:
+        typer.echo("Profile must be default or reasoning.", err=True)
+        raise typer.Exit(code=1)
     resolved_model = default_model(provider, model)
+    resolved_max_tokens, resolved_timeout = resolve_generation_limits(
+        profile=profile, max_tokens=max_tokens, timeout=env_timeout_override(timeout)
+    )
     config = RunConfig(
         provider=provider,  # type: ignore[arg-type]
         model=resolved_model,
@@ -154,8 +175,8 @@ def run_cmd(
         difficulty=difficulty,
         seed=seed,
         temperature=temperature,
-        max_output_tokens=max_tokens,
-        timeout_seconds=env_timeout(timeout),
+        max_output_tokens=resolved_max_tokens,
+        timeout_seconds=resolved_timeout,
         resume=resume,
         overwrite=overwrite,
         verbose=verbose,
@@ -163,6 +184,8 @@ def run_cmd(
         base_url=env_base_url(base_url),
         task_mode=task_mode,  # type: ignore[arg-type]
         concurrency=concurrency,
+        think=think,
+        profile=profile,  # type: ignore[arg-type]
     )
     typer.echo("Resolved run configuration:")
     typer.echo(json.dumps(config.public_dict(), indent=2, sort_keys=True))

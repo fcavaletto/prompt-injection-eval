@@ -17,6 +17,8 @@ from prompt_injection_eval.constants import (
     DEFAULT_OLLAMA_BASE_URL,
     DEFAULT_TEMPERATURE,
     DEFAULT_TIMEOUT_SECONDS,
+    REASONING_MAX_TOKENS,
+    REASONING_TIMEOUT_SECONDS,
 )
 
 
@@ -43,6 +45,9 @@ class RunConfig(BaseModel):
     base_url: str = DEFAULT_OLLAMA_BASE_URL
     task_mode: Literal["strict", "lenient"] = "strict"
     concurrency: int = DEFAULT_CONCURRENCY
+    # None leaves the runtime default. True or False is forwarded to Ollama as `think`.
+    think: bool | None = None
+    profile: Literal["default", "reasoning"] = "default"
 
     def public_dict(self) -> dict[str, object]:
         from prompt_injection_eval.privacy import display_path
@@ -70,13 +75,27 @@ def env_base_url(explicit: str | None) -> str:
     return os.environ.get("PIE_OLLAMA_BASE_URL", DEFAULT_OLLAMA_BASE_URL)
 
 
-def env_timeout(explicit: float | None) -> float:
+def env_timeout_override(explicit: float | None) -> float | None:
+    """CLI value, else PIE_TIMEOUT, else None so the profile default applies."""
     if explicit is not None:
         return explicit
     raw = os.environ.get("PIE_TIMEOUT")
     if raw:
         return float(raw)
-    return DEFAULT_TIMEOUT_SECONDS
+    return None
+
+
+def resolve_generation_limits(
+    *, profile: str, max_tokens: int | None, timeout: float | None
+) -> tuple[int, float]:
+    """Explicit values win. Otherwise the profile picks the defaults."""
+    if profile == "reasoning":
+        default_tokens, default_timeout = REASONING_MAX_TOKENS, REASONING_TIMEOUT_SECONDS
+    else:
+        default_tokens, default_timeout = DEFAULT_MAX_TOKENS, DEFAULT_TIMEOUT_SECONDS
+    tokens = max_tokens if max_tokens is not None else default_tokens
+    seconds = timeout if timeout is not None else default_timeout
+    return tokens, seconds
 
 
 def env_keep_alive(explicit: str | None) -> str | None:

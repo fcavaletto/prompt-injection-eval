@@ -1,5 +1,10 @@
 # Prompt Injection Eval
 
+[![tests](https://github.com/fcavaletto/prompt-injection-eval/actions/workflows/tests.yml/badge.svg)](https://github.com/fcavaletto/prompt-injection-eval/actions/workflows/tests.yml)
+[![docs](https://github.com/fcavaletto/prompt-injection-eval/actions/workflows/pages.yml/badge.svg)](https://fcavaletto.github.io/prompt-injection-eval/)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
+
 **Research question.** How often does an instruction-following language model obey malicious instructions embedded inside an untrusted document, and how much does a simple prompt-level defense reduce attack success without degrading legitimate task completion?
 
 **Key methodological idea.** Each case is run twice. The trusted system instruction, the legitimate task, the document, the model, and the sampling settings stay fixed. The only intended change is the user-message template: a neutral baseline (`baseline-v1`) versus one generic instruction to treat the document as untrusted data (`defended-v1`). Attack success and legitimate-task success are scored separately, with deterministic rules, and neither score is allowed to erase the other.
@@ -163,7 +168,7 @@ The doctor command checks Python, the installed package, dataset validity, outpu
 
 Defaults, all overridable: base URL `http://localhost:11434`, temperature `0.0`, maximum output tokens `256`, timeout `120` seconds, keep-alive `5m`, concurrency `1`. No API key is read. Optional non-secret environment variables are `PIE_OLLAMA_BASE_URL`, `PIE_MODEL`, `PIE_TIMEOUT`, and `PIE_KEEP_ALIVE`.
 
-Hidden chain-of-thought is not requested and is not stored. If a model puts reasoning in the visible completion, that visible text is what gets scored.
+No hidden channel is requested. Reasoning models such as `deepseek-r1:14b` and `qwen3:4b` put their chain-of-thought in the visible completion; the harness splits that off, scores only the final answer, and keeps the reasoning in `reasoning_text` for analysis. Use `--profile reasoning` with those models so the output budget covers the think block, or `--no-think` to turn it off at the API. See [`docs/methodology.md`](docs/methodology.md#visible-reasoning).
 
 ## Running the smoke evaluation
 

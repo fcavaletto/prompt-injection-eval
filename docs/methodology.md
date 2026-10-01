@@ -50,6 +50,20 @@ Not fully controlled:
 
 Defaults: temperature 0.0, maximum output tokens 256, timeout 120 seconds, concurrency 1, Ollama keep-alive `5m`. Results record the resolved values.
 
+`--profile reasoning` raises the defaults to 4096 output tokens and a 900 second timeout. Reasoning models spend most of their budget on visible chain-of-thought, and a 256-token cap would cut them off before the answer.
+
+## Visible reasoning
+
+Reasoning-tuned models such as DeepSeek-R1 distills and Qwen3 emit their chain-of-thought as part of the completion: either in a separate `thinking` field from Ollama, or inline between `<think>` tags. This is visible model output, not a hidden channel. The harness never requests anything the runtime would not otherwise return.
+
+Handling:
+
+- Only the final answer is scored. The provider splits the reasoning off before scoring, and the scorers strip a leading think block again defensively.
+- `response_text` is the scored answer. `response_text_raw` is the completion as returned. `reasoning_text`, `reasoning_present`, `reasoning_truncated`, and `reasoning_tokens_estimate` are stored alongside.
+- Reasoning is kept because it shows why a model complied or refused. That is useful for failure analysis and for teaching. It is never treated as the answer.
+- If generation stops inside the think block, the answer is empty. The unit is scored as attack failure and task failure, and the review reason says the reasoning was truncated. Reports count these units separately; they are budget failures, not evidence of robustness.
+- `--think` and `--no-think` forward Ollama's `think` flag. Omitting both keeps the model default. The flag is part of the resume key because it changes behavior.
+
 ## Paired comparison
 
 For each case that has both conditions under the same provider, model, dataset hash, temperature, seed, maximum tokens, and scorer version, the defense effect is one of:

@@ -16,6 +16,7 @@ from prompt_injection_eval.outcome import classify_outcome
 from prompt_injection_eval.privacy import platform_summary, python_version, sanitize_text
 from prompt_injection_eval.prompts import conditions_for, render_prompt
 from prompt_injection_eval.providers.base import GenerationRequest, GenerationResponse, Provider
+from prompt_injection_eval.reasoning import estimate_tokens
 from prompt_injection_eval.results_io import (
     ResultsError,
     append_result,
@@ -96,6 +97,7 @@ def run_evaluation(config: RunConfig, provider: Provider) -> RunSummary:
                 max_output_tokens=config.max_output_tokens,
                 prompt_template_version=prompt.template_version,
                 dataset_sha256=validation.sha256,
+                think=config.think,
             )
             if config.resume and key in completed:
                 skipped += 1
@@ -149,7 +151,7 @@ def _generate(
         seed=config.seed,
         max_output_tokens=config.max_output_tokens,
         timeout_seconds=config.timeout_seconds,
-        provider_settings={"keep_alive": config.keep_alive},
+        provider_settings={"keep_alive": config.keep_alive, "think": config.think},
         metadata={"case_id": case_id, "condition": condition},
     )
     try:
@@ -212,7 +214,16 @@ def _build_record(
         "prompt_template_version": template_version,
         "system_message": system_message,
         "user_message": user_message,
+        # response_text is the scored final answer. response_text_raw is the
+        # completion as returned, including any inline reasoning block.
         "response_text": response.text,
+        "response_text_raw": response.raw_text if response.raw_text is not None else response.text,
+        "reasoning_text": response.reasoning_text,
+        "reasoning_present": response.reasoning_text is not None,
+        "reasoning_truncated": response.reasoning_truncated,
+        "reasoning_tokens_estimate": estimate_tokens(response.reasoning_text),
+        "think": config.think,
+        "profile": config.profile,
         "temperature": config.temperature,
         "seed": config.seed,
         "max_output_tokens": config.max_output_tokens,
@@ -270,7 +281,9 @@ def _review_reasons(
     completion = response.completion_token_count
     if completion is not None and completion >= config.max_output_tokens:
         truncated = True
-    if truncated:
+    if response.reasoning_truncated:
+        reasons.append("Reasoning block truncated before a final answer.")
+    elif truncated:
         reasons.append("Backend response metadata suggesting truncation.")
     return reasons
 

@@ -26,6 +26,7 @@ def unit_key(
     prompt_template_version: str,
     dataset_sha256: str,
     scorer_version: str = SCORER_BUNDLE_VERSION,
+    think: bool | None = None,
 ) -> str:
     payload = {
         "case_id": case_id,
@@ -38,6 +39,7 @@ def unit_key(
         "prompt_template_version": prompt_template_version,
         "dataset_sha256": dataset_sha256,
         "scorer_version": scorer_version,
+        "think": think,
     }
     return json.dumps(payload, sort_keys=True, separators=(",", ":"))
 

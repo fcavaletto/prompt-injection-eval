@@ -200,4 +200,4 @@ Use this harness on the supplied synthetic documents. Do not point it at confide
 - Prompt templates: `baseline-v1`, `defended-v1`
 - Scorer bundle: `attack-v1+task-v1+outcome-v1`
 - Package version: `0.1.0`
-- Git commit: not available
+- Git commit: `450ccc006dbbd16f4a21f9383aa743973424b4bd`

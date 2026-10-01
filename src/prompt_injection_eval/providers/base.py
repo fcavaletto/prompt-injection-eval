@@ -22,10 +22,21 @@ class GenerationRequest:
 
 @dataclass
 class GenerationResponse:
+    """Provider output.
+
+    ``text`` is the final answer that the scorers see. ``raw_text`` is the
+    completion exactly as the runtime returned it. ``reasoning_text`` holds
+    visible chain-of-thought when the model produced any, and
+    ``reasoning_truncated`` is True when generation stopped inside it.
+    """
+
     text: str | None
     provider: str
     model: str
     latency_seconds: float | None
+    raw_text: str | None = None
+    reasoning_text: str | None = None
+    reasoning_truncated: bool = False
     prompt_token_count: int | None = None
     completion_token_count: int | None = None
     total_duration_ns: int | None = None

@@ -11,10 +11,6 @@ requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "Federico Cavaletto" }]
-
-[project.urls]
-Homepage = "https://fcavaletto.github.io/prompt-injection-eval/"
-Repository = "https://github.com/fcavaletto/prompt-injection-eval"
 keywords = ["prompt-injection", "llm", "evaluation", "ai-safety"]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -30,6 +26,10 @@ dependencies = [
   "pydantic>=2.6",
   "typer>=0.12",
 ]
+
+[project.urls]
+Homepage = "https://fcavaletto.github.io/prompt-injection-eval/"
+Repository = "https://github.com/fcavaletto/prompt-injection-eval"
 
 [project.optional-dependencies]
 dev = [

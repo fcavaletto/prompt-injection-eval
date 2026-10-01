@@ -2,7 +2,11 @@
 
 Seeding is forwarded when a seed is configured. Not every Ollama build or model
 tag honors the seed, so a fixed seed is not a determinism guarantee.
-Hidden chain-of-thought fields are not requested and are not stored.
+
+Reasoning models return visible chain-of-thought either in a separate
+``message.thinking`` field or inline as ``<think>`` tags. Both are captured as
+``reasoning_text`` and removed from the scored answer. No hidden channel is
+requested; only what the runtime returns is stored.
 """
 
 from __future__ import annotations
@@ -15,6 +19,7 @@ import httpx
 from prompt_injection_eval.constants import DEFAULT_KEEP_ALIVE, DEFAULT_OLLAMA_BASE_URL
 from prompt_injection_eval.privacy import sanitize_text
 from prompt_injection_eval.providers.base import GenerationRequest, GenerationResponse
+from prompt_injection_eval.reasoning import split_reasoning
 
 
 class OllamaProvider:
@@ -73,7 +78,16 @@ class OllamaProvider:
                 error_message="Ollama returned no assistant message content.",
                 provider_metadata={"synthetic_mock": False},
             )
-        # message["thinking"] is intentionally ignored.
+        raw_content: str = message["content"]
+        split = split_reasoning(raw_content)
+        field_thinking = message.get("thinking")
+        reasoning = split.reasoning
+        if isinstance(field_thinking, str) and field_thinking.strip():
+            reasoning = (
+                field_thinking.strip()
+                if reasoning is None
+                else field_thinking.strip() + "\n\n" + reasoning
+            )
         metadata = {
             "done": data.get("done"),
             "done_reason": data.get("done_reason"),
@@ -82,9 +96,14 @@ class OllamaProvider:
             "prompt_eval_duration": data.get("prompt_eval_duration"),
             "eval_duration": data.get("eval_duration"),
             "reported_model": data.get("model"),
+            "thinking_field_present": isinstance(field_thinking, str),
+            "inline_think_tags": split.reasoning is not None or split.truncated,
         }
         return GenerationResponse(
-            text=message["content"],
+            text=split.answer,
+            raw_text=raw_content,
+            reasoning_text=reasoning,
+            reasoning_truncated=split.truncated,
             provider=self.name,
             model=str(data.get("model") or request.model),
             latency_seconds=latency,
@@ -129,6 +148,27 @@ class OllamaProvider:
             f"Install it with `ollama pull {model}`.",
         ]
 
+    def model_info(self, model: str) -> dict[str, Any]:
+        """Capabilities, quantization, and parameter size reported by /api/show."""
+        try:
+            response = self._client.post("/api/show", json={"model": model}, timeout=10.0)
+            response.raise_for_status()
+            payload = response.json()
+        except (httpx.HTTPError, ValueError):
+            return {}
+        if not isinstance(payload, dict):
+            return {}
+        raw_details = payload.get("details")
+        details: dict[str, Any] = raw_details if isinstance(raw_details, dict) else {}
+        capabilities = payload.get("capabilities")
+        return {
+            "capabilities": capabilities if isinstance(capabilities, list) else [],
+            "supports_thinking": isinstance(capabilities, list) and "thinking" in capabilities,
+            "quantization_level": details.get("quantization_level"),
+            "parameter_size": details.get("parameter_size"),
+            "family": details.get("family"),
+        }
+
     def _payload(self, request: GenerationRequest) -> dict[str, Any]:
         options: dict[str, Any] = {
             "temperature": request.temperature,
@@ -148,6 +188,9 @@ class OllamaProvider:
         keep_alive = request.provider_settings.get("keep_alive", self.keep_alive)
         if keep_alive is not None:
             payload["keep_alive"] = keep_alive
+        think = request.provider_settings.get("think")
+        if think is not None:
+            payload["think"] = bool(think)
         return payload
 
     def _failure(
