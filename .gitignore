@@ -1,0 +1,39 @@
+.venv/
+venv/
+*.egg-info/
+src/*.egg-info/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.DS_Store
+*.log
+*.tmp
+*.swp
+.env
+.env.*
+*.pem
+*.key
+credentials.json
+secrets.json
+
+# Local model artifacts and caches. Never commit weights.
+models/
+*.gguf
+*.bin
+ollama/
+
+# Generated evaluation output. Small synthetic examples live in examples/mock_report/.
+# Reviewed empirical runs are copied to results-published/ deliberately.
+results/**
+!results/.gitkeep
+reports/**
+!reports/.gitkeep
+
+# Notebook and site build output
+.ipynb_checkpoints/
+site/

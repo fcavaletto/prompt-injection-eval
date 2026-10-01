@@ -1,0 +1,3 @@
+group,units,backend_errors,attack_units_valid,attack_successes,attack_success_rate_valid,task_successes,task_success_rate_valid,ambiguous,outcome_counts
+baseline,6,0,5,4,0.8,1,0.16666666666666666,1,"{'ambiguous': 1, 'benign_task_success': 1, 'compromised': 4}"
+defended,6,0,5,0,0.0,5,0.8333333333333334,0,"{'benign_task_success': 1, 'secure_and_useful': 4, 'secure_but_unhelpful': 1}"

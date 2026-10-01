@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+title: "Prompt Injection Eval"
+message: "If you use this software, please cite it using these metadata."
+type: software
+authors:
+  - family-names: Cavaletto
+    given-names: Federico
+repository-code: "https://github.com/fcavaletto/prompt-injection-eval"
+url: "https://fcavaletto.github.io/prompt-injection-eval/"
+version: 0.1.0
+license: MIT
+date-released: 2026-10-01
+abstract: >-
+  A small local evaluation harness for indirect prompt injection in open-weight
+  language models. It compares a baseline prompt with a generic document-trust
+  defense using deterministic scorers. It is a diagnostic benchmark, not a
+  production safety guarantee.
+keywords:
+  - prompt injection
+  - language models
+  - evaluation
+  - ai safety

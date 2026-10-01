@@ -1,0 +1,404 @@
+{
+  "schema_version": "1.0",
+  "description": "Strict schema for one indirect prompt-injection evaluation case. Benign controls set attack_goal to null. Attack cases require an attack_goal.",
+  "case": {
+    "$defs": {
+      "Category": {
+        "enum": [
+          "benign_control",
+          "direct_override",
+          "role_impersonation",
+          "delimiter_escape",
+          "fake_system_message",
+          "metadata_injection",
+          "encoded_or_obfuscated_instruction",
+          "instruction_hidden_in_prose",
+          "output_format_hijack",
+          "synthetic_secret_exfiltration"
+        ],
+        "title": "Category",
+        "type": "string"
+      },
+      "ContainsAllTask": {
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "contains_all",
+            "title": "Type",
+            "type": "string"
+          },
+          "values": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "minItems": 1,
+            "title": "Values",
+            "type": "array"
+          }
+        },
+        "required": [
+          "type",
+          "values"
+        ],
+        "title": "ContainsAllTask",
+        "type": "object"
+      },
+      "Difficulty": {
+        "enum": [
+          "easy",
+          "medium",
+          "hard"
+        ],
+        "title": "Difficulty",
+        "type": "string"
+      },
+      "ExactMatchTask": {
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "exact_match",
+            "title": "Type",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "type",
+          "value"
+        ],
+        "title": "ExactMatchTask",
+        "type": "object"
+      },
+      "ExactOutputGoal": {
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "exact_output",
+            "title": "Type",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "target"
+        ],
+        "title": "ExactOutputGoal",
+        "type": "object"
+      },
+      "ForcedJsonGoal": {
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "forced_json",
+            "title": "Type",
+            "type": "string"
+          },
+          "target": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Target",
+            "type": "object"
+          }
+        },
+        "required": [
+          "type",
+          "target"
+        ],
+        "title": "ForcedJsonGoal",
+        "type": "object"
+      },
+      "FormatHijackGoal": {
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "format_hijack",
+            "title": "Type",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "target"
+        ],
+        "title": "FormatHijackGoal",
+        "type": "object"
+      },
+      "JsonFieldsTask": {
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "json_fields",
+            "title": "Type",
+            "type": "string"
+          },
+          "values": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "minProperties": 1,
+            "title": "Values",
+            "type": "object"
+          }
+        },
+        "required": [
+          "type",
+          "values"
+        ],
+        "title": "JsonFieldsTask",
+        "type": "object"
+      },
+      "LabelMatchTask": {
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "label_match",
+            "title": "Type",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "type",
+          "value"
+        ],
+        "title": "LabelMatchTask",
+        "type": "object"
+      },
+      "SecretDisclosureGoal": {
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "synthetic_secret_disclosure",
+            "title": "Type",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "target"
+        ],
+        "title": "SecretDisclosureGoal",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "id": {
+        "minLength": 1,
+        "title": "Id",
+        "type": "string"
+      },
+      "category": {
+        "$ref": "#/$defs/Category"
+      },
+      "difficulty": {
+        "$ref": "#/$defs/Difficulty"
+      },
+      "is_attack": {
+        "title": "Is Attack",
+        "type": "boolean"
+      },
+      "system_instruction": {
+        "minLength": 1,
+        "title": "System Instruction",
+        "type": "string"
+      },
+      "user_task": {
+        "minLength": 1,
+        "title": "User Task",
+        "type": "string"
+      },
+      "document": {
+        "minLength": 1,
+        "title": "Document",
+        "type": "string"
+      },
+      "attack_goal": {
+        "anyOf": [
+          {
+            "discriminator": {
+              "mapping": {
+                "exact_output": "#/$defs/ExactOutputGoal",
+                "forced_json": "#/$defs/ForcedJsonGoal",
+                "format_hijack": "#/$defs/FormatHijackGoal",
+                "synthetic_secret_disclosure": "#/$defs/SecretDisclosureGoal"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/ExactOutputGoal"
+              },
+              {
+                "$ref": "#/$defs/ForcedJsonGoal"
+              },
+              {
+                "$ref": "#/$defs/FormatHijackGoal"
+              },
+              {
+                "$ref": "#/$defs/SecretDisclosureGoal"
+              }
+            ]
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Attack Goal"
+      },
+      "expected_task": {
+        "discriminator": {
+          "mapping": {
+            "contains_all": "#/$defs/ContainsAllTask",
+            "exact_match": "#/$defs/ExactMatchTask",
+            "json_fields": "#/$defs/JsonFieldsTask",
+            "label_match": "#/$defs/LabelMatchTask"
+          },
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/ExactMatchTask"
+          },
+          {
+            "$ref": "#/$defs/LabelMatchTask"
+          },
+          {
+            "$ref": "#/$defs/ContainsAllTask"
+          },
+          {
+            "$ref": "#/$defs/JsonFieldsTask"
+          }
+        ],
+        "title": "Expected Task"
+      },
+      "tags": {
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1,
+        "title": "Tags",
+        "type": "array"
+      },
+      "notes": {
+        "minLength": 1,
+        "title": "Notes",
+        "type": "string"
+      }
+    },
+    "required": [
+      "id",
+      "category",
+      "difficulty",
+      "is_attack",
+      "system_instruction",
+      "user_task",
+      "document",
+      "attack_goal",
+      "expected_task",
+      "tags",
+      "notes"
+    ],
+    "title": "EvalCase",
+    "type": "object"
+  }
+}

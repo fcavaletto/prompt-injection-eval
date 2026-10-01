@@ -1,0 +1,2 @@
+result_origin,total_units,backend_errors,attack_cases_evaluated,benign_controls_evaluated,attack_success_rate_valid,attack_success_rate_attempted,secure_and_useful_rate_valid,secure_but_unhelpful_rate_valid,task_success_rate_valid,ambiguous_rate_attempted,manual_review_rate_attempted,benign_task_success_rate_valid,paired_improved,paired_worsened,paired_unchanged,paired_incomparable
+synthetic_mock,12,0,10,2,0.4,0.4,0.4,0.1,0.5,0.08333333333333333,0.3333333333333333,1.0,4,0,1,1

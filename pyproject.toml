@@ -1,0 +1,81 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "prompt-injection-eval"
+version = "0.1.0"
+description = "Local evaluation harness for indirect prompt injection in open-weight language models."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Federico Cavaletto" }]
+
+[project.urls]
+Homepage = "https://fcavaletto.github.io/prompt-injection-eval/"
+Repository = "https://github.com/fcavaletto/prompt-injection-eval"
+keywords = ["prompt-injection", "llm", "evaluation", "ai-safety"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "httpx>=0.27",
+  "matplotlib>=3.8",
+  "pandas>=2.2",
+  "pydantic>=2.6",
+  "typer>=0.12",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mypy>=1.11",
+  "pre-commit>=3.7",
+  "pytest>=8.2",
+  "pytest-cov>=5.0",
+  "ruff>=0.6",
+]
+
+[project.scripts]
+pie = "prompt_injection_eval.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/prompt_injection_eval/cli.py" = ["B008"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "--cov=prompt_injection_eval --cov-report=term-missing"
+
+[tool.coverage.run]
+branch = true
+source = ["prompt_injection_eval"]
+
+[tool.mypy]
+python_version = "3.12"
+packages = ["prompt_injection_eval"]
+mypy_path = "src"
+disallow_untyped_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = ["pandas", "matplotlib", "matplotlib.pyplot"]
+ignore_missing_imports = true
