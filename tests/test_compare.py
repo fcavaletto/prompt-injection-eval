@@ -11,6 +11,7 @@ from prompt_injection_eval.config import RunConfig
 from prompt_injection_eval.metrics import (
     by_model_condition,
     paired_by_model,
+    paired_comparisons,
     repeat_variability,
     scorer_agreement,
 )
@@ -76,6 +77,46 @@ def test_paired_by_model_keeps_models_apart() -> None:
     assert per_model["model-b"]["unchanged"] == 1
     assert per_model["model-a"]["baseline_attack_success_rate"] == 1.0
     assert per_model["model-a"]["defended_attack_success_rate"] == 0.0
+
+
+def test_paired_comparisons_one_per_defense() -> None:
+    rows = [
+        _row(case_id="a", attack_score="success", outcome="compromised"),
+        _row(case_id="a", condition="defended"),
+        _row(case_id="a", condition="spotlight", attack_score="success", outcome="compromised"),
+    ]
+    both = paired_comparisons(rows)
+    assert list(both) == ["defended", "spotlight"]
+    assert both["defended"]["improved"] == 1
+    assert both["defended"]["defense_condition"] == "defended"
+    assert both["spotlight"]["unchanged"] == 1
+    assert both["spotlight"]["rows"][0]["defense_condition"] == "spotlight"
+    per_model = paired_by_model(rows)
+    assert [item["defense_condition"] for item in per_model] == ["defended", "spotlight"]
+
+
+def test_analyze_with_all_conditions_writes_per_defense_outputs(tmp_path: Path) -> None:
+    run_dir = _mock_run(tmp_path, "all", "mock-alpha", "all")
+    out = tmp_path / "report"
+    result = CliRunner().invoke(
+        app, ["analyze", "--input-dir", str(run_dir), "--output-dir", str(out)]
+    )
+    assert result.exit_code == 0, result.output
+    assert (out / "paired_comparison.csv").is_file()
+    assert (out / "paired_comparison_spotlight.csv").is_file()
+    assert (out / "security_utility_matrix_spotlight.png").is_file()
+    text = (out / "report.md").read_text(encoding="utf-8")
+    assert "comparison: defended-v1" in text
+    assert "comparison: spotlight (defended-v2)" in text
+    assert "datamarking" in text
+    assert "--condition all" in text
+    rows, _ = load_results(run_dir / "raw_results.jsonl")
+    assert {row["condition"] for row in rows} == {"baseline", "defended", "spotlight"}
+    assert {row["prompt_template_version"] for row in rows} == {
+        "baseline-v1",
+        "defended-v1",
+        "defended-v2",
+    }
 
 
 def test_scorer_agreement_counts_only_labelled_rows() -> None:

@@ -119,7 +119,11 @@ def run_cmd(
     provider: str = typer.Option(..., "--provider", help="ollama or mock."),
     model: str | None = typer.Option(None, "--model", envvar="PIE_MODEL"),
     dataset: Path = typer.Option(..., "--dataset"),
-    condition: str = typer.Option(..., "--condition", help="baseline, defended, or both."),
+    condition: str = typer.Option(
+        ...,
+        "--condition",
+        help="baseline, defended, spotlight, both (baseline+defended), or all.",
+    ),
     output_dir: Path = typer.Option(..., "--output-dir"),
     limit: int | None = typer.Option(None, "--limit"),
     case_id: list[str] | None = typer.Option(None, "--case-id"),
@@ -152,8 +156,8 @@ def run_cmd(
     ),
 ) -> None:
     """Run the evaluation sequentially and append JSONL results as each unit finishes."""
-    if condition not in {"baseline", "defended", "both"}:
-        typer.echo("Condition must be baseline, defended, or both.", err=True)
+    if condition not in {"baseline", "defended", "spotlight", "both", "all"}:
+        typer.echo("Condition must be baseline, defended, spotlight, both, or all.", err=True)
         raise typer.Exit(code=1)
     if provider not in {"mock", "ollama"}:
         typer.echo("Provider must be mock or ollama.", err=True)

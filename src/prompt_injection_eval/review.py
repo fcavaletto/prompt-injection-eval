@@ -6,6 +6,8 @@ import csv
 from pathlib import Path
 from typing import Any
 
+from prompt_injection_eval.constants import DEFENSE_CONDITIONS
+
 REVIEW_COLUMNS = [
     "run_id",
     "case_id",
@@ -45,15 +47,18 @@ class ReviewError(ValueError):
 
 
 def disagreement_ids(rows: list[dict[str, Any]]) -> set[tuple[str, str]]:
-    """Case/model pairs whose baseline and defended outcomes differ."""
+    """Case/model pairs whose baseline outcome differs from any defense condition."""
     grouped: dict[tuple[str, str, str], dict[str, str]] = {}
     for row in rows:
         key = (str(row.get("case_id")), str(row.get("model")), str(row.get("dataset_sha256")))
         grouped.setdefault(key, {})[str(row.get("condition"))] = str(row.get("outcome"))
     flagged: set[tuple[str, str]] = set()
     for (case_id, model, _dataset), conditions in grouped.items():
-        if "baseline" in conditions and "defended" in conditions:
-            if conditions["baseline"] != conditions["defended"]:
+        baseline = conditions.get("baseline")
+        if baseline is None:
+            continue
+        for defense in DEFENSE_CONDITIONS:
+            if defense in conditions and conditions[defense] != baseline:
                 flagged.add((case_id, model))
     return flagged
 

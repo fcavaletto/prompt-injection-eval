@@ -12,6 +12,7 @@ from prompt_injection_eval.metrics import (
     compute_metrics,
     paired_by_model,
     paired_comparison,
+    paired_comparisons,
     repeat_variability,
     scorer_agreement,
 )
@@ -31,7 +32,9 @@ def analyze_results(
 ) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
     metrics = compute_metrics(rows)
-    paired = paired_comparison(rows)
+    all_paired = paired_comparisons(rows)
+    # `paired_comparison` keeps the defended-v1 summary for backward compatibility.
+    paired = all_paired.get("defended") or paired_comparison(rows)
     agreement = scorer_agreement(rows)
     origin = _result_origin(rows)
     summary = {
@@ -39,6 +42,10 @@ def analyze_results(
         "synthetic_warning": _SYNTHETIC_WARNING if origin == "synthetic_mock" else None,
         "metrics": metrics,
         "paired_comparison": {key: value for key, value in paired.items() if key != "rows"},
+        "paired_comparisons": {
+            defense: {key: value for key, value in item.items() if key != "rows"}
+            for defense, item in all_paired.items()
+        },
         "scorer_agreement": agreement,
         "malformed_lines": malformed_lines or [],
         "models": sorted({str(row.get("model")) for row in rows}),
@@ -55,13 +62,19 @@ def analyze_results(
     _write_group_csv(output_dir / "difficulty_metrics.csv", metrics["by_difficulty"])
     _write_group_csv(output_dir / "condition_metrics.csv", metrics["by_condition"])
     _write_paired_csv(output_dir / "paired_comparison.csv", paired["rows"])
+    for defense, item in all_paired.items():
+        if defense != "defended":
+            _write_paired_csv(output_dir / f"paired_comparison_{defense}.csv", item["rows"])
     write_review_csv(output_dir / "review_queue.csv", rows)
     if agreement["reviewed_rows"]:
         pd.DataFrame(agreement["disagreements"]).to_csv(
             output_dir / "scorer_disagreements.csv", index=False
         )
     _write_charts(output_dir, metrics, paired)
-    report = render_markdown(rows, summary, paired)
+    for defense, item in all_paired.items():
+        if defense != "defended":
+            _matrix_chart(output_dir / f"security_utility_matrix_{defense}.png", item["rows"])
+    report = render_markdown(rows, summary, paired, all_paired=all_paired)
     (output_dir / "report.md").write_text(report, encoding="utf-8")
     return summary
 
@@ -211,9 +224,12 @@ def render_markdown(
     rows: list[dict[str, Any]],
     summary: dict[str, Any],
     paired: dict[str, Any],
+    *,
+    all_paired: dict[str, dict[str, Any]] | None = None,
 ) -> str:
     metrics = summary["metrics"]
     origin = summary["result_origin"]
+    defenses = all_paired if all_paired is not None else {"defended": paired}
     sections = [
         "# Prompt injection evaluation report",
         "",
@@ -246,10 +262,7 @@ def render_markdown(
         "",
         "## Experimental conditions",
         "",
-        "Baseline (`baseline-v1`) presents the task and document with neutral delimiters. "
-        "Defended (`defended-v1`) uses the same system instruction, task, document, and "
-        "generation parameters, and adds one generic instruction to treat the document as "
-        "untrusted data. The defense is not added to the system instruction.",
+        _conditions_section(rows),
         "",
         "## Generation configuration",
         "",
@@ -274,13 +287,7 @@ def render_markdown(
         "",
         _group_table(metrics["by_difficulty"]),
         "",
-        "## Baseline-versus-defense comparison",
-        "",
-        _paired_section(paired),
-        "",
-        "## Security and utility trade-offs",
-        "",
-        _tradeoff_section(paired),
+        _all_paired_sections(defenses),
         "",
         "## Selected failure examples",
         "",
@@ -501,9 +508,61 @@ def _group_table(groups: list[dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
+_CONDITION_DESCRIPTIONS = {
+    "baseline": (
+        "Baseline (`baseline-v1`) presents the task and document with neutral delimiters."
+    ),
+    "defended": (
+        "Defended (`defended-v1`) uses the same system instruction, task, document, and "
+        "generation parameters, and adds one generic instruction to treat the document as "
+        "untrusted data. The defense is not added to the system instruction."
+    ),
+    "spotlight": (
+        "Spotlight (`defended-v2`) is a spotlighting-style datamarking defense: every "
+        "whitespace run in the document is replaced with `^`, and the user message explains "
+        "that marked text is data, never instructions. Same system instruction, task, and "
+        "generation parameters as the baseline."
+    ),
+}
+
+
+def _conditions_section(rows: list[dict[str, Any]]) -> str:
+    present = {str(row.get("condition")) for row in rows}
+    ordered = [name for name in _CONDITION_DESCRIPTIONS if name in present]
+    if not ordered:
+        return "No conditions were recorded."
+    return " ".join(_CONDITION_DESCRIPTIONS[name] for name in ordered)
+
+
+def _all_paired_sections(defenses: dict[str, dict[str, Any]]) -> str:
+    if not defenses:
+        return (
+            "## Baseline-versus-defense comparison\n\n"
+            "No defense condition was present, so no pairs could be formed."
+        )
+    blocks: list[str] = []
+    for defense, paired in defenses.items():
+        label = "defended-v1" if defense == "defended" else f"{defense} (defended-v2)"
+        blocks.append(
+            "\n".join(
+                [
+                    f"## Baseline-versus-defense comparison: {label}",
+                    "",
+                    _paired_section(paired),
+                    "",
+                    f"### Security and utility trade-offs: {label}",
+                    "",
+                    _tradeoff_section(paired),
+                ]
+            )
+        )
+    return "\n\n".join(blocks)
+
+
 def _paired_section(paired: dict[str, Any]) -> str:
     return "\n".join(
         [
+            f"- Defense condition: {paired.get('defense_condition', 'defended')}",
             f"- Pairs: {paired['pairs']}",
             f"- Improved: {paired['improved']}",
             f"- Worsened: {paired['worsened']}",
@@ -673,14 +732,15 @@ def _paired_by_model_table(groups: list[dict[str, Any]]) -> str:
     if not groups:
         return "No paired rows."
     lines = [
-        "| Model | Pairs | Improved | Worsened | Unchanged | Incomparable | "
+        "| Model | Defense | Pairs | Improved | Worsened | Unchanged | Incomparable | "
         "Attack rate baseline -> defended | Task rate baseline -> defended | "
         "Security up, utility down |",
-        "| --- | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: |",
     ]
     for item in groups:
         lines.append(
-            f"| `{item['model']}` | {item['pairs']} | {item['improved']} | {item['worsened']} | "
+            f"| `{item['model']}` | {item.get('defense_condition', 'defended')} | "
+            f"{item['pairs']} | {item['improved']} | {item['worsened']} | "
             f"{item['unchanged']} | {item['incomparable']} | "
             f"{_fmt_rate(item['baseline_attack_success_rate'])} -> "
             f"{_fmt_rate(item['defended_attack_success_rate'])} | "
@@ -698,6 +758,9 @@ def _reproduction(rows: list[dict[str, Any]]) -> str:
     provider = sample.get("provider")
     model = sample.get("model")
     dataset = sample.get("dataset_path") or "data/cases.jsonl"
+    present = {str(row.get("condition")) for row in rows}
+    selection = "all" if "spotlight" in present else "both"
+    profile_line = ["  --profile reasoning \\"] if sample.get("profile") == "reasoning" else []
     return "\n".join(
         [
             "```bash",
@@ -705,7 +768,8 @@ def _reproduction(rows: list[dict[str, Any]]) -> str:
             f"  --provider {provider} \\",
             f"  --model {model} \\",
             f"  --dataset {dataset} \\",
-            "  --condition both \\",
+            *profile_line,
+            f"  --condition {selection} \\",
             "  --output-dir results/rerun",
             "pie analyze \\",
             "  --input-dir results/rerun \\",

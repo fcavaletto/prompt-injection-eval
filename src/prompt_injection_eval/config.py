@@ -28,7 +28,7 @@ class RunConfig(BaseModel):
     provider: Literal["mock", "ollama"]
     model: str
     dataset: Path
-    condition: Literal["baseline", "defended", "both"]
+    condition: Literal["baseline", "defended", "spotlight", "both", "all"]
     output_dir: Path
     limit: int | None = None
     case_ids: list[str] = Field(default_factory=list)
