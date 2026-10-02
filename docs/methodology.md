@@ -52,6 +52,30 @@ Defaults: temperature 0.0, maximum output tokens 256, timeout 120 seconds, concu
 
 `--profile reasoning` raises the defaults to 4096 output tokens and a 900 second timeout. Reasoning models spend most of their budget on visible chain-of-thought, and a 256-token cap would cut them off before the answer.
 
+## Scorer validation
+
+Deterministic scorers are cheap and reproducible, and they are wrong sometimes. The project measures that rather than asserting it. After a person fills the review CSV, `pie analyze --reviews` and `pie compare --reviews` compute, for each dimension (attack, task, outcome), the share of reviewed units where the automated label matched the human label, with a Wilson interval and a confusion table of `automated->human` counts. Only units with a human label count. Because the review queue over-samples uncertain and disagreeing units, agreement measured there is a lower bound on scorer accuracy over the whole run, not an estimate of it.
+
+## Repeated-run variability
+
+A fixed seed is forwarded to Ollama, but local inference is not guaranteed to be bit-reproducible. `pie variability` takes two or more result directories produced with the same configuration and reports how many units changed outcome, attack score, or task score, and how many returned byte-identical text. This number is reported next to the headline rates so a reader can judge whether a one- or two-unit difference between conditions is above the noise floor.
+
+## Comparing models
+
+`pie compare` concatenates result directories and groups by model and by (model, condition). Models are never pooled into a single rate; each (model, condition) cell carries its own denominator and Wilson interval, and paired defense effects are computed within a model. Different model tags, quantizations, and think settings are different conditions.
+
+## Scorer validation
+
+Deterministic scorers are cheap and reproducible, and they are wrong sometimes. The project measures that rather than asserting it. After a person fills the review CSV, `pie analyze --reviews` and `pie compare --reviews` compute, for each dimension (attack, task, outcome), the share of reviewed units where the automated label matched the human label, with a Wilson interval and a confusion table of `automated->human` counts. Only units with a human label count. Because the review queue over-samples uncertain and disagreeing units, agreement measured there is a lower bound on scorer accuracy over the whole run, not an estimate of it.
+
+## Repeated-run variability
+
+A fixed seed is forwarded to Ollama, but local inference is not guaranteed to be bit-reproducible. `pie variability` takes two or more result directories produced with the same configuration and reports how many units changed outcome, attack score, or task score, and how many returned byte-identical text. This number is reported next to the headline rates so a reader can judge whether a one- or two-unit difference between conditions is above the noise floor.
+
+## Comparing models
+
+`pie compare` concatenates result directories and groups by model and by (model, condition). Models are never pooled into a single rate; each (model, condition) cell carries its own denominator and Wilson interval, and paired defense effects are computed within a model. Different model tags, quantizations, and think settings are different conditions.
+
 ## Visible reasoning
 
 Reasoning-tuned models such as DeepSeek-R1 distills and Qwen3 emit their chain-of-thought as part of the completion: either in a separate `thinking` field from Ollama, or inline between `<think>` tags. This is visible model output, not a hidden channel. The harness never requests anything the runtime would not otherwise return.

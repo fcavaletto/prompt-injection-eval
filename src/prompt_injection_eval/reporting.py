@@ -7,7 +7,14 @@ from typing import Any
 
 import pandas as pd
 
-from prompt_injection_eval.metrics import compute_metrics, paired_comparison
+from prompt_injection_eval.metrics import (
+    by_model_condition,
+    compute_metrics,
+    paired_by_model,
+    paired_comparison,
+    repeat_variability,
+    scorer_agreement,
+)
 from prompt_injection_eval.review import write_review_csv
 
 _SYNTHETIC_WARNING = (
@@ -25,12 +32,14 @@ def analyze_results(
     output_dir.mkdir(parents=True, exist_ok=True)
     metrics = compute_metrics(rows)
     paired = paired_comparison(rows)
+    agreement = scorer_agreement(rows)
     origin = _result_origin(rows)
     summary = {
         "result_origin": origin,
         "synthetic_warning": _SYNTHETIC_WARNING if origin == "synthetic_mock" else None,
         "metrics": metrics,
         "paired_comparison": {key: value for key, value in paired.items() if key != "rows"},
+        "scorer_agreement": agreement,
         "malformed_lines": malformed_lines or [],
         "models": sorted({str(row.get("model")) for row in rows}),
         "providers": sorted({str(row.get("provider")) for row in rows}),
@@ -47,10 +56,155 @@ def analyze_results(
     _write_group_csv(output_dir / "condition_metrics.csv", metrics["by_condition"])
     _write_paired_csv(output_dir / "paired_comparison.csv", paired["rows"])
     write_review_csv(output_dir / "review_queue.csv", rows)
+    if agreement["reviewed_rows"]:
+        pd.DataFrame(agreement["disagreements"]).to_csv(
+            output_dir / "scorer_disagreements.csv", index=False
+        )
     _write_charts(output_dir, metrics, paired)
     report = render_markdown(rows, summary, paired)
     (output_dir / "report.md").write_text(report, encoding="utf-8")
     return summary
+
+
+def compare_results(
+    rows: list[dict[str, Any]],
+    output_dir: Path,
+    *,
+    sources: list[str],
+) -> dict[str, Any]:
+    """Cross-run comparison: per-model and per-model-per-condition tables and a chart."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    origin = _result_origin(rows)
+    model_condition = by_model_condition(rows)
+    per_model_paired = paired_by_model(rows)
+    metrics = compute_metrics(rows)
+    agreement = scorer_agreement(rows)
+    summary = {
+        "result_origin": origin,
+        "synthetic_warning": _SYNTHETIC_WARNING if origin == "synthetic_mock" else None,
+        "sources": sources,
+        "models": sorted({str(row.get("model")) for row in rows}),
+        "total_units": len(rows),
+        "by_model": metrics["by_model"],
+        "by_model_condition": model_condition,
+        "paired_by_model": per_model_paired,
+        "scorer_agreement": agreement,
+        "dataset_sha256": sorted({str(row.get("dataset_sha256")) for row in rows}),
+        "prompt_template_versions": sorted(
+            {str(row.get("prompt_template_version")) for row in rows}
+        ),
+        "limitations": _LIMITATIONS,
+    }
+    _write_summary_json(output_dir / "summary.json", summary)
+    _write_group_csv(output_dir / "model_metrics.csv", metrics["by_model"])
+    _write_model_condition_csv(output_dir / "model_condition_metrics.csv", model_condition)
+    pd.DataFrame(per_model_paired).drop(
+        columns=["duplicate_notes", "denominator_note"], errors="ignore"
+    ).to_csv(output_dir / "paired_by_model.csv", index=False)
+    _model_condition_chart(output_dir / "model_condition_comparison.png", model_condition)
+    _model_utility_chart(output_dir / "model_condition_utility.png", model_condition)
+    (output_dir / "compare.md").write_text(render_compare_markdown(rows, summary), encoding="utf-8")
+    return summary
+
+
+def render_compare_markdown(rows: list[dict[str, Any]], summary: dict[str, Any]) -> str:
+    origin = summary["result_origin"]
+    sections = [
+        "# Cross-run comparison",
+        "",
+        _origin_section(origin),
+        "",
+        "Sources: " + ", ".join(f"`{source}`" for source in summary["sources"]),
+        "",
+        f"Models: {', '.join(f'`{model}`' for model in summary['models'])}. "
+        f"Units: {summary['total_units']}. "
+        f"Dataset SHA-256: {', '.join(summary['dataset_sha256'])}.",
+        "",
+        "## Attack success by model and condition",
+        "",
+        _model_condition_table(summary["by_model_condition"]),
+        "",
+        "Rates use valid (non-error) responses. Attack rates exclude benign controls. "
+        "Intervals are 95 percent Wilson intervals and are not a significance test.",
+        "",
+        "## Paired defense effect per model",
+        "",
+        _paired_by_model_table(summary["paired_by_model"]),
+        "",
+        "Paired rates use cases where both conditions produced a non-error, non-ambiguous "
+        "outcome for the same model. Improved and worsened count attack cases and benign "
+        "controls together; see each model's own report for the split.",
+        "",
+        "## Reasoning budget",
+        "",
+        _truncation_section(summary["by_model_condition"]),
+        "",
+        "## Scorer agreement with human review",
+        "",
+        _agreement_section(summary["scorer_agreement"]),
+        "",
+        "## Limitations",
+        "",
+        "\n".join(f"- {item}" for item in _LIMITATIONS),
+        "",
+        "## Hashes",
+        "",
+        _hash_section(rows),
+        "",
+    ]
+    return "\n".join(sections)
+
+
+def write_variability_report(
+    runs: list[list[dict[str, Any]]], output_dir: Path, *, sources: list[str]
+) -> dict[str, Any]:
+    """Repeated-run stability: how many units changed label across repeats."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    result = repeat_variability(runs)
+    result["sources"] = sources
+    result["result_origin"] = _result_origin([row for rows in runs for row in rows])
+    _write_summary_json(output_dir / "variability.json", result)
+    pd.DataFrame(result["unstable_units"]).to_csv(output_dir / "unstable_units.csv", index=False)
+    lines = [
+        "# Repeated-run variability",
+        "",
+        _origin_section(result["result_origin"]),
+        "",
+        "Sources: " + ", ".join(f"`{source}`" for source in sources),
+        "",
+        f"- Runs compared: {result['runs']}",
+        f"- Units present in every run: {result['units_compared']}",
+        f"- Units missing from at least one run: {result['units_missing_from_some_run']}",
+        (
+            "- Units with byte-identical response text across runs: "
+            f"{result['identical_response_text']} "
+            f"({_fmt_rate(result['identical_response_text_rate'])})"
+        ),
+        (
+            f"- Units whose outcome changed: {result['unstable_outcome']} "
+            f"({_fmt_rate(result['unstable_outcome_rate'])})"
+        ),
+        f"- Units whose attack score changed: {result['unstable_attack_score']}",
+        f"- Units whose task score changed: {result['unstable_task_score']}",
+        "",
+        result["note"],
+        "",
+    ]
+    if result["unstable_units"]:
+        lines += [
+            "## Unstable units",
+            "",
+            "| Model | Case | Condition | Outcomes |",
+            "| --- | --- | --- | --- |",
+        ]
+        for unit in result["unstable_units"]:
+            lines.append(
+                f"| {unit['model']} | {unit['case_id']} | {unit['condition']} | "
+                f"{', '.join(unit['outcomes'])} |"
+            )
+        lines.append("")
+    (output_dir / "variability.md").write_text("\n".join(lines), encoding="utf-8")
+    return result
 
 
 def render_markdown(
@@ -147,6 +301,14 @@ def render_markdown(
         "## Manual-review status",
         "",
         _review_section(metrics, rows),
+        "",
+        "## Scorer agreement with human review",
+        "",
+        _agreement_section(summary.get("scorer_agreement") or scorer_agreement(rows)),
+        "",
+        "## Visible reasoning",
+        "",
+        _reasoning_section(rows),
         "",
         "## Limitations",
         "",
@@ -416,6 +578,119 @@ def _review_section(metrics: dict[str, Any], rows: list[dict[str, Any]]) -> str:
     )
 
 
+def _agreement_section(agreement: dict[str, Any]) -> str:
+    if not agreement.get("reviewed_rows"):
+        return (
+            "No human labels are attached to this analysis. Pass a completed review CSV with "
+            "`--reviews` to measure how often the deterministic scorers agree with a person."
+        )
+    lines = [
+        f"Human labels attached: {agreement['reviewed_rows']} of {agreement['total_rows']} units.",
+        "",
+        "| Dimension | Reviewed | Agreements | Agreement rate | 95% Wilson |",
+        "| --- | ---: | ---: | ---: | --- |",
+    ]
+    for name, item in agreement["dimensions"].items():
+        lines.append(
+            f"| {name} | {item['reviewed']} | {item['agreements']} | "
+            f"{_fmt_rate(item['agreement_rate'])} | {_fmt_ci(item['agreement_rate_ci'])} |"
+        )
+    lines.append("")
+    for name, item in agreement["dimensions"].items():
+        if item["confusion"]:
+            pairs = ", ".join(f"`{key}`: {value}" for key, value in item["confusion"].items())
+            lines.append(f"- {name} automated->human counts: {pairs}")
+    lines.append("")
+    lines.append(agreement["note"])
+    return "\n".join(lines)
+
+
+def _reasoning_section(rows: list[dict[str, Any]]) -> str:
+    present = [row for row in rows if row.get("reasoning_present")]
+    if not present:
+        return (
+            "No visible reasoning was recorded. Either the model does not emit a think block "
+            "or thinking was disabled."
+        )
+    truncated = sum(1 for row in present if row.get("reasoning_truncated"))
+    estimates = [
+        int(row["reasoning_tokens_estimate"])
+        for row in present
+        if isinstance(row.get("reasoning_tokens_estimate"), int)
+    ]
+    median = sorted(estimates)[len(estimates) // 2] if estimates else None
+    return (
+        f"Units with a visible reasoning block: {len(present)} of {len(rows)}. "
+        f"Reasoning truncated before a final answer: {truncated}. "
+        f"Median estimated reasoning tokens: {median if median is not None else 'n/a'}. "
+        "Only the final answer was scored. Truncated units are scored as attack failure and "
+        "task failure and should be read as budget failures, not as robustness."
+    )
+
+
+def _truncation_section(groups: list[dict[str, Any]]) -> str:
+    total = sum(item["reasoning_truncated"] for item in groups)
+    if not total:
+        return "No unit ran out of output budget inside its reasoning block."
+    lines = [
+        f"{total} units ended inside the reasoning block and were scored as failures on both "
+        "dimensions:",
+        "",
+    ]
+    for item in groups:
+        if item["reasoning_truncated"]:
+            lines.append(
+                f"- `{item['model']}` / {item['condition']}: {item['reasoning_truncated']} "
+                f"of {item['units']}"
+            )
+    return "\n".join(lines)
+
+
+def _model_condition_table(groups: list[dict[str, Any]]) -> str:
+    if not groups:
+        return "No grouped rows."
+    lines = [
+        "| Model | Condition | Attack success | 95% Wilson | Secure and useful | "
+        "Task success | Benign task success | Errors |",
+        "| --- | --- | ---: | --- | ---: | ---: | ---: | ---: |",
+    ]
+    for item in groups:
+        lines.append(
+            f"| `{item['model']}` | {item['condition']} | "
+            f"{_fmt_rate(item['attack_success_rate_valid'])} "
+            f"({item['attack_successes']}/{item['attack_units_valid']}) | "
+            f"{_fmt_ci(item['attack_success_rate_valid_ci'])} | "
+            f"{_fmt_rate(item['secure_and_useful_rate_valid'])} | "
+            f"{_fmt_rate(item['task_success_rate_valid'])} "
+            f"({item['task_successes']}/{item['task_units_valid']}) | "
+            f"{_fmt_rate(item['benign_task_success_rate_valid'])} | "
+            f"{item['backend_errors']} |"
+        )
+    return "\n".join(lines)
+
+
+def _paired_by_model_table(groups: list[dict[str, Any]]) -> str:
+    if not groups:
+        return "No paired rows."
+    lines = [
+        "| Model | Pairs | Improved | Worsened | Unchanged | Incomparable | "
+        "Attack rate baseline -> defended | Task rate baseline -> defended | "
+        "Security up, utility down |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: |",
+    ]
+    for item in groups:
+        lines.append(
+            f"| `{item['model']}` | {item['pairs']} | {item['improved']} | {item['worsened']} | "
+            f"{item['unchanged']} | {item['incomparable']} | "
+            f"{_fmt_rate(item['baseline_attack_success_rate'])} -> "
+            f"{_fmt_rate(item['defended_attack_success_rate'])} | "
+            f"{_fmt_rate(item['baseline_task_success_rate'])} -> "
+            f"{_fmt_rate(item['defended_task_success_rate'])} | "
+            f"{item['security_improved_utility_degraded']} |"
+        )
+    return "\n".join(lines)
+
+
 def _reproduction(rows: list[dict[str, Any]]) -> str:
     if not rows:
         return "No results were available to reconstruct a command."
@@ -530,6 +805,95 @@ def _write_group_csv(path: Path, groups: list[dict[str, Any]]) -> None:
 
 def _write_paired_csv(path: Path, rows: list[dict[str, Any]]) -> None:
     pd.DataFrame(rows).to_csv(path, index=False)
+
+
+def _write_model_condition_csv(path: Path, groups: list[dict[str, Any]]) -> None:
+    flat = []
+    for item in groups:
+        row = dict(item)
+        attack_ci = row.pop("attack_success_rate_valid_ci")
+        task_ci = row.pop("task_success_rate_valid_ci")
+        row["attack_ci_low"] = attack_ci["low"]
+        row["attack_ci_high"] = attack_ci["high"]
+        row["task_ci_low"] = task_ci["low"]
+        row["task_ci_high"] = task_ci["high"]
+        row["outcome_counts"] = str(row["outcome_counts"])
+        flat.append(row)
+    pd.DataFrame(flat).to_csv(path, index=False)
+
+
+def _grouped_rate_chart(
+    path: Path,
+    groups: list[dict[str, Any]],
+    *,
+    rate_key: str,
+    ci_key: str,
+    title: str,
+    ylabel: str,
+) -> None:
+    if not groups:
+        return
+    models = sorted({item["model"] for item in groups})
+    conditions = sorted({item["condition"] for item in groups})
+    plt = _pyplot()
+    fig, axis = plt.subplots(figsize=(max(6, 2.2 * len(models) + 2), 4.5))
+    width = 0.8 / max(1, len(conditions))
+    palette = ["#3d5a80", "#ee6c4d", "#98c1d9", "#293241"]
+    for offset, condition in enumerate(conditions):
+        values: list[float] = []
+        lows: list[float] = []
+        highs: list[float] = []
+        for model in models:
+            match = next(
+                (g for g in groups if g["model"] == model and g["condition"] == condition), None
+            )
+            rate = match[rate_key] if match and match[rate_key] is not None else 0.0
+            ci = match[ci_key] if match else {"low": None, "high": None}
+            values.append(rate)
+            lows.append(rate - (ci["low"] if ci["low"] is not None else rate))
+            highs.append((ci["high"] if ci["high"] is not None else rate) - rate)
+        positions = [
+            index + (offset - (len(conditions) - 1) / 2) * width for index in range(len(models))
+        ]
+        axis.bar(
+            positions,
+            values,
+            width=width * 0.95,
+            label=condition,
+            color=palette[offset % len(palette)],
+            yerr=[lows, highs],
+            capsize=4,
+        )
+    axis.set_xticks(range(len(models)), models, rotation=15)
+    axis.set_ylim(0, 1)
+    axis.set_ylabel(ylabel)
+    axis.set_title(title)
+    axis.legend(title="condition")
+    fig.tight_layout()
+    fig.savefig(path, dpi=120)
+    plt.close(fig)
+
+
+def _model_condition_chart(path: Path, groups: list[dict[str, Any]]) -> None:
+    _grouped_rate_chart(
+        path,
+        groups,
+        rate_key="attack_success_rate_valid",
+        ci_key="attack_success_rate_valid_ci",
+        title="Attack success rate by model and condition (95% Wilson)",
+        ylabel="Valid-response attack success rate",
+    )
+
+
+def _model_utility_chart(path: Path, groups: list[dict[str, Any]]) -> None:
+    _grouped_rate_chart(
+        path,
+        groups,
+        rate_key="task_success_rate_valid",
+        ci_key="task_success_rate_valid_ci",
+        title="Legitimate-task success rate by model and condition (95% Wilson)",
+        ylabel="Valid-response task success rate",
+    )
 
 
 def _pyplot() -> Any:

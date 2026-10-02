@@ -289,6 +289,182 @@ def _utility_rank(label: object) -> int | None:
     return None
 
 
+def paired_by_model(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Paired baseline-versus-defense summary for each model separately."""
+    buckets: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        buckets[str(row.get("model"))].append(row)
+    summaries: list[dict[str, Any]] = []
+    for model in sorted(buckets):
+        paired = paired_comparison(buckets[model])
+        summary = {key: value for key, value in paired.items() if key != "rows"}
+        summary["model"] = model
+        summaries.append(summary)
+    return summaries
+
+
+def by_model_condition(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Attack and task rates per (model, condition) with Wilson intervals."""
+    buckets: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        buckets[(str(row.get("model")), str(row.get("condition")))].append(row)
+    summaries: list[dict[str, Any]] = []
+    for model, condition in sorted(buckets):
+        group = buckets[(model, condition)]
+        attacks = [row for row in group if row.get("is_attack") and not _backend(row)]
+        valid = [row for row in group if not _backend(row)]
+        benign = [row for row in valid if not row.get("is_attack")]
+        attack_successes = sum(1 for row in attacks if row.get("attack_score") == "success")
+        task_successes = sum(1 for row in valid if row.get("task_score") == "success")
+        benign_successes = sum(1 for row in benign if row.get("task_score") == "success")
+        secure_useful = sum(1 for row in attacks if row.get("outcome") == "secure_and_useful")
+        truncated = sum(1 for row in group if row.get("reasoning_truncated"))
+        summaries.append(
+            {
+                "model": model,
+                "condition": condition,
+                "units": len(group),
+                "backend_errors": sum(1 for row in group if _backend(row)),
+                "attack_units_valid": len(attacks),
+                "attack_successes": attack_successes,
+                "attack_success_rate_valid": _rate(attack_successes, len(attacks)),
+                "attack_success_rate_valid_ci": wilson_interval(attack_successes, len(attacks)),
+                "secure_and_useful_count": secure_useful,
+                "secure_and_useful_rate_valid": _rate(secure_useful, len(attacks)),
+                "task_successes": task_successes,
+                "task_units_valid": len(valid),
+                "task_success_rate_valid": _rate(task_successes, len(valid)),
+                "task_success_rate_valid_ci": wilson_interval(task_successes, len(valid)),
+                "benign_task_successes": benign_successes,
+                "benign_units_valid": len(benign),
+                "benign_task_success_rate_valid": _rate(benign_successes, len(benign)),
+                "ambiguous": sum(1 for row in group if row.get("outcome") == "ambiguous"),
+                "manual_review": sum(1 for row in group if row.get("manual_review")),
+                "reasoning_truncated": truncated,
+                "outcome_counts": _counts(group, "outcome"),
+            }
+        )
+    return summaries
+
+
+_AGREEMENT_DIMENSIONS = (
+    ("attack", "attack_score", "human_attack_label"),
+    ("task", "task_score", "human_task_label"),
+    ("outcome", "outcome", "human_outcome_label"),
+)
+
+
+def scorer_agreement(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Agreement between automated labels and attached human labels.
+
+    Only rows that carry a human label for a dimension count toward that dimension.
+    The review queue is biased toward hard cases, so these rates describe scorer
+    reliability on flagged units, not on the whole dataset.
+    """
+    dimensions: dict[str, Any] = {}
+    disagreements: list[dict[str, Any]] = []
+    reviewed_rows = 0
+    for row in rows:
+        if any(row.get(human) for _name, _auto, human in _AGREEMENT_DIMENSIONS):
+            reviewed_rows += 1
+    for name, auto_key, human_key in _AGREEMENT_DIMENSIONS:
+        labelled = [row for row in rows if row.get(human_key)]
+        agreements = 0
+        confusion: dict[str, int] = defaultdict(int)
+        for row in labelled:
+            auto = str(row.get(auto_key))
+            human = str(row.get(human_key))
+            confusion[f"{auto}->{human}"] += 1
+            if auto == human:
+                agreements += 1
+            else:
+                disagreements.append(
+                    {
+                        "dimension": name,
+                        "case_id": row.get("case_id"),
+                        "condition": row.get("condition"),
+                        "model": row.get("model"),
+                        "automated": auto,
+                        "human": human,
+                        "reviewer_notes": row.get("reviewer_notes"),
+                    }
+                )
+        dimensions[name] = {
+            "reviewed": len(labelled),
+            "agreements": agreements,
+            "agreement_rate": _rate(agreements, len(labelled)),
+            "agreement_rate_ci": wilson_interval(agreements, len(labelled)),
+            "confusion": dict(sorted(confusion.items())),
+        }
+    return {
+        "reviewed_rows": reviewed_rows,
+        "total_rows": len(rows),
+        "dimensions": dimensions,
+        "disagreements": disagreements,
+        "note": (
+            "Agreement is computed only on units that received a human label. Review queues "
+            "over-sample uncertain and disagreeing units, so these rates are a stress test of "
+            "the scorers, not an estimate of their accuracy on a random unit."
+        ),
+    }
+
+
+def repeat_variability(runs: list[list[dict[str, Any]]]) -> dict[str, Any]:
+    """How often the same unit changed label across repeated runs.
+
+    Units are matched on (model, case_id, condition). A unit is unstable on a
+    dimension when the repeats do not all agree. Backend errors count as a label.
+    """
+    if len(runs) < 2:
+        raise ValueError("repeat_variability needs at least two runs")
+    labels: dict[tuple[str, str, str], list[dict[str, Any]]] = defaultdict(list)
+    for index, rows in enumerate(runs):
+        for row in rows:
+            key = (str(row.get("model")), str(row.get("case_id")), str(row.get("condition")))
+            labels[key].append({**row, "_run_index": index})
+    complete = {key: items for key, items in labels.items() if len(items) == len(runs)}
+    dims = ("outcome", "attack_score", "task_score")
+    unstable_counts = {dim: 0 for dim in dims}
+    identical_text = 0
+    unstable_units: list[dict[str, Any]] = []
+    for key in sorted(complete):
+        items = complete[key]
+        changed = [dim for dim in dims if len({str(item.get(dim)) for item in items}) > 1]
+        texts = {str(item.get("response_text")) for item in items}
+        if len(texts) == 1:
+            identical_text += 1
+        for dim in changed:
+            unstable_counts[dim] += 1
+        if changed:
+            unstable_units.append(
+                {
+                    "model": key[0],
+                    "case_id": key[1],
+                    "condition": key[2],
+                    "unstable_dimensions": changed,
+                    "outcomes": [str(item.get("outcome")) for item in items],
+                }
+            )
+    total = len(complete)
+    return {
+        "runs": len(runs),
+        "units_compared": total,
+        "units_missing_from_some_run": len(labels) - total,
+        "identical_response_text": identical_text,
+        "identical_response_text_rate": _rate(identical_text, total),
+        "unstable_outcome": unstable_counts["outcome"],
+        "unstable_outcome_rate": _rate(unstable_counts["outcome"], total),
+        "unstable_attack_score": unstable_counts["attack_score"],
+        "unstable_task_score": unstable_counts["task_score"],
+        "unstable_units": unstable_units,
+        "note": (
+            "Variability is measured on the final labels and on byte-identical response text "
+            "across repeats with the same configuration. It answers whether a fixed seed made "
+            "this local runtime deterministic. It is not a confidence interval."
+        ),
+    }
+
+
 def _change(new: float | None, old: float | None) -> float | None:
     if new is None or old is None:
         return None

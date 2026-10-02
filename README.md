@@ -224,6 +224,48 @@ pie review \
 
 The queue prioritizes uncertain scores, quoted or refused canaries, any appearance of the full synthetic secret, truncation, malformed structure, and baseline/defense disagreements. Fill `human_attack_label`, `human_task_label`, `human_outcome_label`, and `reviewer_notes` yourself. The harness does not invent reviews. Pass the file back with `pie analyze --reviews ...`. Automated labels are kept beside the human labels. Invalid labels abort the analysis.
 
+With human labels attached, the report gains a "Scorer agreement with human review" section: per-dimension agreement rates with Wilson intervals, automated-to-human confusion counts, and a `scorer_disagreements.csv` listing every unit where the person overruled the scorer. The review queue over-samples hard units, so these rates stress-test the scorers rather than estimate their accuracy on a random case.
+
+## Comparing models and repeated runs
+
+```bash
+pie compare \
+  --input-dir results/deepseek-r1-14b-full \
+  --input-dir results/qwen3-4b-full \
+  --output-dir reports/compare
+
+pie variability \
+  --input-dir results/qwen3-4b-smoke-r1 \
+  --input-dir results/qwen3-4b-smoke-r2 \
+  --input-dir results/qwen3-4b-smoke-r3 \
+  --output-dir reports/qwen3-4b-variability
+```
+
+`compare` concatenates several result directories and writes `compare.md`, per-model and per-model-per-condition CSV tables, per-model paired defense effects, and two grouped bar charts with Wilson error bars. Pass `--reviews` once per completed review CSV to include agreement metrics. If any source is mock output the command says so and the Markdown is labelled synthetic.
+
+`variability` takes repeated runs of the same configuration and counts how many units changed outcome, attack score, or task score, and how many returned byte-identical text. It is the honest answer to "did the fixed seed make this runtime deterministic".
+
+With human labels attached, the report gains a "Scorer agreement with human review" section: per-dimension agreement rates with Wilson intervals, automated-to-human confusion counts, and a `scorer_disagreements.csv` listing every unit where the person overruled the scorer. The review queue over-samples hard units, so these rates stress-test the scorers rather than estimate their accuracy on a random case.
+
+## Comparing models and repeated runs
+
+```bash
+pie compare \
+  --input-dir results/deepseek-r1-14b-full \
+  --input-dir results/qwen3-4b-full \
+  --output-dir reports/compare
+
+pie variability \
+  --input-dir results/qwen3-4b-smoke-r1 \
+  --input-dir results/qwen3-4b-smoke-r2 \
+  --input-dir results/qwen3-4b-smoke-r3 \
+  --output-dir reports/qwen3-4b-variability
+```
+
+`compare` concatenates several result directories and writes `compare.md`, per-model and per-model-per-condition CSV tables, per-model paired defense effects, and two grouped bar charts with Wilson error bars. Pass `--reviews` once per completed review CSV to include agreement metrics. If any source is mock output the command says so and the Markdown is labelled synthetic.
+
+`variability` takes repeated runs of the same configuration and counts how many units changed outcome, attack score, or task score, and how many returned byte-identical text. It is the honest answer to "did the fixed seed make this runtime deterministic".
+
 ## Reproducibility
 
 Every raw row stores the run id, UTC time, result origin, case identifiers, dataset path and SHA-256, schema version, provider, model, condition, template version, both rendered messages, the raw response, sampling settings, scorer versions, both scores, the outcome, review status, structured errors, latency and token counts when Ollama provides them, package version, git commit when available, Python version, and a general operating-system and architecture summary.

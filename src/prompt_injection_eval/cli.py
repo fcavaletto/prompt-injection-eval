@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import typer
 
@@ -25,7 +26,11 @@ from prompt_injection_eval.dataset import (
 from prompt_injection_eval.doctor import run_doctor
 from prompt_injection_eval.providers.mock import MockProvider
 from prompt_injection_eval.providers.ollama import OllamaProvider
-from prompt_injection_eval.reporting import analyze_results
+from prompt_injection_eval.reporting import (
+    analyze_results,
+    compare_results,
+    write_variability_report,
+)
 from prompt_injection_eval.results_io import load_results
 from prompt_injection_eval.review import (
     ReviewError,
@@ -257,6 +262,81 @@ def analyze_cmd(
     typer.echo(f"Report written under {output_dir.name}")
     if malformed:
         typer.echo("Malformed lines were skipped and reported: " + ", ".join(map(str, malformed)))
+
+
+def _load_many(input_dirs: list[Path]) -> list[tuple[Path, list[dict[str, Any]]]]:
+    loaded: list[tuple[Path, list[dict[str, Any]]]] = []
+    for input_dir in input_dirs:
+        results_path = input_dir / "raw_results.jsonl"
+        if not results_path.is_file():
+            typer.echo(f"Result file not found: {input_dir.name}/raw_results.jsonl", err=True)
+            raise typer.Exit(code=1)
+        rows, malformed = load_results(results_path)
+        if malformed:
+            typer.echo(
+                f"{input_dir.name}: skipped malformed lines {', '.join(map(str, malformed))}"
+            )
+        if not rows:
+            typer.echo(f"No valid result rows in {input_dir.name}.", err=True)
+            raise typer.Exit(code=1)
+        loaded.append((input_dir, rows))
+    return loaded
+
+
+@app.command("compare")
+def compare_cmd(
+    input_dirs: list[Path] = typer.Option(
+        ..., "--input-dir", help="Result directories to combine. Repeat the option."
+    ),
+    output_dir: Path = typer.Option(..., "--output-dir"),
+    reviews: list[Path] | None = typer.Option(
+        None, "--reviews", help="Completed review CSVs. Repeat the option."
+    ),
+) -> None:
+    """Combine several result directories and compare models and conditions side by side."""
+    loaded = _load_many(input_dirs)
+    rows = [row for _dir, dir_rows in loaded for row in dir_rows]
+    for review_path in reviews or []:
+        try:
+            human = load_human_reviews(review_path)
+        except ReviewError as exc:
+            typer.echo(str(exc), err=True)
+            raise typer.Exit(code=1) from exc
+        rows = attach_human_labels(rows, human)
+    summary = compare_results(rows, output_dir, sources=[str(path.name) for path, _ in loaded])
+    if summary["result_origin"] != "empirical_model_run":
+        typer.echo(
+            "At least one source is synthetic mock output. Do not describe the combined "
+            "tables as model performance."
+        )
+    typer.echo(
+        f"Compared {len(loaded)} result sets, {summary['total_units']} units, "
+        f"models: {', '.join(summary['models'])}."
+    )
+    typer.echo(f"Comparison written under {output_dir.name}")
+
+
+@app.command("variability")
+def variability_cmd(
+    input_dirs: list[Path] = typer.Option(
+        ..., "--input-dir", help="Repeated runs of the same configuration. Repeat the option."
+    ),
+    output_dir: Path = typer.Option(..., "--output-dir"),
+) -> None:
+    """Measure how many units changed label across repeated runs of the same configuration."""
+    if len(input_dirs) < 2:
+        typer.echo("Variability needs at least two --input-dir values.", err=True)
+        raise typer.Exit(code=1)
+    loaded = _load_many(input_dirs)
+    result = write_variability_report(
+        [rows for _dir, rows in loaded], output_dir, sources=[p.name for p, _ in loaded]
+    )
+    typer.echo(
+        f"Compared {result['runs']} runs over {result['units_compared']} units. "
+        f"Outcome changed on {result['unstable_outcome']}; "
+        f"response text identical on {result['identical_response_text']}."
+    )
+    typer.echo(f"Variability report written under {output_dir.name}")
 
 
 @app.command("review")
