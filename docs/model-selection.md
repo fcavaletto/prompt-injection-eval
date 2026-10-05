@@ -8,7 +8,7 @@ Local execution reduces monetary cost. It does not by itself provide complete pr
 
 ## Which tags the published study used
 
-The published comparison is `deepseek-r1:14b` (Q4_K_M, thinking on, `--profile reasoning`) and `qwen2.5:7b` (Q4_K_M, no thinking, the default 256-token budget). Both fit a MacBook Air with an M4 chip and 20 GB of unified memory if only one is resident. The CLI default tag is still `qwen3:4b`, because a smaller instruct model is a reasonable first smoke when you have not pulled the study tags. That name is a configuration default. It is not hard-coded into the scorer or the runner. Passing `--model` selects a different Ollama tag.
+The published comparison is `deepseek-r1:14b` (Q4_K_M, thinking on, `--profile reasoning`) and `qwen2.5:7b` (Q4_K_M, no thinking, the default 256-token budget). Both fit a MacBook Air with an M4 chip and 20 GB of unified memory if only one is resident. The CLI default tag is `qwen2.5:7b`, the smaller of those two, so `pie doctor` and `pie run` without `--model` point at a tag the study actually ran. That name is a configuration default. It is not hard-coded into the scorer or the runner. Passing `--model` selects a different Ollama tag. `deepseek-r1:14b` still needs `--profile reasoning`.
 
 This repository does not claim that any of these tags is safer or faster than any other model. Model size alone does not determine injection robustness. The results page is about the two tags that were actually run.
 

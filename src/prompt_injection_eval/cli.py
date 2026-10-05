@@ -17,6 +17,7 @@ from prompt_injection_eval.config import (
     env_timeout_override,
     resolve_generation_limits,
 )
+from prompt_injection_eval.constants import DEFAULT_MODEL
 from prompt_injection_eval.dataset import (
     DatasetError,
     filter_cases,
@@ -95,7 +96,7 @@ def list_cases_cmd(
 @app.command("doctor")
 def doctor_cmd(
     provider: str = typer.Option("mock", "--provider", help="mock or ollama."),
-    model: str = typer.Option("qwen3:4b", "--model"),
+    model: str = typer.Option(DEFAULT_MODEL, "--model"),
     dataset: Path = typer.Option(Path("data/cases.jsonl"), "--dataset"),
     output_dir: Path = typer.Option(Path("results"), "--output-dir"),
     base_url: str | None = typer.Option(None, "--base-url", envvar="PIE_OLLAMA_BASE_URL"),

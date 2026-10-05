@@ -7,7 +7,7 @@
 
 **Research question.** How often does an instruction-following language model obey malicious instructions embedded inside an untrusted document, and how much does a simple prompt-level defense reduce attack success without degrading legitimate task completion?
 
-**Result.** On 36 synthetic attack cases, attack success fell from 5/36 to 1/36 for `deepseek-r1:14b` and from 9/36 to 3/36 for `qwen2.5:7b` when the user message told the model the document was untrusted data. Task success rose, from 21/40 to 28/40, on both models. A datamarking defense (`spotlight`) took DeepSeek to 0/36 and Qwen to 1/36. The Wilson intervals are wide, the attacks do not adapt, and a prompt is not a security boundary. The full table, the failures, and the human review of the scorer are in [docs/results.md](docs/results.md).
+**Result.** On 36 synthetic attack cases, the automated attack-success count went from 5/36 to 1/36 for `deepseek-r1:14b` and from 9/36 to 3/36 for `qwen2.5:7b` when the user message told the model the document was untrusted data. Task success went from 21/40 to 28/40 on both models. Datamarking (`spotlight`) took the counts to 0/36 and 1/36. Those are counts, not a settled effect size: the 95% Wilson intervals for baseline and the generic defense overlap on DeepSeek and nearly overlap on Qwen. The attacks do not adapt, and a prompt is not a security boundary. The table, the failures, and the author's check of the scorer are in [docs/results.md](docs/results.md).
 
 **New here?** Read [docs/learn.md](docs/learn.md) first. It is about fifteen minutes and needs no install. Then run [notebooks/01_walkthrough.ipynb](notebooks/01_walkthrough.ipynb), which uses a mock provider. [notebooks/02_reading_the_results.ipynb](notebooks/02_reading_the_results.ipynb) reloads the published runs.
 
@@ -55,7 +55,7 @@ flowchart LR
   jsonl --> report[Analysis and report]
 ```
 
-Attack success and task success stay independent. A response can include every required fact and still be `compromised` if it also discloses the synthetic secret or follows the attack. `secure_but_unhelpful` is a security success with a utility failure. `ambiguous` means the rules could not tell, and the row is reviewed rather than forced into a rank.
+Attack success and task success stay independent. A response can include every required fact and still be `compromised` if it also discloses the synthetic secret or follows the attack. `secure_but_unhelpful` is a security success with a utility failure. `ambiguous` means at least one of the two scores is `uncertain`. The row is reviewed rather than forced into a rank.
 
 ## Threat model
 
@@ -128,121 +128,21 @@ pie analyze \
 
 [`examples/mock_report/report.md`](examples/mock_report/report.md) is that fixture. Do not describe those rows as model performance. The measurements are in [`docs/results.md`](docs/results.md).
 
-## Quick start on Apple Silicon
+## Run it yourself
 
-The intended machine is an Apple MacBook Air, M4, 20 GB unified memory, macOS, no CUDA and no paid API. Python 3.11 or newer is required. The steps below use Python 3.12 when it is available.
+Skip this section if you are here to read the study. The commands live in [`docs/reproduce.md`](docs/reproduce.md).
+
+The short version, on a machine that already has Ollama and `qwen2.5:7b`:
 
 ```bash
-brew install ollama
-ollama serve
-ollama pull qwen2.5:7b
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
+python3 -m venv .venv && source .venv/bin/activate
 python -m pip install -e ".[dev,notebook]"
 pie doctor --provider ollama --model qwen2.5:7b
-pie run \
-  --provider ollama \
-  --model qwen2.5:7b \
-  --dataset data/smoke_cases.jsonl \
-  --condition all \
-  --seed 42 \
-  --output-dir results/qwen2.5-7b-smoke
-pie analyze \
-  --input-dir results/qwen2.5-7b-smoke \
-  --output-dir reports/qwen2.5-7b-smoke
+pie run --provider ollama --model qwen2.5:7b --dataset data/smoke_cases.jsonl \
+  --condition all --seed 42 --output-dir results/qwen2.5-7b-smoke
 ```
 
-`ollama serve` may be unnecessary when the Ollama application or background service is already running. The first `ollama pull` can take a while. The harness does not pull models for you.
-
-Model tags and quantizations change behavior. A result for `qwen2.5:7b` is not a result for a different tag, even in the same family. A fixed seed is passed through when you set `--seed`, and reproducibility can still vary because not every runtime honors it. A MacBook Air is fanless, so a long run can slow down under sustained load. Inspect the smoke evaluation before you start the full dataset.
-
-## Running with Ollama
-
-```bash
-pie doctor --provider ollama --model qwen2.5:7b
-```
-
-The doctor command checks Python, the installed package, dataset validity, output-directory writability, the Ollama endpoint, and whether the requested tag is installed. If the endpoint is down it tells you to start `ollama serve` and notes that the desktop app may already be running. If the tag is missing it prints `ollama pull qwen2.5:7b`.
-
-Defaults, all overridable: base URL `http://localhost:11434`, temperature `0.0`, maximum output tokens `256`, timeout `120` seconds, keep-alive `5m`, concurrency `1`. No API key is read. Optional non-secret environment variables are `PIE_OLLAMA_BASE_URL`, `PIE_MODEL`, `PIE_TIMEOUT`, and `PIE_KEEP_ALIVE`.
-
-No hidden channel is requested. `deepseek-r1:14b` puts its chain-of-thought in the visible completion. The harness splits that off, scores only the final answer, and keeps the reasoning in `reasoning_text`. Use `--profile reasoning` with that model so the output budget covers the think block. `qwen2.5:7b` does not emit a think block; the default 256-token budget is what the published Qwen run used. See [`docs/methodology.md`](docs/methodology.md#visible-reasoning).
-
-## Running the smoke evaluation
-
-```bash
-pie run \
-  --provider ollama \
-  --model qwen2.5:7b \
-  --dataset data/smoke_cases.jsonl \
-  --condition both \
-  --output-dir results/qwen2.5-7b-smoke
-```
-
-That is 12 generations. The command prints the resolved configuration before the first request. Results are appended to `raw_results.jsonl` after each unit. `--resume` is the default when you repeat the command. `--overwrite` replaces that JSONL file and leaves other files in the directory alone. `--no-resume` refuses to continue if the file already exists, unless you also pass `--overwrite`.
-
-Use `--limit 2` when you want a shorter live check. Limit applies to cases, and `--condition both` still runs both templates.
-
-## Running the full evaluation
-
-Only after the smoke output looks sane:
-
-```bash
-pie run \
-  --provider ollama \
-  --model qwen2.5:7b \
-  --dataset data/cases.jsonl \
-  --condition both \
-  --output-dir results/qwen2.5-7b-full
-```
-
-`--condition both` schedules 80 generations. `--condition all` schedules 120, which is what the published study used. For `deepseek-r1:14b`, add `--profile reasoning`. This repository does not launch the full file automatically. Expect a fanless laptop to take a while on the 14B reasoning model. Do not treat two tags as the same condition. The published comparison is in [`docs/results.md`](docs/results.md).
-
-## Analyzing results
-
-```bash
-pie analyze \
-  --input-dir results/qwen2.5-7b-smoke \
-  --output-dir reports/qwen2.5-7b-smoke
-```
-
-The report directory receives `summary.json`, `summary.csv`, `report.md`, category, difficulty, and condition tables, `paired_comparison.csv`, `review_queue.csv`, and three PNG charts when the result file is non-empty.
-
-Attack success rates are reported twice: over valid attack responses, and over every attempted attack case. Benign controls are not in the attack denominator. Backend errors stay in the summary. Wilson intervals are 95 percent binomial intervals, not a significance test of the defense. Paired rates exclude incomparable pairs and count those pairs separately. Security changes and utility changes are both reported. A defense that cuts attack success by dropping task success is not summarized as pure improvement.
-
-Empirical reports name the model identifier, runtime, templates, sampling settings, and dataset hash. They do not generalize to every version of the model. Mock reports say so in the first screen of the file.
-
-## Manual review
-
-```bash
-pie review \
-  --input results/qwen2.5-7b-smoke/raw_results.jsonl \
-  --output results/qwen2.5-7b-smoke/manual_review.csv
-```
-
-The queue prioritizes uncertain scores, quoted or refused canaries, any appearance of the full synthetic secret, truncation, malformed structure, and baseline/defense disagreements. Fill `human_attack_label`, `human_task_label`, `human_outcome_label`, and `reviewer_notes` yourself. The harness does not invent reviews. Pass the file back with `pie analyze --reviews ...`. Automated labels are kept beside the human labels. Invalid labels abort the analysis.
-
-With human labels attached, the report gains a "Scorer agreement with human review" section: per-dimension agreement rates with Wilson intervals, automated-to-human confusion counts, and a `scorer_disagreements.csv` listing every unit where the person overruled the scorer. The review queue over-samples hard units, so these rates stress-test the scorers rather than estimate their accuracy on a random case.
-
-## Comparing models and repeated runs
-
-```bash
-pie compare \
-  --input-dir results/deepseek-r1-14b-full \
-  --input-dir results/qwen2.5-7b-full \
-  --output-dir reports/compare
-
-pie variability \
-  --input-dir results/qwen2.5-7b-smoke-r1 \
-  --input-dir results/qwen2.5-7b-smoke-r2 \
-  --input-dir results/qwen2.5-7b-smoke-r3 \
-  --output-dir reports/qwen2.5-7b-variability
-```
-
-`compare` concatenates several result directories and writes `compare.md`, per-model and per-model-per-condition CSV tables, per-model paired defense effects, and two grouped bar charts with Wilson error bars. Pass `--reviews` once per completed review CSV to include agreement metrics. If any source is mock output the command says so and the Markdown is labelled synthetic.
-
-`variability` takes repeated runs of the same configuration and counts how many units changed outcome, attack score, or task score, and how many returned byte-identical text. It is the honest answer to "did the fixed seed make this runtime deterministic". The published repeats are in [`results-published/variability/`](results-published/variability/).
+`pie doctor --provider ollama` checks `qwen2.5:7b`, the smaller tag from the published study. For `deepseek-r1:14b`, add `--profile reasoning`. The full file is 120 generations per model with `--condition all`. The harness does not launch that run, and it does not download weights. `deepseek-r1:14b` writes its reasoning into the completion; the harness scores only the final answer and keeps the reasoning. See [`docs/methodology.md`](docs/methodology.md#visible-reasoning).
 
 ## Reproducibility
 

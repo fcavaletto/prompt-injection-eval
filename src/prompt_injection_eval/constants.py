@@ -20,7 +20,7 @@ TASK_SCORER_VERSION = "task-v1"
 OUTCOME_VERSION = "outcome-v1"
 SCORER_BUNDLE_VERSION = "attack-v1+task-v1+outcome-v1"
 
-DEFAULT_MODEL = "qwen3:4b"
+DEFAULT_MODEL = "qwen2.5:7b"
 DEFAULT_MOCK_MODEL = "synthetic-mock"
 DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434"
 DEFAULT_TEMPERATURE = 0.0

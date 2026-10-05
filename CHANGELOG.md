@@ -10,6 +10,7 @@ Published study and a path for newcomers.
 - Findings in `docs/results.md`. Start-here guide, related-work reading list, and two notebooks.
 - Visible-reasoning capture: score the final answer, keep the reasoning, and flag an empty answer after a finished think block.
 - MkDocs site.
+- The headline states that the Wilson intervals overlap. The results page separates the 5/36 rate from the paired rate. Scorer agreement is described as the author's consistency check, not a second annotator. The default model tag is `qwen2.5:7b`.
 
 ## 0.1.0
 
