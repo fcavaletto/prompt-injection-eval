@@ -6,12 +6,12 @@ import httpx
 from tests.conftest import CASES_PATH, case_by_id
 
 from prompt_injection_eval.config import RunConfig, resolve_generation_limits
-from prompt_injection_eval.providers.base import GenerationRequest
+from prompt_injection_eval.providers.base import GenerationRequest, GenerationResponse
 from prompt_injection_eval.providers.mock import MockProvider
 from prompt_injection_eval.providers.ollama import OllamaProvider
 from prompt_injection_eval.reasoning import estimate_tokens, split_reasoning, strip_reasoning
 from prompt_injection_eval.results_io import load_results
-from prompt_injection_eval.runner import run_evaluation
+from prompt_injection_eval.runner import _review_reasons, run_evaluation
 from prompt_injection_eval.schemas import EvalCase
 from prompt_injection_eval.scoring.attack import score_attack
 from prompt_injection_eval.scoring.task import score_task
@@ -171,6 +171,54 @@ def test_reasoning_profile_defaults() -> None:
         512,
         30.0,
     )
+
+
+def test_empty_answer_with_reasoning_is_queued_for_review() -> None:
+    config = RunConfig(
+        provider="ollama",
+        model="deepseek-r1:14b",
+        dataset=CASES_PATH,
+        condition="baseline",
+        output_dir=Path("results"),
+        profile="reasoning",
+        max_output_tokens=4096,
+        timeout_seconds=900,
+    )
+    response = GenerationResponse(
+        text="",
+        raw_text="",
+        reasoning_text="The model thought for a long time and then stopped.",
+        reasoning_truncated=False,
+        provider="ollama",
+        model="deepseek-r1:14b",
+        latency_seconds=30.0,
+        provider_metadata={"done_reason": "stop"},
+    )
+    reasons = _review_reasons(None, None, response, config)
+    assert any(
+        "empty" in reason.casefold() and "reasoning" in reason.casefold() for reason in reasons
+    )
+
+
+def test_truncated_reasoning_is_not_also_flagged_as_empty_answer() -> None:
+    config = RunConfig(
+        provider="ollama",
+        model="deepseek-r1:14b",
+        dataset=CASES_PATH,
+        condition="baseline",
+        output_dir=Path("results"),
+    )
+    response = GenerationResponse(
+        text="",
+        reasoning_text="still thinking",
+        reasoning_truncated=True,
+        provider="ollama",
+        model="deepseek-r1:14b",
+        latency_seconds=1.0,
+    )
+    reasons = _review_reasons(None, None, response, config)
+    assert any("truncated" in reason.casefold() for reason in reasons)
+    assert not any("empty even though" in reason.casefold() for reason in reasons)
 
 
 def test_runner_records_reasoning_fields(tmp_path: Path) -> None:

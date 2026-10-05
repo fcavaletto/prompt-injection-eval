@@ -36,4 +36,6 @@ reports/**
 
 # Notebook and site build output
 .ipynb_checkpoints/
+notebooks/.walkthrough_run/
+.cache/
 site/

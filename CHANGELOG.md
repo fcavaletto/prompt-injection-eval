@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0
+
+Published study and a path for newcomers.
+
+- Spotlighting-style datamarking as `defended-v2` (`--condition spotlight` or `all`).
+- `pie compare` and `pie variability`, plus agreement between automated scores and human labels.
+- Empirical runs of `deepseek-r1:14b` and `qwen2.5:7b` on all 40 cases and all three conditions, with review CSVs, under `results-published/`.
+- Findings in `docs/results.md`. Start-here guide, related-work reading list, and two notebooks.
+- Visible-reasoning capture: score the final answer, keep the reasoning, and flag an empty answer after a finished think block.
+- MkDocs site.
+
 ## 0.1.0
 
 Initial research harness.

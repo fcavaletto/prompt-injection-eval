@@ -17,7 +17,7 @@ def test_help_and_version() -> None:
         assert command in help_result.stdout
     version = runner.invoke(app, ["version"])
     assert version.exit_code == 0
-    assert "0.1.0" in version.stdout
+    assert "0.2.0" in version.stdout
 
 
 def test_validate_and_list() -> None:

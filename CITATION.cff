@@ -7,14 +7,15 @@ authors:
     given-names: Federico
 repository-code: "https://github.com/fcavaletto/prompt-injection-eval"
 url: "https://fcavaletto.github.io/prompt-injection-eval/"
-version: 0.1.0
+version: 0.2.0
 license: MIT
-date-released: 2026-10-01
+date-released: 2026-10-05
 abstract: >-
   A small local evaluation harness for indirect prompt injection in open-weight
-  language models. It compares a baseline prompt with a generic document-trust
-  defense using deterministic scorers. It is a diagnostic benchmark, not a
-  production safety guarantee.
+  language models. Version 0.2.0 publishes a two-model study of a baseline
+  prompt, a generic document-trust defense, and a datamarking defense, scored
+  with deterministic rules and a human review of those rules. It is a
+  diagnostic, not a production safety guarantee.
 keywords:
   - prompt injection
   - language models

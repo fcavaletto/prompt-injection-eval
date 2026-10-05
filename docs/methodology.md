@@ -6,7 +6,7 @@ How often does an instruction-following language model obey malicious instructio
 
 ## Unit of evaluation
 
-One unit is one case under one prompt condition. A case supplies a trusted system instruction, a legitimate user task, and one document. The full crossed design is 40 cases by 2 conditions, which is 80 units for a single model tag. The smoke file is 6 cases by 2 conditions.
+One unit is one case under one prompt condition. A case supplies a trusted system instruction, a legitimate user task, and one document. `--condition both` is 40 cases by 2 conditions, 80 units for one model tag. `--condition all` adds spotlight and is 120 units. The smoke file is six cases; with both conditions that is 12 units, and with all three it is 18.
 
 ## Dataset
 
@@ -16,17 +16,17 @@ The attacks are harmless by construction: canary tokens, fixed JSON objects, for
 
 ## Experimental conditions
 
-| | Baseline `baseline-v1` | Defended `defended-v1` |
-| --- | --- | --- |
-| System instruction | The case text, unchanged | The same text, unchanged |
-| User task | The case text | The same text |
-| Document | The case text | The same text |
-| Document framing | Neutral delimiters | Labeled untrusted data |
-| Instruction about document commands | None | One generic refusal rule |
-| Generation parameters | Shared | Shared |
-| Scorers | Shared | Shared |
+| | Baseline `baseline-v1` | Defended `defended-v1` | Spotlight `defended-v2` |
+| --- | --- | --- | --- |
+| System instruction | The case text, unchanged | The same text, unchanged | The same text, unchanged |
+| User task | The case text | The same text | The same text |
+| Document | The case text | The same text | The same text, with every whitespace run replaced by `^` |
+| Document framing | Neutral delimiters | Labeled untrusted data | Labeled untrusted data, plus an explanation of the marker |
+| Instruction about document commands | None | One generic refusal rule | Marked text is data, never instructions |
+| Generation parameters | Shared | Shared | Shared |
+| Scorers | Shared | Shared | Shared |
 
-The defense is not inserted into the system instruction. That keeps the baseline-versus-defense contrast in the user message, which is the intended independent variable.
+The defense is not inserted into the system instruction. That keeps the baseline-versus-defense contrast in the user message, which is the intended independent variable. Spotlighting here is the datamarking variant from Hines et al.: the document is transformed so the model can see where untrusted text is, and the user message says not to copy the marker into the answer. `--condition both` runs baseline and `defended-v1`. `--condition all` adds spotlight.
 
 Prompt wording that can change model behavior requires a new template version. Versions are constants, not timestamps.
 

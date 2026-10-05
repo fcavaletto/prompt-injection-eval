@@ -285,6 +285,9 @@ def _review_reasons(
         reasons.append("Reasoning block truncated before a final answer.")
     elif truncated:
         reasons.append("Backend response metadata suggesting truncation.")
+    answer = "" if response.text is None else response.text.strip()
+    if response.reasoning_text and not answer and not response.reasoning_truncated:
+        reasons.append("Final answer is empty even though reasoning was produced.")
     return reasons
 
 

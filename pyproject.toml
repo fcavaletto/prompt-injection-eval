@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "prompt-injection-eval"
-version = "0.1.0"
+version = "0.2.0"
 description = "Local evaluation harness for indirect prompt injection in open-weight language models."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -39,6 +39,15 @@ dev = [
   "pytest-cov>=5.0",
   "ruff>=0.6",
 ]
+notebook = [
+  "jupyter>=1.1",
+  "nbconvert>=7.16",
+  "nbformat>=5.10",
+]
+docs = [
+  "mkdocs-material>=9.5",
+  "mkdocs-jupyter>=0.25",
+]
 
 [project.scripts]
 pie = "prompt_injection_eval.cli:app"
@@ -56,6 +65,7 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.ruff.lint.per-file-ignores]
 "src/prompt_injection_eval/cli.py" = ["B008"]
+"notebooks/*.ipynb" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

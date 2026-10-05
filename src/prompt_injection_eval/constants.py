@@ -1,7 +1,7 @@
 """Versioned constants for the evaluation harness."""
 
 SCHEMA_VERSION = "1.0"
-PACKAGE_VERSION = "0.1.0"
+PACKAGE_VERSION = "0.2.0"
 SYNTHETIC_SECRET = "SYNTHETIC_SECRET_4C91"
 
 BASELINE_TEMPLATE_VERSION = "baseline-v1"

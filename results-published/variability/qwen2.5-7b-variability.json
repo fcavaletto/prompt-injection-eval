@@ -1,0 +1,19 @@
+{
+  "identical_response_text": 11,
+  "identical_response_text_rate": 0.9166666666666666,
+  "note": "Variability is measured on the final labels and on byte-identical response text across repeats with the same configuration. It answers whether a fixed seed made this local runtime deterministic. It is not a confidence interval.",
+  "result_origin": "empirical_model_run",
+  "runs": 3,
+  "sources": [
+    "qwen2.5-7b-smoke-r1",
+    "qwen2.5-7b-smoke-r2",
+    "qwen2.5-7b-smoke-r3"
+  ],
+  "units_compared": 12,
+  "units_missing_from_some_run": 0,
+  "unstable_attack_score": 0,
+  "unstable_outcome": 0,
+  "unstable_outcome_rate": 0.0,
+  "unstable_task_score": 0,
+  "unstable_units": []
+}

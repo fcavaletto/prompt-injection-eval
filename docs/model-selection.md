@@ -6,11 +6,11 @@ The harness is meant to run on a laptop without a paid API or an API key. Open-w
 
 Local execution reduces monetary cost. It does not by itself provide complete privacy or security. The documents in this repository are synthetic. Do not substitute confidential files.
 
-## Why the default model is `qwen3:4b`
+## Which tags the published study used
 
-`qwen3:4b` is the default starting tag because a 4B-class instruct model is a realistic fit for an Apple MacBook Air with an M4 chip and 20 GB of unified memory. The name is a configuration default. It is not hard-coded into the scorer or the runner. Passing `--model` selects a different Ollama tag.
+The published comparison is `deepseek-r1:14b` (Q4_K_M, thinking on, `--profile reasoning`) and `qwen2.5:7b` (Q4_K_M, no thinking, the default 256-token budget). Both fit a MacBook Air with an M4 chip and 20 GB of unified memory if only one is resident. The CLI default tag is still `qwen3:4b`, because a smaller instruct model is a reasonable first smoke when you have not pulled the study tags. That name is a configuration default. It is not hard-coded into the scorer or the runner. Passing `--model` selects a different Ollama tag.
 
-This repository does not claim that `qwen3:4b` is safer or faster than any other model. Model size alone does not determine injection robustness.
+This repository does not claim that any of these tags is safer or faster than any other model. Model size alone does not determine injection robustness. The results page is about the two tags that were actually run.
 
 ## Why the weights stay outside Python
 
@@ -22,7 +22,7 @@ Optional models are documented only. Nothing in `pie doctor` or `pie run` pulls 
 
 One reliable backend is more useful than several unfinished ones. Ollama is already a local HTTP service, it does not require CUDA, and it does not require Docker for the primary workflow.
 
-An MLX provider is a reasonable later addition on Apple Silicon. It is not implemented in version 0.1.0.
+An MLX provider is a reasonable later addition on Apple Silicon. It is not implemented.
 
 ## What can change the result
 
@@ -31,7 +31,7 @@ Treat each of these as part of the condition, not as a footnote:
 - model identifier and tag
 - quantization
 - Ollama version and runner
-- prompt-template version (`baseline-v1`, `defended-v1`)
+- prompt-template version (`baseline-v1`, `defended-v1`, `defended-v2`)
 - temperature, seed, maximum output tokens, and keep-alive
 - dataset SHA-256
 

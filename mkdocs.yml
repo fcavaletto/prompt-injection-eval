@@ -1,0 +1,45 @@
+site_name: Prompt Injection Eval
+site_description: A small, local study of indirect prompt injection, written so a newcomer can follow it.
+site_url: https://fcavaletto.github.io/prompt-injection-eval/
+repo_url: https://github.com/fcavaletto/prompt-injection-eval
+repo_name: fcavaletto/prompt-injection-eval
+docs_dir: docs
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - content.code.copy
+    - toc.follow
+
+nav:
+  - Start here: learn.md
+  - Walkthrough: notebooks/01_walkthrough.ipynb
+  - Reading the results: notebooks/02_reading_the_results.ipynb
+  - Results: results.md
+  - Methodology: methodology.md
+  - Threat model: threat-model.md
+  - Scoring: scoring.md
+  - Related work: related-work.md
+  - Model selection: model-selection.md
+  - Reproduce: reproduce.md
+
+plugins:
+  - search
+  - mkdocs-jupyter:
+      execute: false
+      include_requirejs: true
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/fcavaletto/prompt-injection-eval
