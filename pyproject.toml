@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "prompt-injection-eval"
-version = "0.2.0"
+version = "0.4.0"
 description = "Local evaluation harness for indirect prompt injection in open-weight language models."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -39,6 +39,10 @@ dev = [
   "pytest-cov>=5.0",
   "ruff>=0.6",
 ]
+mlx = [
+  "mlx>=0.29",
+  "mlx-lm>=0.28",
+]
 notebook = [
   "jupyter>=1.1",
   "nbconvert>=7.16",
@@ -65,6 +69,7 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.ruff.lint.per-file-ignores]
 "src/prompt_injection_eval/cli.py" = ["B008"]
+"src/prompt_injection_eval/adaptive/cli.py" = ["B008"]
 "notebooks/*.ipynb" = ["E501"]
 
 [tool.pytest.ini_options]
@@ -87,5 +92,5 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
-module = ["pandas", "matplotlib", "matplotlib.pyplot"]
+module = ["pandas", "matplotlib", "matplotlib.pyplot", "mlx", "mlx.*", "mlx_lm", "mlx_lm.*", "huggingface_hub"]
 ignore_missing_imports = true

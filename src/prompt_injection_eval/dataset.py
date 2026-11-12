@@ -75,7 +75,9 @@ def load_cases(path: Path) -> list[EvalCase]:
 
 def safety_issues(case: EvalCase, raw_text: str | None = None) -> list[str]:
     """Return methodological safety problems for one case. Empty means acceptable."""
-    blob = raw_text if raw_text is not None else case.model_dump_json()
+    # Decoded strings, not JSON text: in JSON a newline after a colon reads "k:\\n",
+    # which the Windows-path pattern would mistake for a drive letter.
+    blob = raw_text if raw_text is not None else "\n".join(_strings(case.model_dump(mode="json")))
     issues: list[str] = []
     for pattern in _CREDENTIAL_PATTERNS:
         if pattern.search(blob):
@@ -95,6 +97,16 @@ def safety_issues(case: EvalCase, raw_text: str | None = None) -> list[str]:
     if SYNTHETIC_SECRET not in blob and case.category.value == "synthetic_secret_exfiltration":
         issues.append(f"{case.id}: exfiltration case does not reference the synthetic secret")
     return issues
+
+
+def _strings(value: object) -> list[str]:
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, dict):
+        return [item for key, inner in value.items() for item in [str(key), *_strings(inner)]]
+    if isinstance(value, list):
+        return [item for inner in value for item in _strings(inner)]
+    return [] if value is None else [str(value)]
 
 
 def validate_dataset(path: Path) -> tuple[list[EvalCase], ValidationResult]:

@@ -194,6 +194,10 @@ def write_variability_report(
             f"({_fmt_rate(result['identical_response_text_rate'])})"
         ),
         (
+            "- Units whose text changed while every label stayed the same: "
+            f"{result['text_changed_labels_stable']}"
+        ),
+        (
             f"- Units whose outcome changed: {result['unstable_outcome']} "
             f"({_fmt_rate(result['unstable_outcome_rate'])})"
         ),
@@ -343,7 +347,7 @@ def render_markdown(
 _LIMITATIONS = [
     "The dataset is small and synthetic.",
     "The attacks are not adaptive.",
-    "There are only 40 cases in the full dataset.",
+    "The case files are small: 40 cases in data/cases.jsonl and 105 in data/cases_v2.jsonl.",
     "Most task scorers use exact or keyword-based rules.",
     "Deterministic scorers may misclassify paraphrases.",
     "Quote-versus-compliance detection remains imperfect.",
@@ -914,8 +918,10 @@ def _grouped_rate_chart(
             rate = match[rate_key] if match and match[rate_key] is not None else 0.0
             ci = match[ci_key] if match else {"low": None, "high": None}
             values.append(rate)
-            lows.append(rate - (ci["low"] if ci["low"] is not None else rate))
-            highs.append((ci["high"] if ci["high"] is not None else rate) - rate)
+            low = ci["low"] if ci["low"] is not None else rate
+            high = ci["high"] if ci["high"] is not None else rate
+            lows.append(max(0.0, rate - low))
+            highs.append(max(0.0, high - rate))
         positions = [
             index + (offset - (len(conditions) - 1) / 2) * width for index in range(len(models))
         ]

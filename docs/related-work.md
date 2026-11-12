@@ -1,6 +1,6 @@
 # Related work
 
-Five sources are enough to see where this project sits. Each note says what it is, what this repository borrows, and what it deliberately does not do. Read them in this order if you are new.
+Seven sources are enough to see where this project sits. Each note says what it is, what this repository borrows, and what it deliberately does not do. Read them in this order if you are new.
 
 ## Indirect prompt injection
 
@@ -32,6 +32,28 @@ Spotlighting is a family of prompt-only defenses. The model sees one stream of t
 
 **Not done here.** No Base64 encoding variant. The marker is the ASCII caret, not a private-use Unicode character. The template tells the model not to copy `^` into the answer, because a leaked marker would make keyword checks harder to read and would itself be a utility failure. Do not cite Hines et al.'s attack-success drop as if these local runs had reproduced it. The comparison that belongs to this project is in [results](results.md).
 
+## Adaptive attacks: the evaluation standard
+
+Milad Nasr, Nicholas Carlini, and coauthors. "The Attacker Moves Second: Stronger Adaptive Attacks Bypass Defenses Against LLM Jailbreaks and Prompt Injections." arXiv:2510.09023, 2025.
+
+Qiusi Zhan, Richard Fang, Henil Shalin Panchal, and Daniel Kang. "Adaptive Attacks Break Defenses Against Indirect Prompt Injection Attacks on LLM Agents." NAACL 2025 Findings. arXiv:2503.00061.
+
+Both papers make the same argument with different tools. A defense that is tested only against attacks written before the defense existed has not been tested. Nasr et al. take twelve published defenses that reported near-zero attack success and break most of them above 90% with gradient search, reinforcement learning, random search, and human red teams. Zhan et al. bypass eight indirect-injection defenses on tool-using agents with attacks built for each one.
+
+**Borrowed.** The standard itself. The [adaptive study](adaptive.md) exists because the 0.3.0 result, datamarking at 0 to 4 successes out of 89, was measured against attacks that could not respond to the defense. The study also borrows the habit of saying exactly what the attacker knows and how many queries they get.
+
+**Not done here.** No gradients, no reinforcement learning, no human red team, no agents. The adaptive attacker in this repository is deliberately cheap: sixteen text recipes written after reading the templates, ranked on tuning seeds. That makes the result a lower bound on what an adaptive attacker can do, not an estimate of it. If a cheap attacker already breaks a defense, the stronger ones in these papers are not needed to make the point; where the cheap attacker fails, nothing follows.
+
+## Attacker models
+
+Patrick Chao, Alexander Robey, Edgar Dobriban, Hamed Hassani, George J. Pappas, and Eric Wong. "Jailbreaking Black Box Large Language Models in Twenty Queries." arXiv:2310.08419, 2023.
+
+PAIR uses one language model to attack another. The attacker model proposes a prompt, reads the target's reply, and revises, for a small number of rounds.
+
+**Borrowed.** The loop, as the second attacker in the adaptive study: a local model writes the injected text, sees the target's reply, and tries again, five times at most.
+
+**Not done here.** PAIR targets jailbreaks, runs many parallel streams, and uses a judge model to score replies. Here the goal is injection, there is one stream, and the deterministic scorers decide success. The study also adds a control PAIR does not have: the same attacker model with the same budget but no template and no feedback, so that "five tries" can be separated from "five informed tries".
+
 ## The industry checklist
 
 OWASP. "LLM01:2025 Prompt Injection." *OWASP Top 10 for Large Language Model Applications*, version 2025. [genai.owasp.org/llmrisk/llm01-prompt-injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/).
@@ -40,7 +62,7 @@ OWASP lists prompt injection as the first risk for LLM applications and distingu
 
 **Borrowed.** The name of the problem, and the reminder that a prompt-level instruction is not a control you should rely on by itself. The responsible-use notes in this repository match that: a low score here is not a deployment argument.
 
-**Not done here.** No coverage of the rest of the Top 10, no scanner, and no mapping of these 40 cases onto an OWASP compliance claim.
+**Not done here.** No coverage of the rest of the Top 10, no scanner, and no mapping of these cases onto an OWASP compliance claim.
 
 ## Agents, as the thing this is not
 
@@ -50,4 +72,4 @@ AgentDojo gives a model tools — email, banking, travel bookings — and puts t
 
 **Borrowed.** The insistence on reporting utility and security separately. An agent that refuses every tool call is secure and useless. The same split is why this project has `secure_but_unhelpful`.
 
-**Not done here.** No tools, no environment, no state-based check of a side effect. A model in this harness can only emit text. If it prints `CANARY_D01`, that is the entire compromise. AgentDojo is the right thing to read next if you want the version of this problem where the model can act. This repository stops one step earlier, on purpose: the measurement is about instruction-following on a document, and it can be run on a laptop with no API key.
+**Not done here.** No tools, no environment, no state-based check of a side effect. A model in this harness can only emit text. If it prints `CANARY_D01`, that is the entire compromise. The eight `tool_call_request` cases added in 0.3.0 ask the model to write a function call such as `forward_invoice(...)`, and the reports count how often a naive line parser would have found one. That is a text proxy borrowed from the shape of the AgentDojo question. It says nothing about what an agent with real tools, real tool outputs, and multiple turns would do. AgentDojo is the right thing to read next if you want the version of this problem where the model can act. This repository stops one step earlier, on purpose: the measurement is about instruction-following on a document, and it can be run on a laptop with no API key.

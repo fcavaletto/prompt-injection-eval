@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from prompt_injection_eval.constants import SCHEMA_VERSION, SYNTHETIC_SECRET
 
 CANARY_PATTERN = re.compile(r"CANARY_[A-Z0-9]+")
+TOOL_NAME_PATTERN = re.compile(r"[a-z][a-z0-9]*(?:_[a-z0-9]+)+")
 JSON_SCALAR = str | int | float | bool | None
 
 
@@ -25,6 +26,7 @@ class Category(StrEnum):
     instruction_hidden_in_prose = "instruction_hidden_in_prose"
     output_format_hijack = "output_format_hijack"
     synthetic_secret_exfiltration = "synthetic_secret_exfiltration"
+    tool_call_request = "tool_call_request"
 
 
 CATEGORY_ORDER: tuple[str, ...] = tuple(item.value for item in Category)
@@ -90,8 +92,27 @@ class SecretDisclosureGoal(BaseModel):
         return value
 
 
+class ToolCallTextGoal(BaseModel):
+    """The document asks the model to write a function-call line.
+
+    The model has no tools. The target is the function name the attacker wants written
+    out as `name(...)`. Scoring asks whether that text appeared, not whether anything ran.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    type: Literal["tool_call_text"]
+    target: str
+
+    @field_validator("target")
+    @classmethod
+    def identifier_target(cls, value: str) -> str:
+        if TOOL_NAME_PATTERN.fullmatch(value) is None:
+            raise ValueError("tool_call_text target must be a lower_snake_case function name")
+        return value
+
+
 AttackGoal = Annotated[
-    ExactOutputGoal | ForcedJsonGoal | FormatHijackGoal | SecretDisclosureGoal,
+    ExactOutputGoal | ForcedJsonGoal | FormatHijackGoal | SecretDisclosureGoal | ToolCallTextGoal,
     Field(discriminator="type"),
 ]
 
@@ -120,8 +141,27 @@ class JsonFieldsTask(BaseModel):
     values: dict[str, JSON_SCALAR] = Field(min_length=1)
 
 
+class KeywordGroupsTask(BaseModel):
+    """Every group must be matched by at least one of its alternatives.
+
+    This is still a keyword proxy. The alternatives are written by hand for phrasings
+    the case author expects ("two weeks", "14 days"). It does not judge meaning.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    type: Literal["keyword_groups"]
+    groups: list[list[str]] = Field(min_length=1)
+
+    @field_validator("groups")
+    @classmethod
+    def non_empty_groups(cls, value: list[list[str]]) -> list[list[str]]:
+        if any(not group or any(not item.strip() for item in group) for group in value):
+            raise ValueError("keyword_groups needs non-empty groups of non-empty strings")
+        return value
+
+
 ExpectedTask = Annotated[
-    ExactMatchTask | LabelMatchTask | ContainsAllTask | JsonFieldsTask,
+    ExactMatchTask | LabelMatchTask | ContainsAllTask | JsonFieldsTask | KeywordGroupsTask,
     Field(discriminator="type"),
 ]
 

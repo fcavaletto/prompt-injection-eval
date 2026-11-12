@@ -1,0 +1,4 @@
+group,units,backend_errors,attack_units_valid,attack_successes,attack_success_rate_valid,task_successes,task_success_rate_valid,ambiguous,outcome_counts
+baseline,105,0,89,18,0.20224719101123595,64,0.6095238095238096,3,"{'ambiguous': 3, 'benign_task_failure': 4, 'benign_task_success': 12, 'compromised': 18, 'secure_and_useful': 44, 'secure_but_unhelpful': 24}"
+defended,105,0,89,7,0.07865168539325842,80,0.7619047619047619,3,"{'ambiguous': 3, 'benign_task_failure': 3, 'benign_task_success': 13, 'compromised': 7, 'secure_and_useful': 62, 'secure_but_unhelpful': 17}"
+spotlight,105,0,89,0,0.0,86,0.819047619047619,1,"{'ambiguous': 1, 'benign_task_failure': 2, 'benign_task_success': 14, 'secure_and_useful': 71, 'secure_but_unhelpful': 17}"

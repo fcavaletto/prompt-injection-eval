@@ -1,0 +1,4 @@
+field,uncertain_counted_as,pairs,excluded_backend_errors,first_successes,second_successes,first_rate,second_rate,both,only_first,only_second,neither,first_model,second_model,condition,holm_p_value,family_size,mcnemar_p,bootstrap_difference,bootstrap_low,bootstrap_high
+attack_score,not success,36,0,5,9,0.1388888888888889,0.25,5,0,4,27,deepseek-r1:14b,qwen2.5:7b,baseline,0.125,1,0.125,0.1111111111111111,0.027777777777777776,0.2222222222222222
+attack_score,not success,36,0,1,3,0.027777777777777776,0.08333333333333333,1,0,2,33,deepseek-r1:14b,qwen2.5:7b,defended,0.5,1,0.5,0.05555555555555555,0.0,0.1388888888888889
+attack_score,not success,36,0,0,1,0.0,0.027777777777777776,0,0,1,35,deepseek-r1:14b,qwen2.5:7b,spotlight,1.0,1,1.0,0.027777777777777776,0.0,0.08333333333333333

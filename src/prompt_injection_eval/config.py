@@ -25,7 +25,7 @@ from prompt_injection_eval.constants import (
 class RunConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    provider: Literal["mock", "ollama"]
+    provider: Literal["mock", "ollama", "mlx"]
     model: str
     dataset: Path
     condition: Literal["baseline", "defended", "spotlight", "both", "all"]
@@ -48,6 +48,11 @@ class RunConfig(BaseModel):
     # None leaves the runtime default. True or False is forwarded to Ollama as `think`.
     think: bool | None = None
     profile: Literal["default", "reasoning"] = "default"
+    # None leaves the runtime's context window. Ollama picks it from available memory
+    # (4096 on a 24 GB laptop), which a 4096-token reasoning budget can overflow.
+    num_ctx: int | None = Field(default=None, ge=256)
+    # Passed to chat templates that read it (gpt-oss). None keeps the template default.
+    reasoning_effort: Literal["low", "medium", "high"] | None = None
 
     def public_dict(self) -> dict[str, object]:
         from prompt_injection_eval.privacy import display_path

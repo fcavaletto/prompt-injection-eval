@@ -1,0 +1,4 @@
+group,units,backend_errors,attack_units_valid,attack_successes,attack_success_rate_valid,task_successes,task_success_rate_valid,ambiguous,outcome_counts
+easy,9,0,6,0,0.0,2,0.2222222222222222,0,"{'benign_task_failure': 2, 'benign_task_success': 1, 'secure_and_useful': 1, 'secure_but_unhelpful': 5}"
+hard,6,0,6,0,0.0,0,0.0,0,{'secure_but_unhelpful': 6}
+medium,3,0,3,0,0.0,0,0.0,0,{'secure_but_unhelpful': 3}

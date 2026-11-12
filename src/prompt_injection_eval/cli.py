@@ -9,6 +9,7 @@ from typing import Any
 import typer
 
 from prompt_injection_eval import __version__
+from prompt_injection_eval.adaptive.cli import adaptive_app
 from prompt_injection_eval.config import (
     RunConfig,
     default_model,
@@ -25,6 +26,8 @@ from prompt_injection_eval.dataset import (
     validate_dataset,
 )
 from prompt_injection_eval.doctor import run_doctor
+from prompt_injection_eval.privacy import sanitize_text
+from prompt_injection_eval.providers.mlx import MlxProvider
 from prompt_injection_eval.providers.mock import MockProvider
 from prompt_injection_eval.providers.ollama import OllamaProvider
 from prompt_injection_eval.reporting import (
@@ -40,6 +43,8 @@ from prompt_injection_eval.review import (
     write_review_csv,
 )
 from prompt_injection_eval.runner import RunnerError, run_evaluation
+from prompt_injection_eval.secondary import CaseLookupError, annotate, load_cases_for_rows
+from prompt_injection_eval.stats_report import write_stats_report
 
 app = typer.Typer(
     add_completion=False,
@@ -49,6 +54,7 @@ app = typer.Typer(
         "This is a research harness, not a production security guarantee."
     ),
 )
+app.add_typer(adaptive_app, name="adaptive")
 
 
 @app.command("version")
@@ -117,7 +123,7 @@ def doctor_cmd(
 
 @app.command("run")
 def run_cmd(
-    provider: str = typer.Option(..., "--provider", help="ollama or mock."),
+    provider: str = typer.Option(..., "--provider", help="ollama, mlx, or mock."),
     model: str | None = typer.Option(None, "--model", envvar="PIE_MODEL"),
     dataset: Path = typer.Option(..., "--dataset"),
     condition: str = typer.Option(
@@ -155,13 +161,33 @@ def run_cmd(
         "--profile",
         help="'reasoning' raises max tokens and timeout for models that emit chain-of-thought.",
     ),
+    num_ctx: int | None = typer.Option(
+        None,
+        "--num-ctx",
+        help="Context window forwarded to Ollama. Omit to keep the runtime default.",
+    ),
+    reasoning_effort: str | None = typer.Option(
+        None,
+        "--reasoning-effort",
+        help="low, medium, or high. Read by the gpt-oss chat template (mlx provider).",
+    ),
 ) -> None:
     """Run the evaluation sequentially and append JSONL results as each unit finishes."""
     if condition not in {"baseline", "defended", "spotlight", "both", "all"}:
         typer.echo("Condition must be baseline, defended, spotlight, both, or all.", err=True)
         raise typer.Exit(code=1)
-    if provider not in {"mock", "ollama"}:
-        typer.echo("Provider must be mock or ollama.", err=True)
+    if provider not in {"mock", "ollama", "mlx"}:
+        typer.echo("Provider must be mock, ollama, or mlx.", err=True)
+        raise typer.Exit(code=1)
+    if reasoning_effort not in {None, "low", "medium", "high"}:
+        typer.echo("Reasoning effort must be low, medium, or high.", err=True)
+        raise typer.Exit(code=1)
+    if provider == "mlx" and not _mlx_available():
+        typer.echo(
+            "The mlx provider needs mlx and mlx-lm. Install them with "
+            '`pip install -e ".[mlx]"` on Apple Silicon.',
+            err=True,
+        )
         raise typer.Exit(code=1)
     if task_mode not in {"strict", "lenient"}:
         typer.echo("Task mode must be strict or lenient.", err=True)
@@ -196,16 +222,26 @@ def run_cmd(
         concurrency=concurrency,
         think=think,
         profile=profile,  # type: ignore[arg-type]
+        num_ctx=num_ctx,
+        reasoning_effort=reasoning_effort,  # type: ignore[arg-type]
     )
     typer.echo("Resolved run configuration:")
     typer.echo(json.dumps(config.public_dict(), indent=2, sort_keys=True))
     if overwrite and resume:
         typer.echo("Overwrite is set, so existing raw_results.jsonl will be replaced.")
+    backend: MockProvider | OllamaProvider | MlxProvider
     if provider == "mock":
-        backend: MockProvider | OllamaProvider = MockProvider()
+        backend = MockProvider()
         typer.echo(
             "Provider mock generates synthetic fixtures. These are not empirical model results."
         )
+    elif provider == "mlx":
+        backend = MlxProvider(model=resolved_model, reasoning_effort=config.reasoning_effort)
+        try:
+            backend.load()
+        except Exception as exc:  # noqa: BLE001 - report and stop before writing rows
+            typer.echo(f"Could not load {resolved_model} with mlx-lm: {sanitize_text(str(exc))}")
+            raise typer.Exit(code=1) from exc
     else:
         backend = OllamaProvider(base_url=config.base_url, keep_alive=config.keep_alive)
     try:
@@ -233,6 +269,12 @@ def run_cmd(
                 f"{row['case_id']} {row['condition']} outcome={row['outcome']} "
                 f"attack={row['attack_score']} task={row['task_score']}"
             )
+
+
+def _mlx_available() -> bool:
+    import importlib.util
+
+    return all(importlib.util.find_spec(name) is not None for name in ("mlx", "mlx_lm"))
 
 
 @app.command("analyze")
@@ -319,6 +361,47 @@ def compare_cmd(
         f"models: {', '.join(summary['models'])}."
     )
     typer.echo(f"Comparison written under {output_dir.name}")
+
+
+@app.command("stats")
+def stats_cmd(
+    input_dirs: list[Path] = typer.Option(
+        ..., "--input-dir", help="Result directories, one run per model. Repeat the option."
+    ),
+    output_dir: Path = typer.Option(..., "--output-dir"),
+    reviews: list[Path] | None = typer.Option(
+        None, "--reviews", help="Completed review CSVs, used to calibrate the lenient reading."
+    ),
+) -> None:
+    """Paired McNemar tests, bootstrap intervals, power, and secondary readings."""
+    loaded = _load_many(input_dirs)
+    rows = [row for _dir, dir_rows in loaded for row in dir_rows]
+    keys = [(row.get("model"), row.get("case_id"), row.get("condition")) for row in rows]
+    if len(keys) != len(set(keys)):
+        typer.echo(
+            "Two rows share a model, case, and condition. Pass one run per model; use "
+            "`pie variability` for repeats.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+    for review_path in reviews or []:
+        try:
+            human = load_human_reviews(review_path)
+        except ReviewError as exc:
+            typer.echo(str(exc), err=True)
+            raise typer.Exit(code=1) from exc
+        rows = attach_human_labels(rows, human)
+    try:
+        cases = load_cases_for_rows(rows, Path.cwd())
+    except CaseLookupError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    annotate(rows, cases)
+    summary = write_stats_report(rows, output_dir, sources=[path.name for path, _ in loaded])
+    typer.echo(
+        f"Wrote {len(summary['defense_tests'])} defense tests and "
+        f"{len(summary['model_tests'])} model contrasts under {output_dir.name}"
+    )
 
 
 @app.command("variability")

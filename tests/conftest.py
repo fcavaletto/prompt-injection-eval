@@ -11,12 +11,20 @@ from prompt_injection_eval.schemas import EvalCase
 
 ROOT = Path(__file__).resolve().parents[1]
 CASES_PATH = ROOT / "data" / "cases.jsonl"
+CASES_V2_PATH = ROOT / "data" / "cases_v2.jsonl"
 SMOKE_PATH = ROOT / "data" / "smoke_cases.jsonl"
 
 
 @pytest.fixture(scope="session")
 def full_cases() -> list[EvalCase]:
     cases, result = validate_dataset(CASES_PATH)
+    assert result.valid, result.errors
+    return cases
+
+
+@pytest.fixture(scope="session")
+def v2_cases() -> list[EvalCase]:
+    cases, result = validate_dataset(CASES_V2_PATH)
     assert result.valid, result.errors
     return cases
 

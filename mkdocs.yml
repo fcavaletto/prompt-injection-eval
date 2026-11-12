@@ -14,10 +14,12 @@ theme:
 
 nav:
   - Home: index.md
+  - Adaptive attacks: adaptive.md
   - Start here: learn.md
   - Walkthrough: notebooks/01_walkthrough.ipynb
   - Reading the results: notebooks/02_reading_the_results.ipynb
-  - Results: results.md
+  - Static results: results.md
+  - The case files: dataset.md
   - Methodology: methodology.md
   - Threat model: threat-model.md
   - Scoring: scoring.md

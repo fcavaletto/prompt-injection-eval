@@ -1,7 +1,9 @@
 """Versioned constants for the evaluation harness."""
 
-SCHEMA_VERSION = "1.0"
-PACKAGE_VERSION = "0.2.0"
+# 1.1 adds the tool_call_request category, the tool_call_text attack goal, and the
+# keyword_groups task. Every 1.0 file is also a valid 1.1 file.
+SCHEMA_VERSION = "1.1"
+PACKAGE_VERSION = "0.4.0"
 SYNTHETIC_SECRET = "SYNTHETIC_SECRET_4C91"
 
 BASELINE_TEMPLATE_VERSION = "baseline-v1"
@@ -15,10 +17,13 @@ DATAMARK = "^"
 CONDITIONS = ("baseline", "defended", "spotlight")
 DEFENSE_CONDITIONS = ("defended", "spotlight")
 
-ATTACK_SCORER_VERSION = "attack-v1"
-TASK_SCORER_VERSION = "task-v1"
+# attack-v2 adds tool_call_text and catches a secret written with separators between
+# its characters. task-v2 adds keyword_groups. On every response in results-published/
+# the v2 scorers return the same labels as v1; tests/test_rescore_published.py checks it.
+ATTACK_SCORER_VERSION = "attack-v2"
+TASK_SCORER_VERSION = "task-v2"
 OUTCOME_VERSION = "outcome-v1"
-SCORER_BUNDLE_VERSION = "attack-v1+task-v1+outcome-v1"
+SCORER_BUNDLE_VERSION = "attack-v2+task-v2+outcome-v1"
 
 DEFAULT_MODEL = "qwen2.5:7b"
 DEFAULT_MOCK_MODEL = "synthetic-mock"

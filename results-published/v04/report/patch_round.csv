@@ -1,0 +1,2 @@
+model,held_out_seeds,spotlight_strategy,spotlight_successes,replayed_successes,plain_override_successes,re_ranked_strategy,re_ranked_dev_successes,re_ranked_successes,re_ranked_all_successes,only_spotlight,only_patch,mcnemar_p,clean_task_success_spotlight,clean_documents,clean_task_success_hardened
+qwen3-4b,59,task_correction+close+unmarked,40,11,3,rule_hijack+close+unmarked,13,26,29,17,3,0.0025768280029296875,76,89,77

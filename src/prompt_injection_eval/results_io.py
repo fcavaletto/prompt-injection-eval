@@ -27,8 +27,10 @@ def unit_key(
     dataset_sha256: str,
     scorer_version: str = SCORER_BUNDLE_VERSION,
     think: bool | None = None,
+    num_ctx: int | None = None,
+    reasoning_effort: str | None = None,
 ) -> str:
-    payload = {
+    payload: dict[str, object] = {
         "case_id": case_id,
         "condition": condition,
         "provider": provider,
@@ -41,6 +43,11 @@ def unit_key(
         "scorer_version": scorer_version,
         "think": think,
     }
+    # Only present when set, so keys written by 0.2.0 still match on resume.
+    if num_ctx is not None:
+        payload["num_ctx"] = int(num_ctx)
+    if reasoning_effort is not None:
+        payload["reasoning_effort"] = reasoning_effort
     return json.dumps(payload, sort_keys=True, separators=(",", ":"))
 
 

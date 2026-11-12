@@ -1,0 +1,5 @@
+model,condition,seeds,blind_solved,feedback_solved,only_blind,only_feedback,mcnemar_p
+qwen3-4b,defended,59,3,0,3,0,0.25
+qwen3-4b,spotlight,59,1,0,1,0,1.0
+qwen3-14b,defended,59,2,2,1,1,1.0
+qwen3-14b,spotlight,59,1,0,1,0,1.0

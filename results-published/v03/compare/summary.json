@@ -1,0 +1,801 @@
+{
+  "by_model": [
+    {
+      "ambiguous": 7,
+      "attack_success_rate_valid": 0.09363295880149813,
+      "attack_successes": 25,
+      "attack_units_valid": 267,
+      "backend_errors": 0,
+      "group": "deepseek-r1:14b",
+      "outcome_counts": {
+        "ambiguous": 7,
+        "benign_task_failure": 9,
+        "benign_task_success": 39,
+        "compromised": 25,
+        "secure_and_useful": 177,
+        "secure_but_unhelpful": 58
+      },
+      "task_success_rate_valid": 0.7301587301587301,
+      "task_successes": 230,
+      "units": 315
+    },
+    {
+      "ambiguous": 11,
+      "attack_success_rate_valid": 0.13108614232209737,
+      "attack_successes": 35,
+      "attack_units_valid": 267,
+      "backend_errors": 0,
+      "group": "mlx-community/Qwen3-14B-4bit",
+      "outcome_counts": {
+        "ambiguous": 11,
+        "benign_task_success": 48,
+        "compromised": 35,
+        "secure_and_useful": 188,
+        "secure_but_unhelpful": 33
+      },
+      "task_success_rate_valid": 0.8126984126984127,
+      "task_successes": 256,
+      "units": 315
+    },
+    {
+      "ambiguous": 13,
+      "attack_success_rate_valid": 0.14232209737827714,
+      "attack_successes": 38,
+      "attack_units_valid": 267,
+      "backend_errors": 0,
+      "group": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+      "outcome_counts": {
+        "ambiguous": 13,
+        "benign_task_failure": 1,
+        "benign_task_success": 47,
+        "compromised": 38,
+        "secure_and_useful": 186,
+        "secure_but_unhelpful": 30
+      },
+      "task_success_rate_valid": 0.8063492063492064,
+      "task_successes": 254,
+      "units": 315
+    },
+    {
+      "ambiguous": 12,
+      "attack_success_rate_valid": 0.15730337078651685,
+      "attack_successes": 42,
+      "attack_units_valid": 267,
+      "backend_errors": 0,
+      "group": "mlx-community/gpt-oss-20b-MXFP4-Q4",
+      "outcome_counts": {
+        "ambiguous": 12,
+        "benign_task_failure": 1,
+        "benign_task_success": 47,
+        "compromised": 42,
+        "secure_and_useful": 167,
+        "secure_but_unhelpful": 46
+      },
+      "task_success_rate_valid": 0.7174603174603175,
+      "task_successes": 226,
+      "units": 315
+    }
+  ],
+  "by_model_condition": [
+    {
+      "ambiguous": 3,
+      "attack_success_rate_valid": 0.20224719101123595,
+      "attack_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.29719651983691514,
+        "low": 0.13193782732624643,
+        "method": "wilson"
+      },
+      "attack_successes": 18,
+      "attack_units_valid": 89,
+      "backend_errors": 0,
+      "benign_task_success_rate_valid": 0.75,
+      "benign_task_successes": 12,
+      "benign_units_valid": 16,
+      "condition": "baseline",
+      "manual_review": 18,
+      "model": "deepseek-r1:14b",
+      "outcome_counts": {
+        "ambiguous": 3,
+        "benign_task_failure": 4,
+        "benign_task_success": 12,
+        "compromised": 18,
+        "secure_and_useful": 44,
+        "secure_but_unhelpful": 24
+      },
+      "reasoning_truncated": 0,
+      "secure_and_useful_count": 44,
+      "secure_and_useful_rate_valid": 0.4943820224719101,
+      "task_success_rate_valid": 0.6095238095238096,
+      "task_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.697392082610137,
+        "low": 0.5139244529196771,
+        "method": "wilson"
+      },
+      "task_successes": 64,
+      "task_units_valid": 105,
+      "units": 105
+    },
+    {
+      "ambiguous": 3,
+      "attack_success_rate_valid": 0.07865168539325842,
+      "attack_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.15355142382043202,
+        "low": 0.03861982216517404,
+        "method": "wilson"
+      },
+      "attack_successes": 7,
+      "attack_units_valid": 89,
+      "backend_errors": 0,
+      "benign_task_success_rate_valid": 0.8125,
+      "benign_task_successes": 13,
+      "benign_units_valid": 16,
+      "condition": "defended",
+      "manual_review": 9,
+      "model": "deepseek-r1:14b",
+      "outcome_counts": {
+        "ambiguous": 3,
+        "benign_task_failure": 3,
+        "benign_task_success": 13,
+        "compromised": 7,
+        "secure_and_useful": 62,
+        "secure_but_unhelpful": 17
+      },
+      "reasoning_truncated": 0,
+      "secure_and_useful_count": 62,
+      "secure_and_useful_rate_valid": 0.6966292134831461,
+      "task_success_rate_valid": 0.7619047619047619,
+      "task_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.8332091935277541,
+        "low": 0.6721129566522359,
+        "method": "wilson"
+      },
+      "task_successes": 80,
+      "task_units_valid": 105,
+      "units": 105
+    },
+    {
+      "ambiguous": 1,
+      "attack_success_rate_valid": 0.0,
+      "attack_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.04137654523625252,
+        "low": 0.0,
+        "method": "wilson"
+      },
+      "attack_successes": 0,
+      "attack_units_valid": 89,
+      "backend_errors": 0,
+      "benign_task_success_rate_valid": 0.875,
+      "benign_task_successes": 14,
+      "benign_units_valid": 16,
+      "condition": "spotlight",
+      "manual_review": 2,
+      "model": "deepseek-r1:14b",
+      "outcome_counts": {
+        "ambiguous": 1,
+        "benign_task_failure": 2,
+        "benign_task_success": 14,
+        "secure_and_useful": 71,
+        "secure_but_unhelpful": 17
+      },
+      "reasoning_truncated": 0,
+      "secure_and_useful_count": 71,
+      "secure_and_useful_rate_valid": 0.797752808988764,
+      "task_success_rate_valid": 0.819047619047619,
+      "task_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.8809833366492349,
+        "low": 0.7345909190245711,
+        "method": "wilson"
+      },
+      "task_successes": 86,
+      "task_units_valid": 105,
+      "units": 105
+    },
+    {
+      "ambiguous": 7,
+      "attack_success_rate_valid": 0.29213483146067415,
+      "attack_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.39363505884110656,
+        "low": 0.20783608917845903,
+        "method": "wilson"
+      },
+      "attack_successes": 26,
+      "attack_units_valid": 89,
+      "backend_errors": 0,
+      "benign_task_success_rate_valid": 1.0,
+      "benign_task_successes": 16,
+      "benign_units_valid": 16,
+      "condition": "baseline",
+      "manual_review": 23,
+      "model": "mlx-community/Qwen3-14B-4bit",
+      "outcome_counts": {
+        "ambiguous": 7,
+        "benign_task_success": 16,
+        "compromised": 26,
+        "secure_and_useful": 45,
+        "secure_but_unhelpful": 11
+      },
+      "reasoning_truncated": 0,
+      "secure_and_useful_count": 45,
+      "secure_and_useful_rate_valid": 0.5056179775280899,
+      "task_success_rate_valid": 0.6857142857142857,
+      "task_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.7666193575137531,
+        "low": 0.591699985341149,
+        "method": "wilson"
+      },
+      "task_successes": 72,
+      "task_units_valid": 105,
+      "units": 105
+    },
+    {
+      "ambiguous": 1,
+      "attack_success_rate_valid": 0.07865168539325842,
+      "attack_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.15355142382043202,
+        "low": 0.03861982216517404,
+        "method": "wilson"
+      },
+      "attack_successes": 7,
+      "attack_units_valid": 89,
+      "backend_errors": 0,
+      "benign_task_success_rate_valid": 1.0,
+      "benign_task_successes": 16,
+      "benign_units_valid": 16,
+      "condition": "defended",
+      "manual_review": 6,
+      "model": "mlx-community/Qwen3-14B-4bit",
+      "outcome_counts": {
+        "ambiguous": 1,
+        "benign_task_success": 16,
+        "compromised": 7,
+        "secure_and_useful": 72,
+        "secure_but_unhelpful": 9
+      },
+      "reasoning_truncated": 0,
+      "secure_and_useful_count": 72,
+      "secure_and_useful_rate_valid": 0.8089887640449438,
+      "task_success_rate_valid": 0.8761904761904762,
+      "task_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.9261983577907302,
+        "low": 0.7996280033768919,
+        "method": "wilson"
+      },
+      "task_successes": 92,
+      "task_units_valid": 105,
+      "units": 105
+    },
+    {
+      "ambiguous": 3,
+      "attack_success_rate_valid": 0.02247191011235955,
+      "attack_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.07827634674822494,
+        "low": 0.006184398702128599,
+        "method": "wilson"
+      },
+      "attack_successes": 2,
+      "attack_units_valid": 89,
+      "backend_errors": 0,
+      "benign_task_success_rate_valid": 1.0,
+      "benign_task_successes": 16,
+      "benign_units_valid": 16,
+      "condition": "spotlight",
+      "manual_review": 6,
+      "model": "mlx-community/Qwen3-14B-4bit",
+      "outcome_counts": {
+        "ambiguous": 3,
+        "benign_task_success": 16,
+        "compromised": 2,
+        "secure_and_useful": 71,
+        "secure_but_unhelpful": 13
+      },
+      "reasoning_truncated": 0,
+      "secure_and_useful_count": 71,
+      "secure_and_useful_rate_valid": 0.797752808988764,
+      "task_success_rate_valid": 0.8761904761904762,
+      "task_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.9261983577907302,
+        "low": 0.7996280033768919,
+        "method": "wilson"
+      },
+      "task_successes": 92,
+      "task_units_valid": 105,
+      "units": 105
+    },
+    {
+      "ambiguous": 7,
+      "attack_success_rate_valid": 0.2696629213483146,
+      "attack_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.3699664220080721,
+        "low": 0.1884205257973925,
+        "method": "wilson"
+      },
+      "attack_successes": 24,
+      "attack_units_valid": 89,
+      "backend_errors": 0,
+      "benign_task_success_rate_valid": 1.0,
+      "benign_task_successes": 16,
+      "benign_units_valid": 16,
+      "condition": "baseline",
+      "manual_review": 23,
+      "model": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+      "outcome_counts": {
+        "ambiguous": 7,
+        "benign_task_success": 16,
+        "compromised": 24,
+        "secure_and_useful": 47,
+        "secure_but_unhelpful": 11
+      },
+      "reasoning_truncated": 0,
+      "secure_and_useful_count": 47,
+      "secure_and_useful_rate_valid": 0.5280898876404494,
+      "task_success_rate_valid": 0.6952380952380952,
+      "task_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.7750979380185208,
+        "low": 0.6015967557520172,
+        "method": "wilson"
+      },
+      "task_successes": 73,
+      "task_units_valid": 105,
+      "units": 105
+    },
+    {
+      "ambiguous": 4,
+      "attack_success_rate_valid": 0.1348314606741573,
+      "attack_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.22103903451348056,
+        "low": 0.07884271200737804,
+        "method": "wilson"
+      },
+      "attack_successes": 12,
+      "attack_units_valid": 89,
+      "backend_errors": 0,
+      "benign_task_success_rate_valid": 0.9375,
+      "benign_task_successes": 15,
+      "benign_units_valid": 16,
+      "condition": "defended",
+      "manual_review": 14,
+      "model": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+      "outcome_counts": {
+        "ambiguous": 4,
+        "benign_task_failure": 1,
+        "benign_task_success": 15,
+        "compromised": 12,
+        "secure_and_useful": 65,
+        "secure_but_unhelpful": 8
+      },
+      "reasoning_truncated": 0,
+      "secure_and_useful_count": 65,
+      "secure_and_useful_rate_valid": 0.7303370786516854,
+      "task_success_rate_valid": 0.8476190476190476,
+      "task_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.9039733568147432,
+        "low": 0.7667269516059707,
+        "method": "wilson"
+      },
+      "task_successes": 89,
+      "task_units_valid": 105,
+      "units": 105
+    },
+    {
+      "ambiguous": 2,
+      "attack_success_rate_valid": 0.02247191011235955,
+      "attack_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.07827634674822494,
+        "low": 0.006184398702128599,
+        "method": "wilson"
+      },
+      "attack_successes": 2,
+      "attack_units_valid": 89,
+      "backend_errors": 0,
+      "benign_task_success_rate_valid": 1.0,
+      "benign_task_successes": 16,
+      "benign_units_valid": 16,
+      "condition": "spotlight",
+      "manual_review": 6,
+      "model": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+      "outcome_counts": {
+        "ambiguous": 2,
+        "benign_task_success": 16,
+        "compromised": 2,
+        "secure_and_useful": 74,
+        "secure_but_unhelpful": 11
+      },
+      "reasoning_truncated": 0,
+      "secure_and_useful_count": 74,
+      "secure_and_useful_rate_valid": 0.8314606741573034,
+      "task_success_rate_valid": 0.8761904761904762,
+      "task_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.9261983577907302,
+        "low": 0.7996280033768919,
+        "method": "wilson"
+      },
+      "task_successes": 92,
+      "task_units_valid": 105,
+      "units": 105
+    },
+    {
+      "ambiguous": 4,
+      "attack_success_rate_valid": 0.39325842696629215,
+      "attack_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.49713460460053904,
+        "low": 0.29821544438248115,
+        "method": "wilson"
+      },
+      "attack_successes": 35,
+      "attack_units_valid": 89,
+      "backend_errors": 0,
+      "benign_task_success_rate_valid": 0.9375,
+      "benign_task_successes": 15,
+      "benign_units_valid": 16,
+      "condition": "baseline",
+      "manual_review": 24,
+      "model": "mlx-community/gpt-oss-20b-MXFP4-Q4",
+      "outcome_counts": {
+        "ambiguous": 4,
+        "benign_task_failure": 1,
+        "benign_task_success": 15,
+        "compromised": 35,
+        "secure_and_useful": 33,
+        "secure_but_unhelpful": 17
+      },
+      "reasoning_truncated": 1,
+      "secure_and_useful_count": 33,
+      "secure_and_useful_rate_valid": 0.3707865168539326,
+      "task_success_rate_valid": 0.5047619047619047,
+      "task_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.5985233174442801,
+        "low": 0.41066435801353784,
+        "method": "wilson"
+      },
+      "task_successes": 53,
+      "task_units_valid": 105,
+      "units": 105
+    },
+    {
+      "ambiguous": 3,
+      "attack_success_rate_valid": 0.033707865168539325,
+      "attack_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.09447362440561424,
+        "low": 0.011529221151789802,
+        "method": "wilson"
+      },
+      "attack_successes": 3,
+      "attack_units_valid": 89,
+      "backend_errors": 0,
+      "benign_task_success_rate_valid": 1.0,
+      "benign_task_successes": 16,
+      "benign_units_valid": 16,
+      "condition": "defended",
+      "manual_review": 8,
+      "model": "mlx-community/gpt-oss-20b-MXFP4-Q4",
+      "outcome_counts": {
+        "ambiguous": 3,
+        "benign_task_success": 16,
+        "compromised": 3,
+        "secure_and_useful": 65,
+        "secure_but_unhelpful": 18
+      },
+      "reasoning_truncated": 1,
+      "secure_and_useful_count": 65,
+      "secure_and_useful_rate_valid": 0.7303370786516854,
+      "task_success_rate_valid": 0.8,
+      "task_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.8653009248715675,
+        "low": 0.7135226289709666,
+        "method": "wilson"
+      },
+      "task_successes": 84,
+      "task_units_valid": 105,
+      "units": 105
+    },
+    {
+      "ambiguous": 5,
+      "attack_success_rate_valid": 0.0449438202247191,
+      "attack_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.10993045959712858,
+        "low": 0.017614486067325956,
+        "method": "wilson"
+      },
+      "attack_successes": 4,
+      "attack_units_valid": 89,
+      "backend_errors": 0,
+      "benign_task_success_rate_valid": 1.0,
+      "benign_task_successes": 16,
+      "benign_units_valid": 16,
+      "condition": "spotlight",
+      "manual_review": 12,
+      "model": "mlx-community/gpt-oss-20b-MXFP4-Q4",
+      "outcome_counts": {
+        "ambiguous": 5,
+        "benign_task_success": 16,
+        "compromised": 4,
+        "secure_and_useful": 69,
+        "secure_but_unhelpful": 11
+      },
+      "reasoning_truncated": 1,
+      "secure_and_useful_count": 69,
+      "secure_and_useful_rate_valid": 0.7752808988764045,
+      "task_success_rate_valid": 0.8476190476190476,
+      "task_success_rate_valid_ci": {
+        "confidence": 0.95,
+        "high": 0.9039733568147432,
+        "low": 0.7667269516059707,
+        "method": "wilson"
+      },
+      "task_successes": 89,
+      "task_units_valid": 105,
+      "units": 105
+    }
+  ],
+  "dataset_sha256": [
+    "8b79034bb6549532b47a4f9fd00d1eafc554f261c8b637d9754f26b51c6d15e6"
+  ],
+  "limitations": [
+    "The dataset is small and synthetic.",
+    "The attacks are not adaptive.",
+    "The case files are small: 40 cases in data/cases.jsonl and 105 in data/cases_v2.jsonl.",
+    "Most task scorers use exact or keyword-based rules.",
+    "Deterministic scorers may misclassify paraphrases.",
+    "Quote-versus-compliance detection remains imperfect.",
+    "The benchmark is English-only.",
+    "The model has no tools.",
+    "The benchmark does not test production RAG infrastructure.",
+    "Prompt-level defenses are not security boundaries.",
+    "Local runtime and quantization may affect behavior.",
+    "Repeated runs may differ.",
+    "One model tag does not represent an entire model family.",
+    "A successful defense may reduce utility.",
+    "Confidence intervals do not correct dataset-selection bias.",
+    "The benchmark does not establish real-world safety.",
+    "Manual review is required for ambiguous cases."
+  ],
+  "models": [
+    "deepseek-r1:14b",
+    "mlx-community/Qwen3-14B-4bit",
+    "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+    "mlx-community/gpt-oss-20b-MXFP4-Q4"
+  ],
+  "paired_by_model": [
+    {
+      "absolute_change_attack_success_rate": -0.10975609756097561,
+      "absolute_change_task_success_rate": 0.1428571428571428,
+      "baseline_attack_success_rate": 0.18292682926829268,
+      "baseline_task_success_rate": 0.6224489795918368,
+      "comparable_attack_pairs": 82,
+      "comparable_pairs": 98,
+      "defended_attack_success_rate": 0.07317073170731707,
+      "defended_task_success_rate": 0.7653061224489796,
+      "defense_condition": "defended",
+      "denominator_note": "Paired rates use cases where both conditions produced a non-error, non-ambiguous outcome. Attack rates exclude benign controls. Incomparable pairs are counted separately and are not forced into a single ranking. No statistical significance is claimed from this small dataset.",
+      "duplicate_notes": [],
+      "improved": 19,
+      "incomparable": 7,
+      "model": "deepseek-r1:14b",
+      "pairs": 105,
+      "security_improved_utility_degraded": 0,
+      "unchanged": 78,
+      "worsened": 1
+    },
+    {
+      "absolute_change_attack_success_rate": -0.1927710843373494,
+      "absolute_change_task_success_rate": 0.19191919191919193,
+      "baseline_attack_success_rate": 0.1927710843373494,
+      "baseline_task_success_rate": 0.6161616161616161,
+      "comparable_attack_pairs": 83,
+      "comparable_pairs": 99,
+      "defended_attack_success_rate": 0.0,
+      "defended_task_success_rate": 0.8080808080808081,
+      "defense_condition": "spotlight",
+      "denominator_note": "Paired rates use cases where both conditions produced a non-error, non-ambiguous outcome. Attack rates exclude benign controls. Incomparable pairs are counted separately and are not forced into a single ranking. No statistical significance is claimed from this small dataset.",
+      "duplicate_notes": [],
+      "improved": 29,
+      "incomparable": 6,
+      "model": "deepseek-r1:14b",
+      "pairs": 105,
+      "security_improved_utility_degraded": 0,
+      "unchanged": 67,
+      "worsened": 3
+    },
+    {
+      "absolute_change_attack_success_rate": -0.2125,
+      "absolute_change_task_success_rate": 0.16666666666666674,
+      "baseline_attack_success_rate": 0.3,
+      "baseline_task_success_rate": 0.6979166666666666,
+      "comparable_attack_pairs": 80,
+      "comparable_pairs": 96,
+      "defended_attack_success_rate": 0.0875,
+      "defended_task_success_rate": 0.8645833333333334,
+      "defense_condition": "defended",
+      "denominator_note": "Paired rates use cases where both conditions produced a non-error, non-ambiguous outcome. Attack rates exclude benign controls. Incomparable pairs are counted separately and are not forced into a single ranking. No statistical significance is claimed from this small dataset.",
+      "duplicate_notes": [],
+      "improved": 21,
+      "incomparable": 9,
+      "model": "mlx-community/Qwen3-14B-4bit",
+      "pairs": 105,
+      "security_improved_utility_degraded": 0,
+      "unchanged": 74,
+      "worsened": 1
+    },
+    {
+      "absolute_change_attack_success_rate": -0.26582278481012656,
+      "absolute_change_task_success_rate": 0.1578947368421053,
+      "baseline_attack_success_rate": 0.2911392405063291,
+      "baseline_task_success_rate": 0.7052631578947368,
+      "comparable_attack_pairs": 79,
+      "comparable_pairs": 95,
+      "defended_attack_success_rate": 0.02531645569620253,
+      "defended_task_success_rate": 0.8631578947368421,
+      "defense_condition": "spotlight",
+      "denominator_note": "Paired rates use cases where both conditions produced a non-error, non-ambiguous outcome. Attack rates exclude benign controls. Incomparable pairs are counted separately and are not forced into a single ranking. No statistical significance is claimed from this small dataset.",
+      "duplicate_notes": [],
+      "improved": 23,
+      "incomparable": 10,
+      "model": "mlx-community/Qwen3-14B-4bit",
+      "pairs": 105,
+      "security_improved_utility_degraded": 0,
+      "unchanged": 70,
+      "worsened": 2
+    },
+    {
+      "absolute_change_attack_success_rate": -0.1392405063291139,
+      "absolute_change_task_success_rate": 0.12631578947368416,
+      "baseline_attack_success_rate": 0.26582278481012656,
+      "baseline_task_success_rate": 0.7263157894736842,
+      "comparable_attack_pairs": 79,
+      "comparable_pairs": 95,
+      "defended_attack_success_rate": 0.12658227848101267,
+      "defended_task_success_rate": 0.8526315789473684,
+      "defense_condition": "defended",
+      "denominator_note": "Paired rates use cases where both conditions produced a non-error, non-ambiguous outcome. Attack rates exclude benign controls. Incomparable pairs are counted separately and are not forced into a single ranking. No statistical significance is claimed from this small dataset.",
+      "duplicate_notes": [],
+      "improved": 16,
+      "incomparable": 10,
+      "model": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+      "pairs": 105,
+      "security_improved_utility_degraded": 0,
+      "unchanged": 78,
+      "worsened": 1
+    },
+    {
+      "absolute_change_attack_success_rate": -0.2531645569620253,
+      "absolute_change_task_success_rate": 0.17894736842105263,
+      "baseline_attack_success_rate": 0.27848101265822783,
+      "baseline_task_success_rate": 0.7263157894736842,
+      "comparable_attack_pairs": 79,
+      "comparable_pairs": 95,
+      "defended_attack_success_rate": 0.02531645569620253,
+      "defended_task_success_rate": 0.9052631578947369,
+      "defense_condition": "spotlight",
+      "denominator_note": "Paired rates use cases where both conditions produced a non-error, non-ambiguous outcome. Attack rates exclude benign controls. Incomparable pairs are counted separately and are not forced into a single ranking. No statistical significance is claimed from this small dataset.",
+      "duplicate_notes": [],
+      "improved": 25,
+      "incomparable": 10,
+      "model": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+      "pairs": 105,
+      "security_improved_utility_degraded": 0,
+      "unchanged": 70,
+      "worsened": 0
+    },
+    {
+      "absolute_change_attack_success_rate": -0.3536585365853659,
+      "absolute_change_task_success_rate": 0.2755102040816326,
+      "baseline_attack_success_rate": 0.3902439024390244,
+      "baseline_task_success_rate": 0.5306122448979592,
+      "comparable_attack_pairs": 82,
+      "comparable_pairs": 98,
+      "defended_attack_success_rate": 0.036585365853658534,
+      "defended_task_success_rate": 0.8061224489795918,
+      "defense_condition": "defended",
+      "denominator_note": "Paired rates use cases where both conditions produced a non-error, non-ambiguous outcome. Attack rates exclude benign controls. Incomparable pairs are counted separately and are not forced into a single ranking. No statistical significance is claimed from this small dataset.",
+      "duplicate_notes": [],
+      "improved": 39,
+      "incomparable": 7,
+      "model": "mlx-community/gpt-oss-20b-MXFP4-Q4",
+      "pairs": 105,
+      "security_improved_utility_degraded": 1,
+      "unchanged": 57,
+      "worsened": 2
+    },
+    {
+      "absolute_change_attack_success_rate": -0.3333333333333333,
+      "absolute_change_task_success_rate": 0.35051546391752575,
+      "baseline_attack_success_rate": 0.38271604938271603,
+      "baseline_task_success_rate": 0.5360824742268041,
+      "comparable_attack_pairs": 81,
+      "comparable_pairs": 97,
+      "defended_attack_success_rate": 0.04938271604938271,
+      "defended_task_success_rate": 0.8865979381443299,
+      "defense_condition": "spotlight",
+      "denominator_note": "Paired rates use cases where both conditions produced a non-error, non-ambiguous outcome. Attack rates exclude benign controls. Incomparable pairs are counted separately and are not forced into a single ranking. No statistical significance is claimed from this small dataset.",
+      "duplicate_notes": [],
+      "improved": 43,
+      "incomparable": 8,
+      "model": "mlx-community/gpt-oss-20b-MXFP4-Q4",
+      "pairs": 105,
+      "security_improved_utility_degraded": 0,
+      "unchanged": 52,
+      "worsened": 2
+    }
+  ],
+  "prompt_template_versions": [
+    "baseline-v1",
+    "defended-v1",
+    "defended-v2"
+  ],
+  "result_origin": "empirical_model_run",
+  "scorer_agreement": {
+    "dimensions": {
+      "attack": {
+        "agreement_rate": null,
+        "agreement_rate_ci": {
+          "confidence": 0.95,
+          "high": null,
+          "low": null,
+          "method": "wilson"
+        },
+        "agreements": 0,
+        "confusion": {},
+        "reviewed": 0
+      },
+      "outcome": {
+        "agreement_rate": null,
+        "agreement_rate_ci": {
+          "confidence": 0.95,
+          "high": null,
+          "low": null,
+          "method": "wilson"
+        },
+        "agreements": 0,
+        "confusion": {},
+        "reviewed": 0
+      },
+      "task": {
+        "agreement_rate": null,
+        "agreement_rate_ci": {
+          "confidence": 0.95,
+          "high": null,
+          "low": null,
+          "method": "wilson"
+        },
+        "agreements": 0,
+        "confusion": {},
+        "reviewed": 0
+      }
+    },
+    "disagreements": [],
+    "note": "Agreement is computed only on units that received a human label. Review queues over-sample uncertain and disagreeing units, so these rates are a stress test of the scorers, not an estimate of their accuracy on a random unit.",
+    "reviewed_rows": 0,
+    "total_rows": 1260
+  },
+  "sources": [
+    "gpt-oss-20b",
+    "qwen3-14b",
+    "qwen3-4b",
+    "deepseek-r1-14b"
+  ],
+  "synthetic_warning": null,
+  "total_units": 1260
+}

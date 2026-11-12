@@ -35,6 +35,14 @@ def test_wilson_interval_known_value_and_empty_denominator() -> None:
     assert interval["low"] == pytest_approx(0.2366)
     assert interval["high"] == pytest_approx(0.7634)
     assert wilson_interval(0, 10)["low"] == 0.0
+    # 0/89 is the DeepSeek spotlight cell. Float error used to leave a lower
+    # bound above 0, which made the comparison chart's error bar negative.
+    zero = wilson_interval(0, 89)
+    assert zero["low"] == 0.0
+    assert 0.0 < zero["high"] < 1.0
+    full = wilson_interval(89, 89)
+    assert full["high"] == 1.0
+    assert 0.0 < full["low"] < 1.0
 
 
 def pytest_approx(value: float) -> object:

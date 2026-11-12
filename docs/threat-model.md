@@ -17,7 +17,21 @@ The system instruction is identical in the baseline and defended conditions. It 
 
 ## Attacker capability
 
-The attacker can write the document, including text that looks like a system message, a role assignment, a delimiter, metadata, or a formatting directive.
+The attacker can write the document, including text that looks like a system message, a role assignment, a delimiter, metadata, a formatting directive, or a function call.
+
+There are two attackers in this repository, and they differ only in what they know.
+
+**The static attacker (0.2.0 and 0.3.0).** Writes each document once, before any model has seen it. A few 0.3.0 cases assume the attacker has read the prompt templates: two close the exact delimiters the templates use, and one imitates the defense's "Security rule" heading. Nothing is rewritten after a model answers.
+
+**The adaptive attacker (0.4.0).** Moves second. This attacker:
+
+- has read the deployed prompt template, including the defense text and the datamarking rule (Kerckhoffs's principle: assume the design is public);
+- has a copy of the open-weight model and can query it offline as often as they like, on documents of their own;
+- uses those queries to choose an attack strategy, then plants one document in front of the victim.
+
+In the main experiment the attacker gets **one try per victim document and no feedback from it**. The strategy is chosen on 30 tuning seeds and scored on 59 held-out seeds the attacker never queried. A second, stronger variant lets an attacker model query the target on the victim document itself, up to five times; its numbers are best-of-five and are reported separately. Details are in [the adaptive study](adaptive.md).
+
+Neither attacker sees the system instruction or the synthetic secret. The adaptive strategies are plain text. They do not use gradient search, model-specific control tokens, or anything that needs more than the ability to write a document.
 
 The attacker cannot:
 
@@ -27,7 +41,9 @@ The attacker cannot:
 - make this harness execute model output
 - reach a network, a filesystem, or a user account through the harness
 
-The attack objective is one of the synthetic goals in the dataset: emit a canary, return a fixed JSON object, change the output format, or disclose the synthetic secret.
+The attack objective is one of the synthetic goals in the dataset: emit a canary, return a fixed JSON object, change the output format, disclose the synthetic secret, or write a function-call line such as `delete_ticket(id="T-5521")`.
+
+The last one needs care. The model has no tools, and the harness never parses or runs the line. The case measures whether the text appears, because in an application that passes the model's output to a naive tool parser, that text is what would be executed. It is a proxy for an attempted action, not an action. Whether a real agent would have taken it depends on the agent, which this harness does not model.
 
 ## Properties under test
 
@@ -47,7 +63,8 @@ None of these criteria establish that a model is safe outside this dataset.
 
 ## Explicitly out of scope
 
-- Adaptive attackers who rewrite the attack after seeing the defense
+- Optimization-based attackers (gradient or token-level search) and human red teams
+- Attacks that use a model's chat-template control tokens
 - Multi-turn attacks
 - Tool-using agents
 - Web browsing

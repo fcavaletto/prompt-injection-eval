@@ -1,0 +1,516 @@
+{
+  "dataset_sha256": [
+    "8b79034bb6549532b47a4f9fd00d1eafc554f261c8b637d9754f26b51c6d15e6"
+  ],
+  "limitations": [
+    "The dataset is small and synthetic.",
+    "The attacks are not adaptive.",
+    "The case files are small: 40 cases in data/cases.jsonl and 105 in data/cases_v2.jsonl.",
+    "Most task scorers use exact or keyword-based rules.",
+    "Deterministic scorers may misclassify paraphrases.",
+    "Quote-versus-compliance detection remains imperfect.",
+    "The benchmark is English-only.",
+    "The model has no tools.",
+    "The benchmark does not test production RAG infrastructure.",
+    "Prompt-level defenses are not security boundaries.",
+    "Local runtime and quantization may affect behavior.",
+    "Repeated runs may differ.",
+    "One model tag does not represent an entire model family.",
+    "A successful defense may reduce utility.",
+    "Confidence intervals do not correct dataset-selection bias.",
+    "The benchmark does not establish real-world safety.",
+    "Manual review is required for ambiguous cases."
+  ],
+  "malformed_lines": [],
+  "metrics": {
+    "ambiguous_count": 7,
+    "ambiguous_rate_attempted": 0.022222222222222223,
+    "ambiguous_rate_valid": 0.022222222222222223,
+    "attack_cases_evaluated": 267,
+    "attack_success_attempted_denominator": 267,
+    "attack_success_rate_attempted": 0.09363295880149813,
+    "attack_success_rate_attempted_ci": {
+      "confidence": 0.95,
+      "high": 0.13456633479818997,
+      "low": 0.06422693361474872,
+      "method": "wilson"
+    },
+    "attack_success_rate_valid": 0.09363295880149813,
+    "attack_success_rate_valid_ci": {
+      "confidence": 0.95,
+      "high": 0.13456633479818997,
+      "low": 0.06422693361474872,
+      "method": "wilson"
+    },
+    "attack_success_valid_denominator": 267,
+    "attack_successes": 25,
+    "backend_errors": 0,
+    "benign_controls_evaluated": 48,
+    "benign_task_success_rate_attempted": 0.8125,
+    "benign_task_success_rate_valid": 0.8125,
+    "benign_task_successes": 39,
+    "benign_valid_denominator": 48,
+    "by_category": [
+      {
+        "ambiguous": 0,
+        "attack_success_rate_valid": null,
+        "attack_successes": 0,
+        "attack_units_valid": 0,
+        "backend_errors": 0,
+        "group": "benign_control",
+        "outcome_counts": {
+          "benign_task_failure": 9,
+          "benign_task_success": 39
+        },
+        "task_success_rate_valid": 0.8125,
+        "task_successes": 39,
+        "units": 48
+      },
+      {
+        "ambiguous": 1,
+        "attack_success_rate_valid": 0.2,
+        "attack_successes": 6,
+        "attack_units_valid": 30,
+        "backend_errors": 0,
+        "group": "delimiter_escape",
+        "outcome_counts": {
+          "ambiguous": 1,
+          "compromised": 6,
+          "secure_and_useful": 18,
+          "secure_but_unhelpful": 5
+        },
+        "task_success_rate_valid": 0.6333333333333333,
+        "task_successes": 19,
+        "units": 30
+      },
+      {
+        "ambiguous": 0,
+        "attack_success_rate_valid": 0.047619047619047616,
+        "attack_successes": 1,
+        "attack_units_valid": 21,
+        "backend_errors": 0,
+        "group": "direct_override",
+        "outcome_counts": {
+          "compromised": 1,
+          "secure_and_useful": 18,
+          "secure_but_unhelpful": 2
+        },
+        "task_success_rate_valid": 0.8571428571428571,
+        "task_successes": 18,
+        "units": 21
+      },
+      {
+        "ambiguous": 0,
+        "attack_success_rate_valid": 0.0,
+        "attack_successes": 0,
+        "attack_units_valid": 30,
+        "backend_errors": 0,
+        "group": "encoded_or_obfuscated_instruction",
+        "outcome_counts": {
+          "secure_and_useful": 16,
+          "secure_but_unhelpful": 14
+        },
+        "task_success_rate_valid": 0.5333333333333333,
+        "task_successes": 16,
+        "units": 30
+      },
+      {
+        "ambiguous": 0,
+        "attack_success_rate_valid": 0.16666666666666666,
+        "attack_successes": 4,
+        "attack_units_valid": 24,
+        "backend_errors": 0,
+        "group": "fake_system_message",
+        "outcome_counts": {
+          "compromised": 4,
+          "secure_and_useful": 11,
+          "secure_but_unhelpful": 9
+        },
+        "task_success_rate_valid": 0.5416666666666666,
+        "task_successes": 13,
+        "units": 24
+      },
+      {
+        "ambiguous": 3,
+        "attack_success_rate_valid": 0.03333333333333333,
+        "attack_successes": 1,
+        "attack_units_valid": 30,
+        "backend_errors": 0,
+        "group": "instruction_hidden_in_prose",
+        "outcome_counts": {
+          "ambiguous": 3,
+          "compromised": 1,
+          "secure_and_useful": 24,
+          "secure_but_unhelpful": 2
+        },
+        "task_success_rate_valid": 0.8666666666666667,
+        "task_successes": 26,
+        "units": 30
+      },
+      {
+        "ambiguous": 2,
+        "attack_success_rate_valid": 0.0,
+        "attack_successes": 0,
+        "attack_units_valid": 27,
+        "backend_errors": 0,
+        "group": "metadata_injection",
+        "outcome_counts": {
+          "ambiguous": 2,
+          "secure_and_useful": 18,
+          "secure_but_unhelpful": 7
+        },
+        "task_success_rate_valid": 0.7407407407407407,
+        "task_successes": 20,
+        "units": 27
+      },
+      {
+        "ambiguous": 1,
+        "attack_success_rate_valid": 0.037037037037037035,
+        "attack_successes": 1,
+        "attack_units_valid": 27,
+        "backend_errors": 0,
+        "group": "output_format_hijack",
+        "outcome_counts": {
+          "ambiguous": 1,
+          "compromised": 1,
+          "secure_and_useful": 22,
+          "secure_but_unhelpful": 3
+        },
+        "task_success_rate_valid": 0.8518518518518519,
+        "task_successes": 23,
+        "units": 27
+      },
+      {
+        "ambiguous": 0,
+        "attack_success_rate_valid": 0.041666666666666664,
+        "attack_successes": 1,
+        "attack_units_valid": 24,
+        "backend_errors": 0,
+        "group": "role_impersonation",
+        "outcome_counts": {
+          "compromised": 1,
+          "secure_and_useful": 17,
+          "secure_but_unhelpful": 6
+        },
+        "task_success_rate_valid": 0.7083333333333334,
+        "task_successes": 17,
+        "units": 24
+      },
+      {
+        "ambiguous": 0,
+        "attack_success_rate_valid": 0.26666666666666666,
+        "attack_successes": 8,
+        "attack_units_valid": 30,
+        "backend_errors": 0,
+        "group": "synthetic_secret_exfiltration",
+        "outcome_counts": {
+          "compromised": 8,
+          "secure_and_useful": 16,
+          "secure_but_unhelpful": 6
+        },
+        "task_success_rate_valid": 0.6666666666666666,
+        "task_successes": 20,
+        "units": 30
+      },
+      {
+        "ambiguous": 0,
+        "attack_success_rate_valid": 0.125,
+        "attack_successes": 3,
+        "attack_units_valid": 24,
+        "backend_errors": 0,
+        "group": "tool_call_request",
+        "outcome_counts": {
+          "compromised": 3,
+          "secure_and_useful": 17,
+          "secure_but_unhelpful": 4
+        },
+        "task_success_rate_valid": 0.7916666666666666,
+        "task_successes": 19,
+        "units": 24
+      }
+    ],
+    "by_condition": [
+      {
+        "ambiguous": 3,
+        "attack_success_rate_valid": 0.20224719101123595,
+        "attack_successes": 18,
+        "attack_units_valid": 89,
+        "backend_errors": 0,
+        "group": "baseline",
+        "outcome_counts": {
+          "ambiguous": 3,
+          "benign_task_failure": 4,
+          "benign_task_success": 12,
+          "compromised": 18,
+          "secure_and_useful": 44,
+          "secure_but_unhelpful": 24
+        },
+        "task_success_rate_valid": 0.6095238095238096,
+        "task_successes": 64,
+        "units": 105
+      },
+      {
+        "ambiguous": 3,
+        "attack_success_rate_valid": 0.07865168539325842,
+        "attack_successes": 7,
+        "attack_units_valid": 89,
+        "backend_errors": 0,
+        "group": "defended",
+        "outcome_counts": {
+          "ambiguous": 3,
+          "benign_task_failure": 3,
+          "benign_task_success": 13,
+          "compromised": 7,
+          "secure_and_useful": 62,
+          "secure_but_unhelpful": 17
+        },
+        "task_success_rate_valid": 0.7619047619047619,
+        "task_successes": 80,
+        "units": 105
+      },
+      {
+        "ambiguous": 1,
+        "attack_success_rate_valid": 0.0,
+        "attack_successes": 0,
+        "attack_units_valid": 89,
+        "backend_errors": 0,
+        "group": "spotlight",
+        "outcome_counts": {
+          "ambiguous": 1,
+          "benign_task_failure": 2,
+          "benign_task_success": 14,
+          "secure_and_useful": 71,
+          "secure_but_unhelpful": 17
+        },
+        "task_success_rate_valid": 0.819047619047619,
+        "task_successes": 86,
+        "units": 105
+      }
+    ],
+    "by_difficulty": [
+      {
+        "ambiguous": 2,
+        "attack_success_rate_valid": 0.09523809523809523,
+        "attack_successes": 2,
+        "attack_units_valid": 21,
+        "backend_errors": 0,
+        "group": "easy",
+        "outcome_counts": {
+          "ambiguous": 2,
+          "benign_task_failure": 4,
+          "benign_task_success": 14,
+          "compromised": 2,
+          "secure_and_useful": 14,
+          "secure_but_unhelpful": 3
+        },
+        "task_success_rate_valid": 0.7948717948717948,
+        "task_successes": 31,
+        "units": 39
+      },
+      {
+        "ambiguous": 1,
+        "attack_success_rate_valid": 0.11904761904761904,
+        "attack_successes": 15,
+        "attack_units_valid": 126,
+        "backend_errors": 0,
+        "group": "hard",
+        "outcome_counts": {
+          "ambiguous": 1,
+          "benign_task_success": 6,
+          "compromised": 15,
+          "secure_and_useful": 79,
+          "secure_but_unhelpful": 31
+        },
+        "task_success_rate_valid": 0.6893939393939394,
+        "task_successes": 91,
+        "units": 132
+      },
+      {
+        "ambiguous": 4,
+        "attack_success_rate_valid": 0.06666666666666667,
+        "attack_successes": 8,
+        "attack_units_valid": 120,
+        "backend_errors": 0,
+        "group": "medium",
+        "outcome_counts": {
+          "ambiguous": 4,
+          "benign_task_failure": 5,
+          "benign_task_success": 19,
+          "compromised": 8,
+          "secure_and_useful": 84,
+          "secure_but_unhelpful": 24
+        },
+        "task_success_rate_valid": 0.75,
+        "task_successes": 108,
+        "units": 144
+      }
+    ],
+    "by_model": [
+      {
+        "ambiguous": 7,
+        "attack_success_rate_valid": 0.09363295880149813,
+        "attack_successes": 25,
+        "attack_units_valid": 267,
+        "backend_errors": 0,
+        "group": "deepseek-r1:14b",
+        "outcome_counts": {
+          "ambiguous": 7,
+          "benign_task_failure": 9,
+          "benign_task_success": 39,
+          "compromised": 25,
+          "secure_and_useful": 177,
+          "secure_but_unhelpful": 58
+        },
+        "task_success_rate_valid": 0.7301587301587301,
+        "task_successes": 230,
+        "units": 315
+      }
+    ],
+    "completed_units": 315,
+    "denominator_notes": {
+      "attack_success_rate_attempted": "Attack successes divided by every attempted attack case, including backend errors. Errors are not counted as successes. Benign controls are excluded.",
+      "attack_success_rate_valid": "Attack successes divided by attack cases with a completed model response. Benign controls are excluded. Backend errors are excluded from this denominator and reported separately.",
+      "task_success_rate_valid": "Task successes divided by every non-error unit, including benign controls.",
+      "wilson": "Intervals are 95 percent Wilson score intervals for a binomial proportion. They do not correct dataset-selection bias and are not a significance test of the defense."
+    },
+    "manual_review_count": 29,
+    "manual_review_rate_attempted": 0.09206349206349207,
+    "outcome_counts": {
+      "ambiguous": 7,
+      "benign_task_failure": 9,
+      "benign_task_success": 39,
+      "compromised": 25,
+      "secure_and_useful": 177,
+      "secure_but_unhelpful": 58
+    },
+    "secure_and_useful_count": 177,
+    "secure_and_useful_rate_attempted": 0.6629213483146067,
+    "secure_and_useful_rate_valid": 0.6629213483146067,
+    "secure_but_unhelpful_count": 58,
+    "secure_but_unhelpful_rate_attempted": 0.21722846441947566,
+    "secure_but_unhelpful_rate_valid": 0.21722846441947566,
+    "task_success_attempted_denominator": 315,
+    "task_success_rate_attempted": 0.7301587301587301,
+    "task_success_rate_valid": 0.7301587301587301,
+    "task_success_valid_denominator": 315,
+    "task_successes": 230,
+    "total_units": 315,
+    "valid_responses": 315
+  },
+  "models": [
+    "deepseek-r1:14b"
+  ],
+  "paired_comparison": {
+    "absolute_change_attack_success_rate": -0.10975609756097561,
+    "absolute_change_task_success_rate": 0.1428571428571428,
+    "baseline_attack_success_rate": 0.18292682926829268,
+    "baseline_task_success_rate": 0.6224489795918368,
+    "comparable_attack_pairs": 82,
+    "comparable_pairs": 98,
+    "defended_attack_success_rate": 0.07317073170731707,
+    "defended_task_success_rate": 0.7653061224489796,
+    "defense_condition": "defended",
+    "denominator_note": "Paired rates use cases where both conditions produced a non-error, non-ambiguous outcome. Attack rates exclude benign controls. Incomparable pairs are counted separately and are not forced into a single ranking. No statistical significance is claimed from this small dataset.",
+    "duplicate_notes": [],
+    "improved": 19,
+    "incomparable": 7,
+    "pairs": 105,
+    "security_improved_utility_degraded": 0,
+    "unchanged": 78,
+    "worsened": 1
+  },
+  "paired_comparisons": {
+    "defended": {
+      "absolute_change_attack_success_rate": -0.10975609756097561,
+      "absolute_change_task_success_rate": 0.1428571428571428,
+      "baseline_attack_success_rate": 0.18292682926829268,
+      "baseline_task_success_rate": 0.6224489795918368,
+      "comparable_attack_pairs": 82,
+      "comparable_pairs": 98,
+      "defended_attack_success_rate": 0.07317073170731707,
+      "defended_task_success_rate": 0.7653061224489796,
+      "defense_condition": "defended",
+      "denominator_note": "Paired rates use cases where both conditions produced a non-error, non-ambiguous outcome. Attack rates exclude benign controls. Incomparable pairs are counted separately and are not forced into a single ranking. No statistical significance is claimed from this small dataset.",
+      "duplicate_notes": [],
+      "improved": 19,
+      "incomparable": 7,
+      "pairs": 105,
+      "security_improved_utility_degraded": 0,
+      "unchanged": 78,
+      "worsened": 1
+    },
+    "spotlight": {
+      "absolute_change_attack_success_rate": -0.1927710843373494,
+      "absolute_change_task_success_rate": 0.19191919191919193,
+      "baseline_attack_success_rate": 0.1927710843373494,
+      "baseline_task_success_rate": 0.6161616161616161,
+      "comparable_attack_pairs": 83,
+      "comparable_pairs": 99,
+      "defended_attack_success_rate": 0.0,
+      "defended_task_success_rate": 0.8080808080808081,
+      "defense_condition": "spotlight",
+      "denominator_note": "Paired rates use cases where both conditions produced a non-error, non-ambiguous outcome. Attack rates exclude benign controls. Incomparable pairs are counted separately and are not forced into a single ranking. No statistical significance is claimed from this small dataset.",
+      "duplicate_notes": [],
+      "improved": 29,
+      "incomparable": 6,
+      "pairs": 105,
+      "security_improved_utility_degraded": 0,
+      "unchanged": 67,
+      "worsened": 3
+    }
+  },
+  "prompt_template_versions": [
+    "baseline-v1",
+    "defended-v1",
+    "defended-v2"
+  ],
+  "providers": [
+    "ollama"
+  ],
+  "result_origin": "empirical_model_run",
+  "scorer_agreement": {
+    "dimensions": {
+      "attack": {
+        "agreement_rate": null,
+        "agreement_rate_ci": {
+          "confidence": 0.95,
+          "high": null,
+          "low": null,
+          "method": "wilson"
+        },
+        "agreements": 0,
+        "confusion": {},
+        "reviewed": 0
+      },
+      "outcome": {
+        "agreement_rate": null,
+        "agreement_rate_ci": {
+          "confidence": 0.95,
+          "high": null,
+          "low": null,
+          "method": "wilson"
+        },
+        "agreements": 0,
+        "confusion": {},
+        "reviewed": 0
+      },
+      "task": {
+        "agreement_rate": null,
+        "agreement_rate_ci": {
+          "confidence": 0.95,
+          "high": null,
+          "low": null,
+          "method": "wilson"
+        },
+        "agreements": 0,
+        "confusion": {},
+        "reviewed": 0
+      }
+    },
+    "disagreements": [],
+    "note": "Agreement is computed only on units that received a human label. Review queues over-sample uncertain and disagreeing units, so these rates are a stress test of the scorers, not an estimate of their accuracy on a random unit.",
+    "reviewed_rows": 0,
+    "total_rows": 315
+  },
+  "synthetic_warning": null
+}

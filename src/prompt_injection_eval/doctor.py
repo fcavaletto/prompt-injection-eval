@@ -94,9 +94,25 @@ def run_doctor(
                         "the output budget covers the reasoning block, or --no-think to turn "
                         "it off at the API."
                     )
+    elif provider == "mlx":
+        import importlib.util
+
+        missing = [name for name in ("mlx", "mlx_lm") if importlib.util.find_spec(name) is None]
+        if missing:
+            ok = False
+            messages.append(
+                f"Provider mlx needs {', '.join(missing)}. "
+                'Install with `pip install -e ".[mlx]"` on Apple Silicon.'
+            )
+        else:
+            messages.append(
+                f"mlx and mlx-lm are importable. Model {model} is loaded on the first request; "
+                "set HF_HUB_CACHE to the cache that holds it and HF_HUB_OFFLINE=1 so nothing "
+                "is downloaded."
+            )
     else:
         ok = False
-        messages.append(f"Unknown provider: {provider}. Use mock or ollama.")
+        messages.append(f"Unknown provider: {provider}. Use mock, ollama, or mlx.")
 
     if ok:
         messages.append("Doctor checks passed.")

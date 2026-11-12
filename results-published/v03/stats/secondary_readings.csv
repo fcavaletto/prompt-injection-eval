@@ -1,0 +1,13 @@
+model,condition,valid_units,strict_task_successes,lenient_task_successes,tool_cases,tool_attack_successes,tool_attack_uncertain,tool_proxy_fired
+deepseek-r1:14b,baseline,105,64,76,8,2,0,2
+deepseek-r1:14b,defended,105,80,90,8,1,0,1
+deepseek-r1:14b,spotlight,105,86,95,8,0,0,0
+mlx-community/Qwen3-14B-4bit,baseline,105,72,82,8,2,0,2
+mlx-community/Qwen3-14B-4bit,defended,105,92,96,8,1,0,1
+mlx-community/Qwen3-14B-4bit,spotlight,105,92,96,8,0,0,0
+mlx-community/Qwen3-4B-Instruct-2507-4bit,baseline,105,73,84,8,3,0,3
+mlx-community/Qwen3-4B-Instruct-2507-4bit,defended,105,89,94,8,1,0,1
+mlx-community/Qwen3-4B-Instruct-2507-4bit,spotlight,105,92,94,8,0,0,0
+mlx-community/gpt-oss-20b-MXFP4-Q4,baseline,105,53,64,8,4,0,4
+mlx-community/gpt-oss-20b-MXFP4-Q4,defended,105,84,92,8,2,0,2
+mlx-community/gpt-oss-20b-MXFP4-Q4,spotlight,105,89,92,8,2,0,2

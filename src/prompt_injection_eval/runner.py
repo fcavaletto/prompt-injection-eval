@@ -10,7 +10,12 @@ from pathlib import Path
 from typing import Any
 
 from prompt_injection_eval.config import RunConfig
-from prompt_injection_eval.constants import PACKAGE_VERSION, SCHEMA_VERSION, SCORER_BUNDLE_VERSION
+from prompt_injection_eval.constants import (
+    OUTCOME_VERSION,
+    PACKAGE_VERSION,
+    SCHEMA_VERSION,
+    SCORER_BUNDLE_VERSION,
+)
 from prompt_injection_eval.dataset import DatasetError, filter_cases, validate_dataset
 from prompt_injection_eval.outcome import classify_outcome
 from prompt_injection_eval.privacy import platform_summary, python_version, sanitize_text
@@ -79,6 +84,7 @@ def run_evaluation(config: RunConfig, provider: Provider) -> RunSummary:
     completed = {row["unit_key"] for row in existing if isinstance(row.get("unit_key"), str)}
     run_id = str(uuid.uuid4())
     commit = _git_commit()
+    runtime = _runtime_info(provider, config.model)
     skipped = 0
     written = 0
     backend_errors = 0
@@ -98,6 +104,8 @@ def run_evaluation(config: RunConfig, provider: Provider) -> RunSummary:
                 prompt_template_version=prompt.template_version,
                 dataset_sha256=validation.sha256,
                 think=config.think,
+                num_ctx=config.num_ctx,
+                reasoning_effort=config.reasoning_effort,
             )
             if config.resume and key in completed:
                 skipped += 1
@@ -120,6 +128,7 @@ def run_evaluation(config: RunConfig, provider: Provider) -> RunSummary:
                 run_id=run_id,
                 git_commit=commit,
             )
+            record["runtime_info"] = runtime
             append_result(results_path, record)
             written += 1
             if record["error_type"]:
@@ -151,7 +160,12 @@ def _generate(
         seed=config.seed,
         max_output_tokens=config.max_output_tokens,
         timeout_seconds=config.timeout_seconds,
-        provider_settings={"keep_alive": config.keep_alive, "think": config.think},
+        provider_settings={
+            "keep_alive": config.keep_alive,
+            "think": config.think,
+            "num_ctx": config.num_ctx,
+            "reasoning_effort": config.reasoning_effort,
+        },
         metadata={"case_id": case_id, "condition": condition},
     )
     try:
@@ -224,6 +238,8 @@ def _build_record(
         "reasoning_tokens_estimate": estimate_tokens(response.reasoning_text),
         "think": config.think,
         "profile": config.profile,
+        "num_ctx": config.num_ctx,
+        "reasoning_effort": config.reasoning_effort,
         "temperature": config.temperature,
         "seed": config.seed,
         "max_output_tokens": config.max_output_tokens,
@@ -243,7 +259,7 @@ def _build_record(
         "task_evidence": task.evidence,
         "task_confidence": task.confidence,
         "outcome": outcome,
-        "outcome_version": "outcome-v1",
+        "outcome_version": OUTCOME_VERSION,
         "manual_review": bool(reasons),
         "manual_review_reason": " | ".join(reasons) if reasons else None,
         "error_type": response.error_type,
@@ -289,6 +305,17 @@ def _review_reasons(
     if response.reasoning_text and not answer and not response.reasoning_truncated:
         reasons.append("Final answer is empty even though reasoning was produced.")
     return reasons
+
+
+def _runtime_info(provider: Provider, model: str) -> dict[str, Any] | None:
+    probe = getattr(provider, "runtime_info", None)
+    if probe is None:
+        return None
+    try:
+        info = probe(model)
+    except Exception:  # noqa: BLE001 - provenance must not abort a run
+        return None
+    return info if isinstance(info, dict) else None
 
 
 def _git_commit() -> str | None:

@@ -17,7 +17,7 @@ def test_help_and_version() -> None:
         assert command in help_result.stdout
     version = runner.invoke(app, ["version"])
     assert version.exit_code == 0
-    assert "0.2.0" in version.stdout
+    assert "0.4.0" in version.stdout
 
 
 def test_validate_and_list() -> None:
@@ -28,7 +28,7 @@ def test_validate_and_list() -> None:
     assert "Attack cases: 36" in validated.stdout
     assert "Benign controls: 4" in validated.stdout
     assert "Categories: 10" in validated.stdout
-    assert "Schema version: 1.0" in validated.stdout
+    assert "Schema version: 1.1" in validated.stdout
     assert "SHA-256:" in validated.stdout
     assert "direct_override: 4" in validated.stdout
     listed = runner.invoke(

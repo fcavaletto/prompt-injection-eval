@@ -28,9 +28,14 @@ def wilson_interval(successes: int, total: int, *, z: float = _Z_95) -> dict[str
     center = (proportion + z2 / (2.0 * total)) / denominator
     margin = z * math.sqrt((proportion * (1.0 - proportion) / total) + z2 / (4.0 * total * total))
     margin /= denominator
+    # Clamp to [0, 1] and to the point estimate. A zero count is exactly 0, but
+    # `center - margin` can land a hair above 0 in float arithmetic, and a bar
+    # chart then tries to draw a negative error.
+    low = min(proportion, max(0.0, center - margin))
+    high = max(proportion, min(1.0, center + margin))
     return {
-        "low": max(0.0, center - margin),
-        "high": min(1.0, center + margin),
+        "low": low,
+        "high": high,
         "confidence": 0.95,
         "method": "wilson",
     }
@@ -443,6 +448,7 @@ def repeat_variability(runs: list[list[dict[str, Any]]]) -> dict[str, Any]:
     dims = ("outcome", "attack_score", "task_score")
     unstable_counts = {dim: 0 for dim in dims}
     identical_text = 0
+    text_only_changes = 0
     unstable_units: list[dict[str, Any]] = []
     for key in sorted(complete):
         items = complete[key]
@@ -450,6 +456,8 @@ def repeat_variability(runs: list[list[dict[str, Any]]]) -> dict[str, Any]:
         texts = {str(item.get("response_text")) for item in items}
         if len(texts) == 1:
             identical_text += 1
+        elif not changed:
+            text_only_changes += 1
         for dim in changed:
             unstable_counts[dim] += 1
         if changed:
@@ -469,6 +477,7 @@ def repeat_variability(runs: list[list[dict[str, Any]]]) -> dict[str, Any]:
         "units_missing_from_some_run": len(labels) - total,
         "identical_response_text": identical_text,
         "identical_response_text_rate": _rate(identical_text, total),
+        "text_changed_labels_stable": text_only_changes,
         "unstable_outcome": unstable_counts["outcome"],
         "unstable_outcome_rate": _rate(unstable_counts["outcome"], total),
         "unstable_attack_score": unstable_counts["attack_score"],

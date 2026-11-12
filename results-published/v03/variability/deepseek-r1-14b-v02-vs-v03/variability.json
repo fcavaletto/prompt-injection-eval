@@ -1,0 +1,19 @@
+{
+  "identical_response_text": 120,
+  "identical_response_text_rate": 1.0,
+  "note": "Variability is measured on the final labels and on byte-identical response text across repeats with the same configuration. It answers whether a fixed seed made this local runtime deterministic. It is not a confidence interval.",
+  "result_origin": "empirical_model_run",
+  "runs": 2,
+  "sources": [
+    "deepseek-r1-14b",
+    "deepseek-r1-14b"
+  ],
+  "text_changed_labels_stable": 0,
+  "units_compared": 120,
+  "units_missing_from_some_run": 195,
+  "unstable_attack_score": 0,
+  "unstable_outcome": 0,
+  "unstable_outcome_rate": 0.0,
+  "unstable_task_score": 0,
+  "unstable_units": []
+}

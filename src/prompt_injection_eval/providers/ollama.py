@@ -169,6 +169,39 @@ class OllamaProvider:
             "family": details.get("family"),
         }
 
+    def runtime_info(self, model: str) -> dict[str, Any]:
+        """Runtime version and the installed tag's digest, quantization, and size.
+
+        Recorded once per run so a reader can tell whether two runs used the same
+        weights. Missing values stay None rather than failing the run.
+        """
+        info: dict[str, Any] = {"runtime": "ollama", "runtime_version": None, "digest": None}
+        try:
+            version = self._client.get("/api/version", timeout=5.0)
+            version.raise_for_status()
+            payload = version.json()
+            if isinstance(payload, dict):
+                info["runtime_version"] = payload.get("version")
+        except (httpx.HTTPError, ValueError):
+            pass
+        try:
+            tags = self._client.get("/api/tags", timeout=5.0)
+            tags.raise_for_status()
+            listed = tags.json().get("models", [])
+            for item in listed if isinstance(listed, list) else []:
+                if isinstance(item, dict) and item.get("name") in {model, f"{model}:latest"}:
+                    info["digest"] = item.get("digest")
+        except (httpx.HTTPError, ValueError, AttributeError):
+            pass
+        details = self.model_info(model)
+        info.update(
+            {
+                key: details.get(key)
+                for key in ("quantization_level", "parameter_size", "family", "capabilities")
+            }
+        )
+        return info
+
     def _payload(self, request: GenerationRequest) -> dict[str, Any]:
         options: dict[str, Any] = {
             "temperature": request.temperature,
@@ -176,6 +209,9 @@ class OllamaProvider:
         }
         if request.seed is not None:
             options["seed"] = request.seed
+        num_ctx = request.provider_settings.get("num_ctx")
+        if num_ctx is not None:
+            options["num_ctx"] = int(num_ctx)
         payload: dict[str, Any] = {
             "model": request.model,
             "messages": [
