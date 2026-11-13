@@ -20,6 +20,9 @@ class GenerationRequest:
     # adaptive study uses it to deliver the document as a tool result.
     messages: list[dict[str, Any]] | None = None
     tools: list[dict[str, Any]] | None = None
+    # How the model may use `tools`. None means "none": the conversation already holds the
+    # tool call, and the model is asked to answer. "auto" lets the model call a tool.
+    tool_choice: str | None = None
     # Harness metadata is not part of the prompt sent to a real model.
     metadata: dict[str, Any] = field(default_factory=dict)
 

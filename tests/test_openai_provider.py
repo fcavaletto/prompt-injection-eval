@@ -214,3 +214,28 @@ def test_engine_runs_units_in_parallel_and_writes_them_in_plan_order(tmp_path: P
         assert row["provider_metadata"]["rendered_prompt"] == "<rendered>"
     again = run_units(units=units, **kwargs)
     assert (again.written, again.skipped) == (0, 12)
+
+
+def test_tool_choice_auto_and_parsed_calls_are_recorded() -> None:
+    seen: list[dict[str, Any]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(json.loads(request.content))
+        message = {
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [
+                {"id": "1", "type": "function", "function": {"name": "Grant", "arguments": "{}"}}
+            ],
+        }
+        return httpx.Response(
+            200,
+            json={"model": "m", "choices": [{"finish_reason": "tool_calls", "message": message}]},
+        )
+
+    tools = [{"type": "function", "function": {"name": "Grant"}}]
+    response = _provider(handler).generate(_request(tools=tools, tool_choice="auto"))
+    assert seen[0]["tool_choice"] == "auto"
+    assert response.text == "" and response.error_type is None
+    assert response.provider_metadata is not None
+    assert response.provider_metadata["tool_calls"] == [{"name": "Grant", "arguments": "{}"}]

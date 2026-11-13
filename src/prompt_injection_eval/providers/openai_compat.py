@@ -91,10 +91,10 @@ class OpenAICompatProvider:
         if request.seed is not None:
             body["seed"] = request.seed
         if request.tools:
-            # The tool call is already in the conversation. The model is asked to
-            # answer, so the server must not parse its reply as a new call.
+            # By default the tool call is already in the conversation and the model is
+            # asked to answer, so the server must not parse its reply as a new call.
             body["tools"] = request.tools
-            body["tool_choice"] = "none"
+            body["tool_choice"] = request.tool_choice or "none"
         think = request.provider_settings.get("think")
         if think is not None:
             body["chat_template_kwargs"] = {"enable_thinking": bool(think)}
@@ -173,6 +173,9 @@ class OpenAICompatProvider:
                 if key in body
             },
         }
+        calls = message.get("tool_calls")
+        if isinstance(calls, list) and calls:
+            metadata["tool_calls"] = [_call_summary(call) for call in calls]
         prompt_text = data.get("prompt_text")
         if isinstance(prompt_text, str):
             metadata["rendered_prompt"] = prompt_text
@@ -269,6 +272,14 @@ def _wire_message(message: dict[str, Any]) -> dict[str, Any]:
             function["arguments"] = json.dumps(function.get("arguments", {}))
         wired["tool_calls"].append({**call, "function": function})
     return wired
+
+
+def _call_summary(call: Any) -> dict[str, Any]:
+    """Name and arguments of one parsed tool call, as the server returned them."""
+    function = call.get("function") if isinstance(call, dict) else None
+    if not isinstance(function, dict):
+        return {"name": None, "arguments": None}
+    return {"name": function.get("name"), "arguments": function.get("arguments")}
 
 
 def _as_int(value: Any) -> int | None:

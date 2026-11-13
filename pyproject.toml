@@ -70,6 +70,7 @@ select = ["E", "F", "I", "UP", "B"]
 [tool.ruff.lint.per-file-ignores]
 "src/prompt_injection_eval/cli.py" = ["B008"]
 "src/prompt_injection_eval/adaptive/cli.py" = ["B008"]
+"src/prompt_injection_eval/injecagent_cli.py" = ["B008"]
 "notebooks/*.ipynb" = ["E501"]
 
 [tool.pytest.ini_options]
