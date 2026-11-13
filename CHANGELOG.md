@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- `docs/preregistration.md`: hypotheses, primary families, and interpretation rules for four follow-up studies, committed before any of them ran.
+- Study A (JSON mechanism controls): conditions `tool_flat` and `user_json` (with `_defended` variants), `pie adaptive control --condition mechanism`, a mechanism table with its own Holm families, and `scripts/run_mechanism_controls.sh`. Run on the ten models; pre-registered verdict *mixed* (removing line breaks helped on no model; JSON-encoding the flattened text helped significantly on four). Rows and report in `results-published/v07/`; write-up in `docs/placement.md`.
+- `pie adaptive report` no longer fails when there are no adaptive rows to chart.
+
 ## 0.6.0
 
 The placement result on ten models, and a correction.

@@ -80,3 +80,9 @@ The 59 held-out injections embedded in long carriers taken from the MIT-licensed
 ## Amendments
 
 None yet.
+
+## Results
+
+Appended after the runs; nothing above was changed.
+
+- **Study A** ran on 2026-11-13 after commit `5a3deb0`, on all ten models, with no exclusions and no reruns. Primary verdict: *mixed* (A1 held on 0 models, A2 on 4, A3 on 0). Write-up: [Why JSON-encoding helps](placement.md#why-json-encoding-helps-a-pre-registered-test). One deviation: the run script's `all` selection also generated datamarking (`spotlight`) rows, which no comparison uses.

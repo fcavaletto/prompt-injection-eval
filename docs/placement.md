@@ -52,6 +52,37 @@ Statistics are exact McNemar tests paired by seed, with Holm adjustment over all
 
 Clean documents, with nothing appended: 0 of 4,450 flagged as attacks across all models and conditions. The tool placement costs Phi-4-mini on the task itself: 40 and 42 of 89 clean documents answered correctly in the tool placements, against 52 to 81 for every other model and condition.
 
+## Why JSON-encoding helps: a pre-registered test
+
+JSON-encoding the tool result does two things at once: it marks the text as one data value (quotes, escaped characters), and it removes the line breaks that set the injected sentence apart. Study A of the [pre-registration](preregistration.md), committed before the run (commit `5a3deb0`), separates them with two controls: the raw tool result with line breaks replaced by spaces (`tool_flat`), and the JSON-encoded document in the user message (`user_json`). Every condition compared was regenerated in one server session per model, with the same settings as above: 12,980 generations, no backend errors.
+
+Plain override with the security rule, held-out seeds out of 59. These are the pre-registered primary comparisons:
+
+| Model | Tool, raw | Tool, line breaks removed | Tool, JSON | User message, raw | User message, JSON |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Qwen3-4B | 57 | 56 | 49 | 12 | 5 |
+| Qwen3-8B | 45 | 38 | 27 | 19 | 21 |
+| Qwen3-14B | 52 | 48 | **32** | 11 | 5 |
+| Qwen3-32B | 43 | 36 | 27 | 4 | 0 |
+| Qwen2.5-7B | 49 | 49 | **35** | 27 | 23 |
+| Hermes 3 8B | 38 | 33 | 26 | 10 | 11 |
+| Granite 3.3 8B | 29 | 28 | **13** | 10 | 4 |
+| Phi-4-mini | 33 | 26 | **9** | 14 | 9 |
+| gpt-oss-20b | 12 | 10 | 0 | 0 | 0 |
+| gpt-oss-120b | 6 | 4 | 0 | 0 | 0 |
+
+Bold marks a step that is significant after Holm adjustment over the 30 primary tests.
+
+**The pre-registered verdict is "mixed".** Removing line breaks (A1) lowered success significantly on no model. JSON-encoding the flattened text (A2) lowered it significantly on four. The rules called for at least five to attribute the effect to encoding as data, and for at least three each to say both contribute. Neither threshold was met, so the result is reported per model without a summary label. JSON-encoding in the user message (A3) helped significantly on no model, which by the pre-registered rule means that, with the rule in place, its effect is specific to the tool channel.
+
+**What the numbers suggest, labelled as exploratory.** These readings were not pre-registered and carry no confirmatory weight.
+
+- **Line breaks are not the explanation.** Flattening changed the count by 0 to 7 seeds. Going from flattened text to JSON lowered it on all ten models, by 4 to 17 seeds, and gpt-oss-20b missed the significance threshold narrowly (Holm p = 0.051). The pattern leans toward the quoting and escaping doing the work, short of the pre-registered bar.
+- **The user-message test had little room.** With the rule, the user-message counts were already 0 to 27 of 59. Without the rule (a secondary comparison), JSON-encoding the document in the user message lowered success significantly on four models: Qwen3-4B 53 to 39, Qwen3-32B 34 to 15, Phi-4-mini 21 to 7, and gpt-oss-120b 39 to 9.
+- **The author's prediction was wrong.** It was that both mechanisms contribute; flattening contributed nothing measurable.
+
+The same-session counts agree with the ten-model table above to within the run-to-run noise measured there (for example Qwen3-32B with a raw tool result and the rule: 43 in both runs; gpt-oss-20b: 8 and 12). The rows and the report are in `results-published/v07/`, and a test pins these counts. The run cost about $2.00.
+
 ## Adaptive attacks
 
 First-ranked strategy, one try, held-out seeds out of 59:

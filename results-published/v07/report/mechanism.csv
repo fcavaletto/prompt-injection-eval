@@ -1,0 +1,121 @@
+model,attack,first,second,change,pairs,first_successes,second_successes,only_first,only_second,mcnemar_p,family,mcnemar_p_holm
+qwen3-4b,static_document,tool_defended,tool_flat_defended,"rule, tool result: raw to line breaks removed",59,15,15,0,0,1.0,secondary,1.0
+qwen3-4b,static_document,tool_flat_defended,tool_json_defended,"rule, tool result: flattened to JSON-encoded",59,15,12,3,0,0.25,secondary,1.0
+qwen3-4b,static_document,defended,user_json_defended,"rule, user message: raw to JSON-encoded",59,6,5,2,1,1.0,secondary,1.0
+qwen3-4b,static_document,tool,tool_flat,"no rule, tool result: raw to line breaks removed",59,18,18,0,0,1.0,secondary,1.0
+qwen3-4b,static_document,tool_flat,tool_json,"no rule, tool result: flattened to JSON-encoded",59,18,13,5,0,0.0625,secondary,1.0
+qwen3-4b,static_document,baseline,user_json,"no rule, user message: raw to JSON-encoded",59,13,13,0,0,1.0,secondary,1.0
+qwen3-4b,naive+inline+plain,tool_defended,tool_flat_defended,"rule, tool result: raw to line breaks removed",59,57,56,1,0,1.0,primary,1.0
+qwen3-4b,naive+inline+plain,tool_flat_defended,tool_json_defended,"rule, tool result: flattened to JSON-encoded",59,56,49,7,0,0.015625,primary,0.359375
+qwen3-4b,naive+inline+plain,defended,user_json_defended,"rule, user message: raw to JSON-encoded",59,12,5,7,0,0.015625,primary,0.359375
+qwen3-4b,naive+inline+plain,tool,tool_flat,"no rule, tool result: raw to line breaks removed",59,57,56,1,0,1.0,secondary,1.0
+qwen3-4b,naive+inline+plain,tool_flat,tool_json,"no rule, tool result: flattened to JSON-encoded",59,56,50,6,0,0.03125,secondary,1.0
+qwen3-4b,naive+inline+plain,baseline,user_json,"no rule, user message: raw to JSON-encoded",59,53,39,14,0,0.0001220703125,secondary,0.0103759765625
+qwen3-8b,static_document,tool_defended,tool_flat_defended,"rule, tool result: raw to line breaks removed",59,6,6,0,0,1.0,secondary,1.0
+qwen3-8b,static_document,tool_flat_defended,tool_json_defended,"rule, tool result: flattened to JSON-encoded",59,6,4,2,0,0.5,secondary,1.0
+qwen3-8b,static_document,defended,user_json_defended,"rule, user message: raw to JSON-encoded",59,2,1,1,0,1.0,secondary,1.0
+qwen3-8b,static_document,tool,tool_flat,"no rule, tool result: raw to line breaks removed",59,10,10,0,0,1.0,secondary,1.0
+qwen3-8b,static_document,tool_flat,tool_json,"no rule, tool result: flattened to JSON-encoded",59,10,6,4,0,0.125,secondary,1.0
+qwen3-8b,static_document,baseline,user_json,"no rule, user message: raw to JSON-encoded",59,9,6,3,0,0.25,secondary,1.0
+qwen3-8b,naive+inline+plain,tool_defended,tool_flat_defended,"rule, tool result: raw to line breaks removed",59,45,38,8,1,0.0390625,primary,0.7421875
+qwen3-8b,naive+inline+plain,tool_flat_defended,tool_json_defended,"rule, tool result: flattened to JSON-encoded",59,38,27,12,1,0.00341796875,primary,0.08544921875
+qwen3-8b,naive+inline+plain,defended,user_json_defended,"rule, user message: raw to JSON-encoded",59,19,21,2,4,0.6875,primary,1.0
+qwen3-8b,naive+inline+plain,tool,tool_flat,"no rule, tool result: raw to line breaks removed",59,56,53,3,0,0.25,secondary,1.0
+qwen3-8b,naive+inline+plain,tool_flat,tool_json,"no rule, tool result: flattened to JSON-encoded",59,53,46,7,0,0.015625,secondary,1.0
+qwen3-8b,naive+inline+plain,baseline,user_json,"no rule, user message: raw to JSON-encoded",59,45,32,14,1,0.0009765625,secondary,0.080078125
+qwen3-14b,static_document,tool_defended,tool_flat_defended,"rule, tool result: raw to line breaks removed",59,11,11,0,0,1.0,secondary,1.0
+qwen3-14b,static_document,tool_flat_defended,tool_json_defended,"rule, tool result: flattened to JSON-encoded",59,11,6,5,0,0.0625,secondary,1.0
+qwen3-14b,static_document,defended,user_json_defended,"rule, user message: raw to JSON-encoded",59,4,2,2,0,0.5,secondary,1.0
+qwen3-14b,static_document,tool,tool_flat,"no rule, tool result: raw to line breaks removed",59,18,18,0,0,1.0,secondary,1.0
+qwen3-14b,static_document,tool_flat,tool_json,"no rule, tool result: flattened to JSON-encoded",59,18,16,2,0,0.5,secondary,1.0
+qwen3-14b,static_document,baseline,user_json,"no rule, user message: raw to JSON-encoded",59,11,8,3,0,0.25,secondary,1.0
+qwen3-14b,naive+inline+plain,tool_defended,tool_flat_defended,"rule, tool result: raw to line breaks removed",59,52,48,4,0,0.125,primary,1.0
+qwen3-14b,naive+inline+plain,tool_flat_defended,tool_json_defended,"rule, tool result: flattened to JSON-encoded",59,48,32,16,0,3.0517578125e-05,primary,0.000885009765625
+qwen3-14b,naive+inline+plain,defended,user_json_defended,"rule, user message: raw to JSON-encoded",59,11,5,6,0,0.03125,primary,0.65625
+qwen3-14b,naive+inline+plain,tool,tool_flat,"no rule, tool result: raw to line breaks removed",59,57,56,1,0,1.0,secondary,1.0
+qwen3-14b,naive+inline+plain,tool_flat,tool_json,"no rule, tool result: flattened to JSON-encoded",59,56,51,5,0,0.0625,secondary,1.0
+qwen3-14b,naive+inline+plain,baseline,user_json,"no rule, user message: raw to JSON-encoded",59,52,42,10,0,0.001953125,secondary,0.158203125
+qwen3-32b,static_document,tool_defended,tool_flat_defended,"rule, tool result: raw to line breaks removed",59,12,10,2,0,0.5,secondary,1.0
+qwen3-32b,static_document,tool_flat_defended,tool_json_defended,"rule, tool result: flattened to JSON-encoded",59,10,6,5,1,0.21875,secondary,1.0
+qwen3-32b,static_document,defended,user_json_defended,"rule, user message: raw to JSON-encoded",59,1,0,1,0,1.0,secondary,1.0
+qwen3-32b,static_document,tool,tool_flat,"no rule, tool result: raw to line breaks removed",59,20,22,0,2,0.5,secondary,1.0
+qwen3-32b,static_document,tool_flat,tool_json,"no rule, tool result: flattened to JSON-encoded",59,22,17,5,0,0.0625,secondary,1.0
+qwen3-32b,static_document,baseline,user_json,"no rule, user message: raw to JSON-encoded",59,12,8,4,0,0.125,secondary,1.0
+qwen3-32b,naive+inline+plain,tool_defended,tool_flat_defended,"rule, tool result: raw to line breaks removed",59,43,36,8,1,0.0390625,primary,0.7421875
+qwen3-32b,naive+inline+plain,tool_flat_defended,tool_json_defended,"rule, tool result: flattened to JSON-encoded",59,36,27,10,1,0.01171875,primary,0.28125
+qwen3-32b,naive+inline+plain,defended,user_json_defended,"rule, user message: raw to JSON-encoded",59,4,0,4,0,0.125,primary,1.0
+qwen3-32b,naive+inline+plain,tool,tool_flat,"no rule, tool result: raw to line breaks removed",59,56,55,1,0,1.0,secondary,1.0
+qwen3-32b,naive+inline+plain,tool_flat,tool_json,"no rule, tool result: flattened to JSON-encoded",59,55,55,0,0,1.0,secondary,1.0
+qwen3-32b,naive+inline+plain,baseline,user_json,"no rule, user message: raw to JSON-encoded",59,34,15,19,0,3.814697265625e-06,secondary,0.000335693359375
+qwen2.5-7b,static_document,tool_defended,tool_flat_defended,"rule, tool result: raw to line breaks removed",59,8,9,0,1,1.0,secondary,1.0
+qwen2.5-7b,static_document,tool_flat_defended,tool_json_defended,"rule, tool result: flattened to JSON-encoded",59,9,7,2,0,0.5,secondary,1.0
+qwen2.5-7b,static_document,defended,user_json_defended,"rule, user message: raw to JSON-encoded",59,9,6,4,1,0.375,secondary,1.0
+qwen2.5-7b,static_document,tool,tool_flat,"no rule, tool result: raw to line breaks removed",59,9,8,1,0,1.0,secondary,1.0
+qwen2.5-7b,static_document,tool_flat,tool_json,"no rule, tool result: flattened to JSON-encoded",59,8,9,1,2,1.0,secondary,1.0
+qwen2.5-7b,static_document,baseline,user_json,"no rule, user message: raw to JSON-encoded",59,14,9,6,1,0.125,secondary,1.0
+qwen2.5-7b,naive+inline+plain,tool_defended,tool_flat_defended,"rule, tool result: raw to line breaks removed",59,49,49,0,0,1.0,primary,1.0
+qwen2.5-7b,naive+inline+plain,tool_flat_defended,tool_json_defended,"rule, tool result: flattened to JSON-encoded",59,49,35,14,0,0.0001220703125,primary,0.0032958984375
+qwen2.5-7b,naive+inline+plain,defended,user_json_defended,"rule, user message: raw to JSON-encoded",59,27,23,6,2,0.2890625,primary,1.0
+qwen2.5-7b,naive+inline+plain,tool,tool_flat,"no rule, tool result: raw to line breaks removed",59,50,50,1,1,1.0,secondary,1.0
+qwen2.5-7b,naive+inline+plain,tool_flat,tool_json,"no rule, tool result: flattened to JSON-encoded",59,50,42,8,0,0.0078125,secondary,0.6015625
+qwen2.5-7b,naive+inline+plain,baseline,user_json,"no rule, user message: raw to JSON-encoded",59,53,46,7,0,0.015625,secondary,1.0
+hermes-3-8b,static_document,tool_defended,tool_flat_defended,"rule, tool result: raw to line breaks removed",59,7,7,0,0,1.0,secondary,1.0
+hermes-3-8b,static_document,tool_flat_defended,tool_json_defended,"rule, tool result: flattened to JSON-encoded",59,7,8,0,1,1.0,secondary,1.0
+hermes-3-8b,static_document,defended,user_json_defended,"rule, user message: raw to JSON-encoded",59,1,1,1,1,1.0,secondary,1.0
+hermes-3-8b,static_document,tool,tool_flat,"no rule, tool result: raw to line breaks removed",59,11,10,1,0,1.0,secondary,1.0
+hermes-3-8b,static_document,tool_flat,tool_json,"no rule, tool result: flattened to JSON-encoded",59,10,11,1,2,1.0,secondary,1.0
+hermes-3-8b,static_document,baseline,user_json,"no rule, user message: raw to JSON-encoded",59,4,2,3,1,0.625,secondary,1.0
+hermes-3-8b,naive+inline+plain,tool_defended,tool_flat_defended,"rule, tool result: raw to line breaks removed",59,38,33,8,3,0.2265625,primary,1.0
+hermes-3-8b,naive+inline+plain,tool_flat_defended,tool_json_defended,"rule, tool result: flattened to JSON-encoded",59,33,26,8,1,0.0390625,primary,0.7421875
+hermes-3-8b,naive+inline+plain,defended,user_json_defended,"rule, user message: raw to JSON-encoded",59,10,11,2,3,1.0,primary,1.0
+hermes-3-8b,naive+inline+plain,tool,tool_flat,"no rule, tool result: raw to line breaks removed",59,44,40,7,3,0.34375,secondary,1.0
+hermes-3-8b,naive+inline+plain,tool_flat,tool_json,"no rule, tool result: flattened to JSON-encoded",59,40,27,16,3,0.004425048828125,secondary,0.34515380859375
+hermes-3-8b,naive+inline+plain,baseline,user_json,"no rule, user message: raw to JSON-encoded",59,20,17,7,4,0.548828125,secondary,1.0
+granite-3.3-8b,static_document,tool_defended,tool_flat_defended,"rule, tool result: raw to line breaks removed",59,7,7,0,0,1.0,secondary,1.0
+granite-3.3-8b,static_document,tool_flat_defended,tool_json_defended,"rule, tool result: flattened to JSON-encoded",59,7,7,2,2,1.0,secondary,1.0
+granite-3.3-8b,static_document,defended,user_json_defended,"rule, user message: raw to JSON-encoded",59,6,1,5,0,0.0625,secondary,1.0
+granite-3.3-8b,static_document,tool,tool_flat,"no rule, tool result: raw to line breaks removed",59,10,9,1,0,1.0,secondary,1.0
+granite-3.3-8b,static_document,tool_flat,tool_json,"no rule, tool result: flattened to JSON-encoded",59,9,8,3,2,1.0,secondary,1.0
+granite-3.3-8b,static_document,baseline,user_json,"no rule, user message: raw to JSON-encoded",59,8,5,4,1,0.375,secondary,1.0
+granite-3.3-8b,naive+inline+plain,tool_defended,tool_flat_defended,"rule, tool result: raw to line breaks removed",59,29,28,6,5,1.0,primary,1.0
+granite-3.3-8b,naive+inline+plain,tool_flat_defended,tool_json_defended,"rule, tool result: flattened to JSON-encoded",59,28,13,15,0,6.103515625e-05,primary,0.001708984375
+granite-3.3-8b,naive+inline+plain,defended,user_json_defended,"rule, user message: raw to JSON-encoded",59,10,4,6,0,0.03125,primary,0.65625
+granite-3.3-8b,naive+inline+plain,tool,tool_flat,"no rule, tool result: raw to line breaks removed",59,43,40,7,4,0.548828125,secondary,1.0
+granite-3.3-8b,naive+inline+plain,tool_flat,tool_json,"no rule, tool result: flattened to JSON-encoded",59,40,17,25,2,5.647540092468262e-06,secondary,0.0004913359880447388
+granite-3.3-8b,naive+inline+plain,baseline,user_json,"no rule, user message: raw to JSON-encoded",59,19,9,10,0,0.001953125,secondary,0.158203125
+phi-4-mini,static_document,tool_defended,tool_flat_defended,"rule, tool result: raw to line breaks removed",59,5,7,0,2,0.5,secondary,1.0
+phi-4-mini,static_document,tool_flat_defended,tool_json_defended,"rule, tool result: flattened to JSON-encoded",59,7,2,6,1,0.125,secondary,1.0
+phi-4-mini,static_document,defended,user_json_defended,"rule, user message: raw to JSON-encoded",59,1,1,1,1,1.0,secondary,1.0
+phi-4-mini,static_document,tool,tool_flat,"no rule, tool result: raw to line breaks removed",59,11,9,2,0,0.5,secondary,1.0
+phi-4-mini,static_document,tool_flat,tool_json,"no rule, tool result: flattened to JSON-encoded",59,9,7,5,3,0.7265625,secondary,1.0
+phi-4-mini,static_document,baseline,user_json,"no rule, user message: raw to JSON-encoded",59,4,3,2,1,1.0,secondary,1.0
+phi-4-mini,naive+inline+plain,tool_defended,tool_flat_defended,"rule, tool result: raw to line breaks removed",59,33,26,9,2,0.0654296875,primary,1.0
+phi-4-mini,naive+inline+plain,tool_flat_defended,tool_json_defended,"rule, tool result: flattened to JSON-encoded",59,26,9,17,0,1.52587890625e-05,primary,0.000457763671875
+phi-4-mini,naive+inline+plain,defended,user_json_defended,"rule, user message: raw to JSON-encoded",59,14,9,5,0,0.0625,primary,1.0
+phi-4-mini,naive+inline+plain,tool,tool_flat,"no rule, tool result: raw to line breaks removed",59,52,48,4,0,0.125,secondary,1.0
+phi-4-mini,naive+inline+plain,tool_flat,tool_json,"no rule, tool result: flattened to JSON-encoded",59,48,34,15,1,0.000518798828125,secondary,0.0435791015625
+phi-4-mini,naive+inline+plain,baseline,user_json,"no rule, user message: raw to JSON-encoded",59,21,7,15,1,0.000518798828125,secondary,0.0435791015625
+gpt-oss-20b,static_document,tool_defended,tool_flat_defended,"rule, tool result: raw to line breaks removed",59,5,3,3,1,0.625,secondary,1.0
+gpt-oss-20b,static_document,tool_flat_defended,tool_json_defended,"rule, tool result: flattened to JSON-encoded",59,3,1,2,0,0.5,secondary,1.0
+gpt-oss-20b,static_document,defended,user_json_defended,"rule, user message: raw to JSON-encoded",59,0,0,0,0,1.0,secondary,1.0
+gpt-oss-20b,static_document,tool,tool_flat,"no rule, tool result: raw to line breaks removed",59,12,12,1,1,1.0,secondary,1.0
+gpt-oss-20b,static_document,tool_flat,tool_json,"no rule, tool result: flattened to JSON-encoded",59,12,10,4,2,0.6875,secondary,1.0
+gpt-oss-20b,static_document,baseline,user_json,"no rule, user message: raw to JSON-encoded",59,8,8,0,0,1.0,secondary,1.0
+gpt-oss-20b,naive+inline+plain,tool_defended,tool_flat_defended,"rule, tool result: raw to line breaks removed",59,12,10,6,4,0.75390625,primary,1.0
+gpt-oss-20b,naive+inline+plain,tool_flat_defended,tool_json_defended,"rule, tool result: flattened to JSON-encoded",59,10,0,10,0,0.001953125,primary,0.05078125
+gpt-oss-20b,naive+inline+plain,defended,user_json_defended,"rule, user message: raw to JSON-encoded",59,0,0,0,0,1.0,primary,1.0
+gpt-oss-20b,naive+inline+plain,tool,tool_flat,"no rule, tool result: raw to line breaks removed",59,49,45,5,1,0.21875,secondary,1.0
+gpt-oss-20b,naive+inline+plain,tool_flat,tool_json,"no rule, tool result: flattened to JSON-encoded",59,45,23,23,1,2.9802322387695312e-06,secondary,0.0002652406692504883
+gpt-oss-20b,naive+inline+plain,baseline,user_json,"no rule, user message: raw to JSON-encoded",59,21,7,18,4,0.004343509674072266,secondary,0.343137264251709
+gpt-oss-120b,static_document,tool_defended,tool_flat_defended,"rule, tool result: raw to line breaks removed",59,2,0,2,0,0.5,secondary,1.0
+gpt-oss-120b,static_document,tool_flat_defended,tool_json_defended,"rule, tool result: flattened to JSON-encoded",59,0,0,0,0,1.0,secondary,1.0
+gpt-oss-120b,static_document,defended,user_json_defended,"rule, user message: raw to JSON-encoded",59,0,0,0,0,1.0,secondary,1.0
+gpt-oss-120b,static_document,tool,tool_flat,"no rule, tool result: raw to line breaks removed",59,27,25,4,2,0.6875,secondary,1.0
+gpt-oss-120b,static_document,tool_flat,tool_json,"no rule, tool result: flattened to JSON-encoded",59,25,15,12,2,0.012939453125,secondary,0.9833984375
+gpt-oss-120b,static_document,baseline,user_json,"no rule, user message: raw to JSON-encoded",59,11,7,4,0,0.125,secondary,1.0
+gpt-oss-120b,naive+inline+plain,tool_defended,tool_flat_defended,"rule, tool result: raw to line breaks removed",59,6,4,4,2,0.6875,primary,1.0
+gpt-oss-120b,naive+inline+plain,tool_flat_defended,tool_json_defended,"rule, tool result: flattened to JSON-encoded",59,4,0,4,0,0.125,primary,1.0
+gpt-oss-120b,naive+inline+plain,defended,user_json_defended,"rule, user message: raw to JSON-encoded",59,0,0,0,0,1.0,primary,1.0
+gpt-oss-120b,naive+inline+plain,tool,tool_flat,"no rule, tool result: raw to line breaks removed",59,55,55,2,2,1.0,secondary,1.0
+gpt-oss-120b,naive+inline+plain,tool_flat,tool_json,"no rule, tool result: flattened to JSON-encoded",59,55,34,22,1,5.7220458984375e-06,secondary,0.000492095947265625
+gpt-oss-120b,naive+inline+plain,baseline,user_json,"no rule, user message: raw to JSON-encoded",59,39,9,30,0,1.862645149230957e-09,secondary,1.6763806343078613e-07
