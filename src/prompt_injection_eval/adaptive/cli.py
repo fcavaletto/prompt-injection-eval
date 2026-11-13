@@ -31,14 +31,26 @@ from prompt_injection_eval.adaptive.strategies import (
     all_strategies,
     strategy_by_name,
 )
-from prompt_injection_eval.adaptive.toolrole import NO_TAIL_CONDITION, TOOL_CONDITIONS
+from prompt_injection_eval.adaptive.toolrole import (
+    NO_TAIL_CONDITION,
+    TOOL_CONDITIONS,
+    TOOL_JSON_CONDITIONS,
+)
 from prompt_injection_eval.config import RunConfig, resolve_generation_limits
 from prompt_injection_eval.dataset import DatasetError, validate_dataset
 from prompt_injection_eval.privacy import display_path, sanitize_text
 from prompt_injection_eval.prompts import conditions_for
-from prompt_injection_eval.providers import MlxProvider, MockProvider, OllamaProvider
+from prompt_injection_eval.providers import (
+    MlxProvider,
+    MockProvider,
+    OllamaProvider,
+    provider_from_env,
+)
 from prompt_injection_eval.providers.base import Provider
 from prompt_injection_eval.results_io import load_results
+
+# Conditions that run only the two fixed attacks, through `pie adaptive control`.
+CONTROL_CONDITIONS = (NO_TAIL_CONDITION, *TOOL_JSON_CONDITIONS)
 
 adaptive_app = typer.Typer(
     add_completion=False,
@@ -88,6 +100,17 @@ def _provider(config: RunConfig) -> Provider:
             typer.echo(f"Could not load {config.model}: {sanitize_text(str(exc))}", err=True)
             raise typer.Exit(code=1) from exc
         return backend
+    if config.provider == "openai":
+        try:
+            remote = provider_from_env()
+        except ValueError as exc:
+            typer.echo(str(exc), err=True)
+            raise typer.Exit(code=1) from exc
+        issues = remote.health(config.model)
+        if issues:
+            typer.echo(" ".join(issues), err=True)
+            raise typer.Exit(code=1)
+        return remote
     return OllamaProvider(base_url=config.base_url, keep_alive=config.keep_alive)
 
 
@@ -100,8 +123,10 @@ def _conditions(selection: str) -> list[str]:
         return [HARDENED_CONDITION]
     if selection == "toolrole":
         return list(TOOL_CONDITIONS)
-    if selection in TOOL_CONDITIONS:
+    if selection in TOOL_CONDITIONS or selection in CONTROL_CONDITIONS:
         return [selection]
+    if selection == "tooljson":
+        return list(TOOL_JSON_CONDITIONS)
     try:
         return conditions_for(selection)
     except ValueError as exc:
@@ -123,7 +148,9 @@ def _load_seeds(path: Path, split: str) -> tuple[list[Any], str]:
     return [seed for seed in seeds if seed.split == split], sha
 
 
-_PROVIDER = typer.Option(..., "--provider", help="mlx, ollama, or mock.")
+_PROVIDER = typer.Option(
+    ..., "--provider", help="mlx, ollama, openai (a vLLM server; set PIE_OPENAI_BASE_URL), or mock."
+)
 _MODEL = typer.Option(..., "--model")
 _SEEDS = typer.Option(Path("data/adaptive_seeds.jsonl"), "--seeds")
 _OUTPUT = typer.Option(..., "--output-dir")
@@ -320,13 +347,19 @@ def control_cmd(
     ),
     seeds: Path = _SEEDS,
     output_dir: Path = _OUTPUT,
+    condition: str = typer.Option(
+        NO_TAIL_CONDITION, "--condition", help="defended_no_tail, tool_json(_defended), tooljson."
+    ),
     seed: int | None = _SEED,
     think: bool | None = _THINK,
     profile: str = _PROFILE,
     reasoning_effort: str | None = _EFFORT,
     num_ctx: int | None = _NUM_CTX,
 ) -> None:
-    """Placement control: `defended-v1` without the line after the document.
+    """Placement controls: the two fixed attacks under a control condition.
+
+    The default is `defended-v1` without the line after the document. `tooljson` is
+    the tool-result placements with the document JSON-encoded in the tool message.
 
     Runs the static documents and the plain override on the held-out seeds, the two
     attacks whose success changes most between the user-message and tool-result
@@ -347,18 +380,17 @@ def control_cmd(
         num_ctx=num_ctx,
     )
     reference = strategy_by_name(REFERENCE_STRATEGY)
+    names = _conditions(condition)
     phases = {
         "static": [
-            Unit(
-                seed=item,
-                strategy=STATIC_DOCUMENT,
-                condition=NO_TAIL_CONDITION,
-                document=documents[item.id],
-            )
+            Unit(seed=item, strategy=STATIC_DOCUMENT, condition=name, document=documents[item.id])
             for item in selected
+            for name in names
         ],
         "test": [
-            Unit(seed=item, strategy=reference, condition=NO_TAIL_CONDITION) for item in selected
+            Unit(seed=item, strategy=reference, condition=name)
+            for item in selected
+            for name in names
         ],
     }
     built = _provider(config)
@@ -492,8 +524,11 @@ def report_cmd(
     results_dir: Path = typer.Option(
         ..., "--results-dir", help="Holds LABEL-grid, LABEL-test, LABEL-ranking.json, ..."
     ),
-    static_dir: Path = typer.Option(
-        ..., "--static-dir", help="Holds LABEL/raw_results.jsonl from the static study."
+    static_dir: Path | None = typer.Option(
+        None,
+        "--static-dir",
+        help="Holds LABEL/raw_results.jsonl from the static study. Omit when the static "
+        "documents were rerun with `pie adaptive static`.",
     ),
     label: list[str] = typer.Option(..., "--label", help="Model label. Repeat per model."),
     output_dir: Path = _OUTPUT,
@@ -518,12 +553,13 @@ def report_cmd(
         inputs.append(
             ModelInputs(
                 label=name,
-                static_rows=rows(static_dir / name),
+                static_rows=rows(static_dir / name) if static_dir else [],
                 grid_rows=rows(results_dir / f"{name}-grid"),
                 test_rows=rows(results_dir / f"{name}-test"),
                 ranking=json.loads(ranking.read_text(encoding="utf-8")),
                 carrier_rows=rows(results_dir / f"{name}-carrier"),
                 attacker_rows=rows(results_dir / f"{name}-attacker"),
+                repeat_rows=rows(results_dir / f"{name}-repeat"),
             )
         )
     try:

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.6.0
+
+The placement result on ten models, and a correction.
+
+- **Remote serving.** `--provider openai` sends prompts to an OpenAI-compatible chat server, written for vLLM: tool conversations in wire format, `chat_template_kwargs` for thinking, `reasoning_effort`, retries on a busy proxy, and the server's rendered prompt stored with every row (`return_prompt_text`). The server address is never written. Settings come from `PIE_OPENAI_*` variables. The adaptive runner sends requests in parallel when a provider declares `concurrency`, and still writes rows in plan order.
+- **JSON-encoded tool result.** Conditions `tool_json` (`tool-json-v1`) and `tool_json_defended` (`tool-json-defended-v1`) put the document into the tool message as a JSON string. `pie adaptive control --condition tooljson` runs them with the two fixed attacks.
+- **The ten-model study.** Qwen3-4B, 8B, 14B and 32B, Qwen2.5-7B, Hermes 3 8B, Granite 3.3 8B, Phi-4-mini, gpt-oss-20b and gpt-oss-120b, at full precision on vLLM 0.33.0, through the full adaptive protocol and both placement controls: 58,622 generations, no backend errors, 0 of 4,450 clean documents flagged. With the generic rule, a raw-text tool result raises the plain override on all ten models (significant on eight after Holm adjustment over 160 comparisons); JSON-encoding takes much of it back on most. The adaptive strategy still gets 45 to 58 of 59 with the rule. Findings in `docs/placement.md`; rows, rankings, rendered-prompt samples and the report in `results-published/v06/`. About $3.40 of rented GPU time.
+- **Correction.** 0.5.0 reported that the tool placement protected gpt-oss-20b (41 to 23 of 59). The MLX chat template JSON-encodes tool content; with raw content on vLLM the same move goes from 25 to 47, and JSON-encoding there gives 20. The claim is withdrawn in `docs/adaptive.md`, `docs/related-work.md`, and the README.
+- `pie adaptive report`: `--static-dir` is optional; new tables for placement counts and for a repeated held-out run (`LABEL-repeat`), a second placement figure, and the static-versus-adaptive figure wraps into rows for many models.
+- `scripts/run_remote_model.sh` runs the protocol for one model against a server. The v06 rows record package version 0.5.0.
+
 ## 0.5.0
 
 Three answers to the most direct criticisms of the 0.4.0 study.

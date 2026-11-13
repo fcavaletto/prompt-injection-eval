@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import uuid
 from collections.abc import Callable, Iterable
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -20,6 +21,7 @@ from prompt_injection_eval.adaptive.strategies import LIBRARY_VERSION, Strategy,
 from prompt_injection_eval.adaptive.toolrole import (
     NO_TAIL_CONDITION,
     TOOL_CONDITIONS,
+    TOOL_JSON_CONDITIONS,
     ToolPrompt,
     render_no_tail,
     render_tool,
@@ -55,7 +57,7 @@ def render_condition(case: EvalCase, condition: str) -> RenderedPrompt | ToolPro
     """The static templates, plus the patched template and tool-result placements."""
     if condition == HARDENED_CONDITION:
         return render_hardened(case)
-    if condition in TOOL_CONDITIONS:
+    if condition in TOOL_CONDITIONS or condition in TOOL_JSON_CONDITIONS:
         return render_tool(case, condition)
     if condition == NO_TAIL_CONDITION:
         return render_no_tail(case)
@@ -102,11 +104,13 @@ def run_units(
     commit = _git_commit()
     runtime = _runtime_info(provider, config.model)
     skipped = written = errors = 0
+    pending: list[tuple[int, Unit, str, EvalCase, RenderedPrompt | ToolPrompt]] = []
     for index, unit in enumerate(planned_units, start=1):
         key = adaptive_unit_key(unit=unit, config=config, seeds_sha256=seeds_sha256, phase=phase)
         if key in completed:
             skipped += 1
             continue
+        completed.add(key)
         document = (
             unit.document
             if unit.document is not None
@@ -115,9 +119,12 @@ def run_units(
         case = unit.seed.to_case(
             document, note=f"Adaptive document: seed {unit.seed.id}, {unit.strategy.name}."
         )
-        prompt = render_condition(case, unit.condition)
+        pending.append((index, unit, key, case, render_condition(case, unit.condition)))
+
+    def call(item: tuple[int, Unit, str, EvalCase, RenderedPrompt | ToolPrompt]) -> Any:
+        _index, unit, _key, case, prompt = item
         tool_prompt = prompt if isinstance(prompt, ToolPrompt) else None
-        response = _generate(
+        return _generate(
             provider,
             config,
             case.id,
@@ -127,40 +134,51 @@ def run_units(
             messages=tool_prompt.messages if tool_prompt else None,
             tools=tool_prompt.tools if tool_prompt else None,
         )
-        record: dict[str, Any] = _build_record(
-            config=config,
-            provider=provider,
-            case=case,
-            dataset_path=seeds_path,
-            dataset_sha256=seeds_sha256,
-            prompt_condition=unit.condition,
-            template_version=prompt.template_version,
-            system_message=prompt.system_message,
-            user_message=prompt.user_message,
-            response=response,
-            unit=key,
-            run_id=run_id,
-            git_commit=commit,
-        )
-        record["runtime_info"] = runtime
-        record["adaptive_phase"] = phase
-        record["seed_split"] = unit.seed.split
-        record["goal_type"] = unit.seed.goal_type
-        record["strategy"] = unit.strategy.name
-        record["strategy_framing"] = unit.strategy.framing
-        record["strategy_boundary"] = unit.strategy.boundary
-        record["strategy_spacing"] = unit.strategy.spacing
-        record["strategy_library_version"] = LIBRARY_VERSION
-        if tool_prompt is not None:
-            record["prompt_messages"] = tool_prompt.messages
-            record["prompt_tools"] = tool_prompt.tools
-        append_result(results_path, record)
-        completed.add(key)
-        written += 1
-        if record["error_type"]:
-            errors += 1
-        if progress is not None:
-            progress(index, len(planned_units))
+
+    # A provider that batches on its side (a remote server) says how many requests it
+    # takes at once. Rows are still written in plan order, one at a time.
+    workers = max(1, int(getattr(provider, "concurrency", 1)))
+    pool = ThreadPoolExecutor(max_workers=workers) if workers > 1 else None
+    try:
+        responses = pool.map(call, pending) if pool else map(call, pending)
+        for (index, unit, key, case, prompt), response in zip(pending, responses, strict=True):
+            tool_prompt = prompt if isinstance(prompt, ToolPrompt) else None
+            record: dict[str, Any] = _build_record(
+                config=config,
+                provider=provider,
+                case=case,
+                dataset_path=seeds_path,
+                dataset_sha256=seeds_sha256,
+                prompt_condition=unit.condition,
+                template_version=prompt.template_version,
+                system_message=prompt.system_message,
+                user_message=prompt.user_message,
+                response=response,
+                unit=key,
+                run_id=run_id,
+                git_commit=commit,
+            )
+            record["runtime_info"] = runtime
+            record["adaptive_phase"] = phase
+            record["seed_split"] = unit.seed.split
+            record["goal_type"] = unit.seed.goal_type
+            record["strategy"] = unit.strategy.name
+            record["strategy_framing"] = unit.strategy.framing
+            record["strategy_boundary"] = unit.strategy.boundary
+            record["strategy_spacing"] = unit.strategy.spacing
+            record["strategy_library_version"] = LIBRARY_VERSION
+            if tool_prompt is not None:
+                record["prompt_messages"] = tool_prompt.messages
+                record["prompt_tools"] = tool_prompt.tools
+            append_result(results_path, record)
+            written += 1
+            if record["error_type"]:
+                errors += 1
+            if progress is not None:
+                progress(index, len(planned_units))
+    finally:
+        if pool is not None:
+            pool.shutdown(wait=False, cancel_futures=True)
     return EngineSummary(
         output_path=results_path,
         planned=len(planned_units),

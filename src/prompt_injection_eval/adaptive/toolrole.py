@@ -31,6 +31,7 @@ reads, as it is in the tool placement.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -45,6 +46,23 @@ TOOL_TEMPLATE_VERSIONS = {
     TOOL_DEFENDED_CONDITION: "tool-defended-v1",
 }
 TOOL_NAME = "read_document"
+
+# The same two placements with the document JSON-encoded inside the tool message, as a
+# quoted string with escaped newlines. Some chat templates do this themselves (the
+# gpt-oss template shipped with the weights applies `tojson` to tool content) and some
+# servers do not (vLLM's Harmony path passes the text through). These conditions put the
+# encoding in the harness, so the two renderings can be compared on one server.
+TOOL_JSON_CONDITION = "tool_json"
+TOOL_JSON_DEFENDED_CONDITION = "tool_json_defended"
+TOOL_JSON_CONDITIONS = (TOOL_JSON_CONDITION, TOOL_JSON_DEFENDED_CONDITION)
+_JSON_BASE = {
+    TOOL_JSON_CONDITION: TOOL_CONDITION,
+    TOOL_JSON_DEFENDED_CONDITION: TOOL_DEFENDED_CONDITION,
+}
+TOOL_JSON_TEMPLATE_VERSIONS = {
+    TOOL_JSON_CONDITION: "tool-json-v1",
+    TOOL_JSON_DEFENDED_CONDITION: "tool-json-defended-v1",
+}
 
 NO_TAIL_CONDITION = "defended_no_tail"
 NO_TAIL_TEMPLATE_VERSION = "defended-v1-no-tail"
@@ -102,9 +120,13 @@ class ToolPrompt:
 
 
 def render_tool(case: EvalCase, condition: str) -> ToolPrompt:
-    if condition not in _TEMPLATES:
+    base = _JSON_BASE.get(condition, condition)
+    if base not in _TEMPLATES:
         raise ValueError(f"Unknown tool condition: {condition}")
-    user_message = _TEMPLATES[condition].replace("{user_task}", case.user_task)
+    as_json = condition in _JSON_BASE
+    content = json.dumps(case.document, ensure_ascii=False) if as_json else case.document
+    version = (TOOL_JSON_TEMPLATE_VERSIONS if as_json else TOOL_TEMPLATE_VERSIONS)[condition]
+    user_message = _TEMPLATES[base].replace("{user_task}", case.user_task)
     call_id = "call_read_document"
     messages: list[dict[str, Any]] = [
         {"role": "system", "content": case.system_instruction},
@@ -120,11 +142,11 @@ def render_tool(case: EvalCase, condition: str) -> ToolPrompt:
                 }
             ],
         },
-        {"role": "tool", "tool_call_id": call_id, "name": TOOL_NAME, "content": case.document},
+        {"role": "tool", "tool_call_id": call_id, "name": TOOL_NAME, "content": content},
     ]
     return ToolPrompt(
         condition=condition,
-        template_version=TOOL_TEMPLATE_VERSIONS[condition],
+        template_version=version,
         system_message=case.system_instruction,
         user_message=user_message,
         messages=messages,

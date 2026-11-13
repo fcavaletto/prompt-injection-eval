@@ -1,0 +1,13 @@
+model,condition,units,identical_text,identical_attack_label,plain_override_first,plain_override_second
+qwen3-4b,all,1180,1165,1177,182,183
+qwen3-4b,baseline,236,233,236,53,53
+qwen3-4b,defended,236,235,236,12,12
+qwen3-4b,spotlight,236,231,234,3,4
+qwen3-4b,tool,236,234,236,57,57
+qwen3-4b,tool_defended,236,232,235,57,57
+gpt-oss-20b,all,1180,1029,1140,82,83
+gpt-oss-20b,baseline,236,200,227,25,21
+gpt-oss-20b,defended,236,201,229,0,0
+gpt-oss-20b,spotlight,236,202,227,2,2
+gpt-oss-20b,tool,236,220,234,47,46
+gpt-oss-20b,tool_defended,236,206,223,8,14

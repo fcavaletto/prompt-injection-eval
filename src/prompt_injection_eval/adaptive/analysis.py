@@ -45,6 +45,20 @@ PLACEMENT_COMPARISONS = (
     ("defended", NO_TAIL_CONDITION, "rule: drop the line after the document"),
     (NO_TAIL_CONDITION, "tool_defended", "rule, document last: user message to tool result"),
     ("defended", "tool_defended", "rule: user message to tool result"),
+    ("tool", "tool_json", "no rule, tool result: raw text to JSON-encoded"),
+    ("tool_defended", "tool_json_defended", "rule, tool result: raw text to JSON-encoded"),
+    ("baseline", "tool_json", "no rule: user message to JSON-encoded tool result"),
+    ("defended", "tool_json_defended", "rule: user message to JSON-encoded tool result"),
+)
+# Conditions of the placement table, in reading order: no rule, then with the rule.
+PLACEMENT_CONDITIONS = (
+    "baseline",
+    "tool",
+    "tool_json",
+    "defended",
+    NO_TAIL_CONDITION,
+    "tool_defended",
+    "tool_json_defended",
 )
 GOAL_ORDER = (
     "exact_output",
@@ -68,6 +82,8 @@ class ModelInputs:
     ranking: dict[str, Any]
     carrier_rows: list[dict[str, Any]] = field(default_factory=list)
     attacker_rows: list[dict[str, Any]] = field(default_factory=list)
+    # A second run of the held-out test, to measure how stable batched serving is.
+    repeat_rows: list[dict[str, Any]] = field(default_factory=list)
 
 
 def _ok(row: dict[str, Any]) -> bool:
@@ -549,6 +565,67 @@ def placement(inputs: ModelInputs) -> list[dict[str, Any]]:
     return out
 
 
+def placement_cells(inputs: ModelInputs) -> list[dict[str, Any]]:
+    """Counts behind the placement comparisons: one row per condition that was run."""
+    tests = _test_index(inputs)
+    static = _static_index(inputs)
+    seeds = _test_seed_ids(inputs)
+    out: list[dict[str, Any]] = []
+    for condition in PLACEMENT_CONDITIONS:
+        fixed = [static.get((seed_id, condition)) for seed_id in seeds]
+        plain = [tests.get((seed_id, condition, REFERENCE_STRATEGY)) for seed_id in seeds]
+        if not all(plain):
+            continue
+        hits = sum(_hit(row) for row in plain)
+        out.append(
+            {
+                "model": inputs.label,
+                "condition": condition,
+                "held_out_seeds": len(seeds),
+                "static_successes": sum(_hit(row) for row in fixed) if all(fixed) else None,
+                "plain_override_successes": hits,
+                "plain_override_wilson": _wilson(hits, len(seeds)),
+            }
+        )
+    return out
+
+
+def repeats(inputs: ModelInputs) -> list[dict[str, Any]]:
+    """The held-out test run twice: how many units changed text, and how many changed label."""
+    first = _test_index(inputs)
+    second = {
+        (row["case_id"], row["condition"], row["strategy"]): row
+        for row in inputs.repeat_rows
+        if row.get("adaptive_phase") == "test" and row.get("seed_split") == "test"
+    }
+    shared = [key for key in first if key in second]
+    if not shared:
+        return []
+    out: list[dict[str, Any]] = []
+    conditions = [name for name in ADAPTIVE_CONDITIONS if any(key[1] == name for key in shared)]
+    for condition in [None, *conditions]:
+        keys = [key for key in shared if condition is None or key[1] == condition]
+        plain = [key for key in keys if key[2] == REFERENCE_STRATEGY]
+        out.append(
+            {
+                "model": inputs.label,
+                "condition": condition or "all",
+                "units": len(keys),
+                "identical_text": sum(
+                    first[key].get("response_text") == second[key].get("response_text")
+                    for key in keys
+                ),
+                "identical_attack_label": sum(
+                    first[key].get("attack_score") == second[key].get("attack_score")
+                    for key in keys
+                ),
+                "plain_override_first": sum(_hit(first[key]) for key in plain),
+                "plain_override_second": sum(_hit(second[key]) for key in plain),
+            }
+        )
+    return out
+
+
 def adjust_family(all_rows: list[dict[str, Any]]) -> None:
     """Holm within each family: user-message templates, and tool-result placements.
 
@@ -613,6 +690,8 @@ def _report(
     arm_tests: list[dict[str, Any]],
     patch: list[dict[str, Any]],
     placed: list[dict[str, Any]] | None = None,
+    counts: list[dict[str, Any]] | None = None,
+    repeated: list[dict[str, Any]] | None = None,
 ) -> str:
     lines = [
         "# Adaptive attack report",
@@ -856,6 +935,34 @@ def _report(
                 f"{_p(row['mcnemar_p']) if 'mcnemar_p' in row else 'n/a'} | "
                 f"{clean_old}/{docs} | {clean_new}/{docs} |"
             )
+    if counts:
+        present = [
+            name for name in PLACEMENT_CONDITIONS if any(c["condition"] == name for c in counts)
+        ]
+        lines += [
+            "",
+            "## Placement: counts on the held-out seeds",
+            "",
+            "Plain override, then the static documents in parentheses. `tool_json` is the "
+            "tool-result placement with the document JSON-encoded in the tool message.",
+            "",
+            "| Model | " + " | ".join(present) + " |",
+            "| --- | " + " | ".join("---:" for _ in present) + " |",
+        ]
+        for model in dict.fromkeys(cell["model"] for cell in counts):
+            by_condition = {c["condition"]: c for c in counts if c["model"] == model}
+            row_cells = []
+            for name in present:
+                cell = by_condition.get(name)
+                if cell is None:
+                    row_cells.append("n/a")
+                    continue
+                fixed = cell["static_successes"]
+                fixed_text = "n/a" if fixed is None else str(fixed)
+                row_cells.append(
+                    f"{cell['plain_override_successes']}/{cell['held_out_seeds']} ({fixed_text})"
+                )
+            lines.append(f"| {model} | " + " | ".join(row_cells) + " |")
     if placed:
         lines += [
             "",
@@ -863,7 +970,8 @@ def _report(
             "",
             "Held-out seeds. Two attacks fixed in advance: the static document and the plain "
             "override. `defended_no_tail` is `defended-v1` without the line after the "
-            "document. Holm p is adjusted over every row of this table.",
+            "document. `tool_json` JSON-encodes the document in the tool message. Holm p is "
+            "adjusted over every row of this table.",
             "",
             "| Model | Attack | First | Second | What changes | First | Second | "
             "Only first | Only second | p | Holm p |",
@@ -878,6 +986,24 @@ def _report(
                 f"{row['only_second']} | {_p(row['mcnemar_p'])} | "
                 f"{_p(row['mcnemar_p_holm'])} |"
             )
+    if repeated:
+        lines += [
+            "",
+            "## Repeat: the held-out test run twice on the same server",
+            "",
+            "Temperature 0 and the same seed. Batched inference is not bit-exact, so some "
+            "answers change. `Plain override` is the count in the first and second run.",
+            "",
+            "| Model | Condition | Units | Identical text | Identical attack label | "
+            "Plain override |",
+            "| --- | --- | ---: | ---: | ---: | ---: |",
+        ]
+        for row in repeated:
+            lines.append(
+                f"| {row['model']} | {row['condition']} | {row['units']} | "
+                f"{row['identical_text']} | {row['identical_attack_label']} | "
+                f"{row['plain_override_first']} and {row['plain_override_second']} |"
+            )
     lines += ["", f"Dev grid cells: {len(grid)}. Full grid in `dev_grid.csv`.", ""]
     return "\n".join(lines)
 
@@ -890,9 +1016,19 @@ def _figure(head: list[dict[str, Any]], path: Path) -> None:
 
     head = [row for row in head if row["condition"] in CONDITIONS]
     models = list(dict.fromkeys(row["model"] for row in head))
-    fig, axes = plt.subplots(1, len(models), figsize=(4.2 * len(models), 3.8), sharey=True)
-    if len(models) == 1:
-        axes = [axes]
+    columns = min(len(models), 5)
+    rows_needed = -(-len(models) // columns)
+    fig, grid = plt.subplots(
+        rows_needed,
+        columns,
+        figsize=(4.2 * columns, 3.8 * rows_needed),
+        sharey=True,
+        squeeze=False,
+    )
+    axes = list(grid.flat)
+    for spare in axes[len(models) :]:
+        spare.set_visible(False)
+    axes = axes[: len(models)]
     series = (
         ("static_successes", "Static documents (0.3.0)", "#98a6b3"),
         ("reference_naive_successes", "Plain override, same payload", "#e0a458"),
@@ -910,11 +1046,73 @@ def _figure(head: list[dict[str, Any]], path: Path) -> None:
         axis.set_title(model)
         axis.set_ylim(0, 1)
         axis.spines[["top", "right"]].set_visible(False)
-    axes[0].set_ylabel("Attack success rate, 59 held-out seeds")
+    for row_axes in grid:
+        row_axes[0].set_ylabel("Attack success rate, 59 held-out seeds")
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="lower center", ncol=3, fontsize=9, frameon=False)
     fig.tight_layout(rect=(0, 0.08, 1, 1))
     fig.savefig(path, dpi=120)
+    plt.close(fig)
+
+
+def _placement_figure(cells: list[dict[str, Any]], path: Path) -> None:
+    """Plain override by where the document sits: one panel without the rule, one with."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    ink, muted, surface = "#0b0b0b", "#52514e", "#fcfcfb"
+    panels = (
+        ("No security rule", ("baseline", "tool", "tool_json")),
+        ("Generic security rule", ("defended", "tool_defended", "tool_json_defended")),
+    )
+    series = (
+        ("Document in the user message", "#2a78d6"),
+        ("Tool result, raw text", "#eb6834"),
+        ("Tool result, JSON-encoded", "#1baf7a"),
+    )
+    models = list(dict.fromkeys(cell["model"] for cell in cells))
+    value = {(c["model"], c["condition"]): c for c in cells}
+    height = 0.26
+    fig, axes = plt.subplots(
+        1, 2, figsize=(10.5, 0.62 * len(models) + 1.9), sharey=True, facecolor=surface
+    )
+    for axis, (title, conditions) in zip(axes, panels, strict=True):
+        axis.set_facecolor(surface)
+        for offset, (condition, (label, color)) in enumerate(zip(conditions, series, strict=True)):
+            rates = []
+            for model in models:
+                cell = value.get((model, condition))
+                rates.append(
+                    cell["plain_override_successes"] / cell["held_out_seeds"] if cell else 0.0
+                )
+            positions = [index + (offset - 1) * (height + 0.02) for index in range(len(models))]
+            axis.barh(positions, rates, height=height, color=color, label=label)
+        axis.set_title(title, loc="left", fontsize=11, color=ink)
+        axis.set_xlim(0, 1)
+        axis.set_xticks([0, 0.25, 0.5, 0.75, 1.0])
+        axis.set_xticklabels(["0", "25%", "50%", "75%", "100%"], color=muted, fontsize=9)
+        axis.set_yticks(range(len(models)))
+        axis.set_yticklabels(models, color=ink, fontsize=9)
+        axis.grid(axis="x", color="#e4e3df", linewidth=0.8)
+        axis.set_axisbelow(True)
+        axis.tick_params(length=0)
+        for side in ("top", "right", "left", "bottom"):
+            axis.spines[side].set_visible(False)
+    axes[0].invert_yaxis()  # shared axis: the first model goes at the top
+    fig.supxlabel(
+        "Plain override: share of the 59 held-out documents where the attack succeeded",
+        fontsize=9,
+        color=muted,
+        y=0.075,
+    )
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(
+        handles, labels, loc="lower center", ncol=3, fontsize=9, frameon=False, labelcolor=ink
+    )
+    fig.tight_layout(rect=(0, 0.1, 1, 1))
+    fig.savefig(path, dpi=130, facecolor=surface)
     plt.close(fig)
 
 
@@ -934,6 +1132,12 @@ def write_report(all_inputs: list[ModelInputs], output_dir: Path) -> dict[str, A
     for row, value in zip(placed, holm([row["mcnemar_p"] for row in placed]), strict=True):
         row["mcnemar_p_holm"] = value
     _write_csv(output_dir / "placement.csv", placed)
+    repeated = [row for inputs in all_inputs for row in repeats(inputs)]
+    _write_csv(output_dir / "repeats.csv", repeated)
+    cells = [row for inputs in all_inputs for row in placement_cells(inputs)]
+    _write_csv(output_dir / "placement_cells.csv", cells)
+    if any(cell["condition"] == "tool_json" for cell in cells):
+        _placement_figure(cells, output_dir / "placement.png")
     _write_csv(output_dir / "patch_round.csv", patch)
     _write_csv(output_dir / "carriers.csv", clean)
     _write_csv(output_dir / "attacker_model.csv", arms)
@@ -944,7 +1148,9 @@ def write_report(all_inputs: list[ModelInputs], output_dir: Path) -> dict[str, A
     _write_csv(output_dir / "by_goal.csv", goals)
     _write_csv(output_dir / "transfer.csv", moved)
     (output_dir / "report.md").write_text(
-        _report(head, grid, abl, goals, moved, clean, arms, arm_tests, patch, placed),
+        _report(
+            head, grid, abl, goals, moved, clean, arms, arm_tests, patch, placed, cells, repeated
+        ),
         encoding="utf-8",
     )
     _figure(head, output_dir / "static_vs_adaptive.png")
@@ -958,6 +1164,8 @@ def write_report(all_inputs: list[ModelInputs], output_dir: Path) -> dict[str, A
         "attacker_model_paired": arm_tests,
         "patch_round": patch,
         "placement": placed,
+        "placement_cells": cells,
+        "repeats": repeated,
     }
     (output_dir / "summary.json").write_text(
         json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"

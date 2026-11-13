@@ -71,6 +71,8 @@ _DELIMITERS = {
     # library does not write. The attacker fakes a plain-text end-of-output marker.
     "tool": ("[end of read_document output]", "[read_document output continues]"),
     "tool_defended": ("[end of read_document output]", "[read_document output continues]"),
+    "tool_json": ("[end of read_document output]", "[read_document output continues]"),
+    "tool_json_defended": ("[end of read_document output]", "[read_document output continues]"),
 }
 
 

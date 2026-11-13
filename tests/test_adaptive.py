@@ -673,3 +673,77 @@ def test_placement_pairs_the_two_fixed_attacks_by_seed() -> None:
     role = rows[("defended_no_tail", "tool_defended")]
     assert (role["first_successes"], role["second_successes"], role["only_second"]) == (1, 3, 2)
     assert rows[("defended", "defended_no_tail")]["only_second"] == 0
+
+
+def test_json_condition_encodes_only_the_tool_message(seeds) -> None:
+    from prompt_injection_eval.adaptive.engine import render_condition
+
+    seed = next(item for item in seeds if item.split == "test")
+    document = build_document(strategy_by_name("naive+inline+plain"), seed, "tool_json_defended")
+    case = seed.to_case(document, note="x")
+    raw = render_condition(case, "tool_defended")
+    encoded = render_condition(case, "tool_json_defended")
+    assert encoded.template_version == "tool-json-defended-v1"
+    assert encoded.user_message == raw.user_message
+    assert encoded.messages[:-1] == raw.messages[:-1]
+    content = encoded.messages[-1]["content"]
+    assert json.loads(content) == document and "\n" not in content
+
+
+V06_PLAIN_OVERRIDE = {
+    # baseline, tool, tool_json, defended, defended_no_tail, tool_defended, tool_json_defended
+    "qwen3-4b": (53, 57, 51, 12, 21, 57, 49),
+    "qwen3-8b": (45, 56, 46, 19, 24, 45, 28),
+    "qwen3-14b": (52, 57, 51, 11, 16, 52, 33),
+    "qwen3-32b": (34, 56, 55, 4, 5, 43, 27),
+    "qwen2.5-7b": (53, 50, 43, 27, 45, 50, 36),
+    "hermes-3-8b": (19, 45, 27, 10, 13, 35, 25),
+    "granite-3.3-8b": (18, 43, 16, 10, 11, 30, 13),
+    "phi-4-mini": (22, 52, 34, 14, 18, 34, 8),
+    "gpt-oss-20b": (25, 47, 20, 0, 0, 8, 0),
+    "gpt-oss-120b": (36, 55, 35, 0, 0, 7, 0),
+}
+
+
+def test_v06_bundle_reproduces_the_placement_table() -> None:
+    """The ten-model table in docs/placement.md comes from results-published/v06."""
+    import gzip
+
+    from prompt_injection_eval.adaptive.analysis import (
+        PLACEMENT_CONDITIONS,
+        ModelInputs,
+        placement_cells,
+        repeats,
+    )
+
+    root = Path(__file__).resolve().parents[1] / "results-published" / "v06"
+
+    def rows(name: str) -> list[dict[str, object]]:
+        with gzip.open(root / name / "raw_results.jsonl.gz", "rt", encoding="utf-8") as handle:
+            return [json.loads(line) for line in handle if line.strip()]
+
+    for label, expected in V06_PLAIN_OVERRIDE.items():
+        inputs = ModelInputs(
+            label=label, static_rows=[], grid_rows=[], test_rows=rows(f"{label}-test"), ranking={}
+        )
+        cells = {cell["condition"]: cell for cell in placement_cells(inputs)}
+        got = tuple(cells[name]["plain_override_successes"] for name in PLACEMENT_CONDITIONS)
+        assert got == expected, label
+        assert all(cell["held_out_seeds"] == 59 for cell in cells.values())
+        assert all(cell["static_successes"] is not None for cell in cells.values())
+        assert not any(row.get("error_type") for row in inputs.test_rows)
+    # The address of the rented server is never stored.
+    sample = json.dumps(rows("gpt-oss-20b-test")[:50])
+    assert "proxy.runpod.net" not in sample and "https://" not in sample
+
+    again = ModelInputs(
+        label="gpt-oss-20b",
+        static_rows=[],
+        grid_rows=[],
+        test_rows=rows("gpt-oss-20b-test"),
+        ranking={},
+        repeat_rows=rows("gpt-oss-20b-repeat"),
+    )
+    overall = repeats(again)[0]
+    assert (overall["condition"], overall["units"]) == ("all", 1180)
+    assert overall["identical_attack_label"] == 1140

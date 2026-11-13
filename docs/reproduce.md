@@ -115,6 +115,28 @@ Per model, the script runs the tuning grid under `tool` and `tool_defended` (24 
 
 The published report covers both runs. The `pie adaptive report` command in the 0.4.0 section rebuilds it from the published rows. The tool-result rows record package version 0.4.0: they were generated before the version was raised.
 
+## The 0.6.0 ten-model study
+
+The harness runs on any machine; the model runs on a GPU server that speaks the OpenAI chat API. The published run used vLLM 0.33.0 (`vllm/vllm-openai:v0.33.0`) on one rented 96 GB RTX PRO 6000. Start the server with the model's own chat template, which is the default:
+
+```bash
+vllm serve Qwen/Qwen3-8B --dtype bfloat16 --max-model-len 8192 --generation-config vllm
+```
+
+`--generation-config vllm` keeps the model repository's sampling defaults out of the way, so temperature 0 means greedy. gpt-oss needs `--max-model-len 16384` and no `--dtype`. Then, from the repository:
+
+```bash
+export PIE_OPENAI_BASE_URL=http://<server>:8000
+export PIE_OPENAI_CONCURRENCY=32
+export PIE_OPENAI_LAUNCH_ARGS="vllm/vllm-openai:v0.33.0 --dtype bfloat16 ...; <GPU>"
+scripts/run_remote_model.sh qwen3-8b Qwen/Qwen3-8B --no-think
+scripts/run_remote_model.sh gpt-oss-20b openai/gpt-oss-20b --reasoning-effort low --profile reasoning
+```
+
+The script runs the tuning grid, ranking, held-out test, static documents, clean carriers, and both placement controls for one model, into `results/v06/`. It takes two to five minutes per model at 32 concurrent requests. `PIE_OPENAI_LAUNCH_ARGS` is recorded in every row as declared provenance; the server does not report its own flags. The server address is never written to a row. Add `PIE_OPENAI_API_KEY` if the server was started with `--api-key`.
+
+The published rows are in `results-published/v06/`, one directory per model and kind, gzipped; the commands to rebuild the report are at the end of [placement.md](placement.md#cost-and-reproduction). The rows record package version 0.5.0: they were generated before the version was raised.
+
 ## The 0.2.0 study
 
 The 40-case study is still reproducible from `data/cases.jsonl` with the commands in that release:

@@ -242,6 +242,9 @@ def run_cmd(
         except Exception as exc:  # noqa: BLE001 - report and stop before writing rows
             typer.echo(f"Could not load {resolved_model} with mlx-lm: {sanitize_text(str(exc))}")
             raise typer.Exit(code=1) from exc
+    elif provider == "openai":
+        typer.echo("The openai provider is used by `pie adaptive` only.", err=True)
+        raise typer.Exit(code=1)
     else:
         backend = OllamaProvider(base_url=config.base_url, keep_alive=config.keep_alive)
     try:

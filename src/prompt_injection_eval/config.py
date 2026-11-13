@@ -25,7 +25,7 @@ from prompt_injection_eval.constants import (
 class RunConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    provider: Literal["mock", "ollama", "mlx"]
+    provider: Literal["mock", "ollama", "mlx", "openai"]
     model: str
     dataset: Path
     condition: Literal["baseline", "defended", "spotlight", "both", "all"]

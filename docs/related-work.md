@@ -72,9 +72,17 @@ OpenAI. "gpt-oss-120b & gpt-oss-20b Model Card." arXiv:2508.10925, 2025.
 
 Wallace et al. argue that a model should give instructions different authority depending on where they come from, with the system prompt above the user and tool outputs below both, and train a model to behave that way. The gpt-oss model card describes the same idea as a role order: system, developer, user, assistant, tool.
 
-**Borrowed.** The question the tool-result arm asks: does putting the document in the tool role make injected text in it weaker? The [adaptive study](adaptive.md#the-document-as-a-tool-result) finds that it does on gpt-oss-20b and that it does the opposite on Qwen3-4B and Qwen3-14B.
+**Borrowed.** The question the tool-result arm asks: does putting the document in the tool role make injected text in it weaker? On [ten open models](placement.md), including both gpt-oss models, it makes it stronger: a raw-text tool result undoes a security rule that works in the user message. An apparent exception on gpt-oss-20b in 0.5.0 came from the chat template JSON-encoding the tool message.
 
-**Not done here.** No training. Two model families are not enough to attribute the difference to hierarchy training rather than to anything else that differs between them, and the study does not try.
+**Not done here.** No training, and no test of a model trained with the hierarchy on tool outputs specifically. The result says that, for these models as served, the tool role is not the protection the hierarchy describes.
+
+Charles Ye, Jasmine Cui, and Dylan Hadfield-Menell. "Prompt Injection as Role Confusion." arXiv:2603.12277, 2026.
+
+They train linear probes that read which role a model thinks a token belongs to, on gpt-oss-20b and 120b, Nemotron-3 and Qwen3-30B, and find that text written in a user's style is still represented as largely user-like when it sits inside tool tags, and that how user-like injected text looks to the model predicts attack success.
+
+**Borrowed.** Their account predicts the behavioral result here: if tool text reads as user text, a rule written about "the document" in the user message should lose force when the same document arrives as a tool result.
+
+**Not done here.** No probes. The two studies are complementary: they measure the representation, this one measures paired attack success across placements, with a held-out protocol and a defensive rule.
 
 ## Agents, as the thing this is not
 

@@ -20,7 +20,11 @@ import hashlib
 import re
 import unicodedata
 
-from prompt_injection_eval.adaptive.toolrole import NO_TAIL_CONDITION, TOOL_CONDITIONS
+from prompt_injection_eval.adaptive.toolrole import (
+    NO_TAIL_CONDITION,
+    TOOL_CONDITIONS,
+    TOOL_JSON_CONDITIONS,
+)
 from prompt_injection_eval.constants import CONDITIONS, DATAMARK
 from prompt_injection_eval.prompts import RenderedPrompt
 from prompt_injection_eval.schemas import EvalCase
@@ -29,7 +33,13 @@ HARDENED_CONDITION = "hardened"
 HARDENED_TEMPLATE_VERSION = "defended-v3"
 # Every condition the adaptive study can run: the three static ones, the patch, the two
 # tool-result placements, and the placement control (see `toolrole.py`).
-ADAPTIVE_CONDITIONS = (*CONDITIONS, HARDENED_CONDITION, *TOOL_CONDITIONS, NO_TAIL_CONDITION)
+ADAPTIVE_CONDITIONS = (
+    *CONDITIONS,
+    HARDENED_CONDITION,
+    *TOOL_CONDITIONS,
+    NO_TAIL_CONDITION,
+    *TOOL_JSON_CONDITIONS,
+)
 
 # Blank-looking characters whose Unicode category is a letter or symbol, so a category
 # test alone would miss them.
