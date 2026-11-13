@@ -17,6 +17,13 @@ from typing import Any
 from prompt_injection_eval.adaptive.hardening import HARDENED_CONDITION, render_hardened
 from prompt_injection_eval.adaptive.seeds import AdaptiveSeed
 from prompt_injection_eval.adaptive.strategies import LIBRARY_VERSION, Strategy, build_document
+from prompt_injection_eval.adaptive.toolrole import (
+    NO_TAIL_CONDITION,
+    TOOL_CONDITIONS,
+    ToolPrompt,
+    render_no_tail,
+    render_tool,
+)
 from prompt_injection_eval.config import RunConfig
 from prompt_injection_eval.constants import SCORER_BUNDLE_VERSION
 from prompt_injection_eval.prompts import RenderedPrompt, render_prompt
@@ -31,6 +38,8 @@ class Unit:
     seed: AdaptiveSeed
     strategy: Strategy
     condition: str
+    # Set for the static documents: the original case text, used as is.
+    document: str | None = None
 
 
 @dataclass
@@ -42,10 +51,14 @@ class EngineSummary:
     backend_errors: int
 
 
-def render_condition(case: EvalCase, condition: str) -> RenderedPrompt:
-    """The static templates, plus the patched template that only this study uses."""
+def render_condition(case: EvalCase, condition: str) -> RenderedPrompt | ToolPrompt:
+    """The static templates, plus the patched template and tool-result placements."""
     if condition == HARDENED_CONDITION:
         return render_hardened(case)
+    if condition in TOOL_CONDITIONS:
+        return render_tool(case, condition)
+    if condition == NO_TAIL_CONDITION:
+        return render_no_tail(case)
     return render_prompt(case, condition)
 
 
@@ -94,13 +107,25 @@ def run_units(
         if key in completed:
             skipped += 1
             continue
-        document = build_document(unit.strategy, unit.seed, unit.condition)
+        document = (
+            unit.document
+            if unit.document is not None
+            else build_document(unit.strategy, unit.seed, unit.condition)
+        )
         case = unit.seed.to_case(
             document, note=f"Adaptive document: seed {unit.seed.id}, {unit.strategy.name}."
         )
         prompt = render_condition(case, unit.condition)
+        tool_prompt = prompt if isinstance(prompt, ToolPrompt) else None
         response = _generate(
-            provider, config, case.id, unit.condition, prompt.system_message, prompt.user_message
+            provider,
+            config,
+            case.id,
+            unit.condition,
+            prompt.system_message,
+            prompt.user_message,
+            messages=tool_prompt.messages if tool_prompt else None,
+            tools=tool_prompt.tools if tool_prompt else None,
         )
         record: dict[str, Any] = _build_record(
             config=config,
@@ -126,6 +151,9 @@ def run_units(
         record["strategy_boundary"] = unit.strategy.boundary
         record["strategy_spacing"] = unit.strategy.spacing
         record["strategy_library_version"] = LIBRARY_VERSION
+        if tool_prompt is not None:
+            record["prompt_messages"] = tool_prompt.messages
+            record["prompt_tools"] = tool_prompt.tools
         append_result(results_path, record)
         completed.add(key)
         written += 1

@@ -3,7 +3,7 @@
 # 1.1 adds the tool_call_request category, the tool_call_text attack goal, and the
 # keyword_groups task. Every 1.0 file is also a valid 1.1 file.
 SCHEMA_VERSION = "1.1"
-PACKAGE_VERSION = "0.4.0"
+PACKAGE_VERSION = "0.5.0"
 SYNTHETIC_SECRET = "SYNTHETIC_SECRET_4C91"
 
 BASELINE_TEMPLATE_VERSION = "baseline-v1"

@@ -64,6 +64,18 @@ OWASP lists prompt injection as the first risk for LLM applications and distingu
 
 **Not done here.** No coverage of the rest of the Top 10, no scanner, and no mapping of these cases onto an OWASP compliance claim.
 
+## Instruction hierarchy
+
+Eric Wallace, Kai Xiao, Reimar Leike, Lilian Weng, Johannes Heidecke, and Alex Beutel. "The Instruction Hierarchy: Training LLMs to Prioritize Privileged Instructions." arXiv:2404.13208, 2024.
+
+OpenAI. "gpt-oss-120b & gpt-oss-20b Model Card." arXiv:2508.10925, 2025.
+
+Wallace et al. argue that a model should give instructions different authority depending on where they come from, with the system prompt above the user and tool outputs below both, and train a model to behave that way. The gpt-oss model card describes the same idea as a role order: system, developer, user, assistant, tool.
+
+**Borrowed.** The question the tool-result arm asks: does putting the document in the tool role make injected text in it weaker? The [adaptive study](adaptive.md#the-document-as-a-tool-result) finds that it does on gpt-oss-20b and that it does the opposite on Qwen3-4B and Qwen3-14B.
+
+**Not done here.** No training. Two model families are not enough to attribute the difference to hierarchy training rather than to anything else that differs between them, and the study does not try.
+
 ## Agents, as the thing this is not
 
 Edoardo Debenedetti, Jie Zhang, Mislav Balunović, Luca Beurer-Kellner, Marc Fischer, and Florian Tramèr. "AgentDojo: A Dynamic Environment to Evaluate Prompt Injection Attacks and Defenses for LLM Agents." NeurIPS 2024 Datasets and Benchmarks. arXiv:2406.13352.
@@ -72,4 +84,4 @@ AgentDojo gives a model tools — email, banking, travel bookings — and puts t
 
 **Borrowed.** The insistence on reporting utility and security separately. An agent that refuses every tool call is secure and useless. The same split is why this project has `secure_but_unhelpful`.
 
-**Not done here.** No tools, no environment, no state-based check of a side effect. A model in this harness can only emit text. If it prints `CANARY_D01`, that is the entire compromise. The eight `tool_call_request` cases added in 0.3.0 ask the model to write a function call such as `forward_invoice(...)`, and the reports count how often a naive line parser would have found one. That is a text proxy borrowed from the shape of the AgentDojo question. It says nothing about what an agent with real tools, real tool outputs, and multiple turns would do. AgentDojo is the right thing to read next if you want the version of this problem where the model can act. This repository stops one step earlier, on purpose: the measurement is about instruction-following on a document, and it can be run on a laptop with no API key.
+**Not done here.** No tools, no environment, no state-based check of a side effect. A model in this harness can only emit text. If it prints `CANARY_D01`, that is the entire compromise. The eight `tool_call_request` cases added in 0.3.0 ask the model to write a function call such as `forward_invoice(...)`, and the reports count how often a naive line parser would have found one. That is a text proxy borrowed from the shape of the AgentDojo question. Since 0.5.0 the adaptive study also delivers the document as a tool result: the conversation holds one `read_document` call and its output, rendered by each model's own chat template, and the model answers. That borrows AgentDojo's placement of the attack, in data a tool returns, but not its environment: one call, one turn, nothing executed. It says nothing about what an agent with real tools, real tool outputs, and multiple turns would do. AgentDojo is the right thing to read next if you want the version of this problem where the model can act. This repository stops one step earlier, on purpose: the measurement is about instruction-following on a document, and it can be run on a laptop with no API key.

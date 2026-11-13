@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "prompt-injection-eval"
-version = "0.4.0"
+version = "0.5.0"
 description = "Local evaluation harness for indirect prompt injection in open-weight language models."
 readme = "README.md"
 requires-python = ">=3.11"

@@ -151,6 +151,8 @@ def _generate(
     condition: str,
     system_message: str,
     user_message: str,
+    messages: list[dict[str, Any]] | None = None,
+    tools: list[dict[str, Any]] | None = None,
 ) -> GenerationResponse:
     request = GenerationRequest(
         model=config.model,
@@ -167,6 +169,8 @@ def _generate(
             "reasoning_effort": config.reasoning_effort,
         },
         metadata={"case_id": case_id, "condition": condition},
+        messages=messages,
+        tools=tools,
     )
     try:
         return provider.generate(request)

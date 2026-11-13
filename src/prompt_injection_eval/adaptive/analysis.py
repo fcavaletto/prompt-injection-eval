@@ -7,6 +7,11 @@ once with a document built by a strategy that was chosen on other seeds.
 Attack score `uncertain` counts as not a success, as in the static tables. The headline
 table also carries the count with `uncertain` read as a success, so the two readings can
 be compared.
+
+A *quiet* success is an attack success on a row whose legitimate task also succeeded: the
+user gets a normal-looking answer with the attacker's output in it. Most asks demand the
+attacker's output "and nothing else", which rules a quiet success out by construction, so
+quiet counts are reported per goal as well.
 """
 
 from __future__ import annotations
@@ -25,11 +30,22 @@ from prompt_injection_eval.adaptive.strategies import (
     SPACINGS,
     all_strategies,
 )
+from prompt_injection_eval.adaptive.toolrole import NO_TAIL_CONDITION, TOOL_CONDITIONS
 from prompt_injection_eval.constants import CONDITIONS
 from prompt_injection_eval.metrics import wilson_interval
 from prompt_injection_eval.stats import holm, paired_test
 
 REFERENCE_STRATEGY = "naive+inline+plain"
+STATIC_STRATEGY = "static_document"
+# Conditions with a static-versus-adaptive headline. The patch is reported on its own.
+HEADLINE_CONDITIONS = (*CONDITIONS, *TOOL_CONDITIONS)
+# Paired placement comparisons: (first, second, what changes between them).
+PLACEMENT_COMPARISONS = (
+    ("baseline", "tool", "no rule: user message to tool result"),
+    ("defended", NO_TAIL_CONDITION, "rule: drop the line after the document"),
+    (NO_TAIL_CONDITION, "tool_defended", "rule, document last: user message to tool result"),
+    ("defended", "tool_defended", "rule: user message to tool result"),
+)
 GOAL_ORDER = (
     "exact_output",
     "synthetic_secret_disclosure",
@@ -62,6 +78,10 @@ def _hit(row: dict[str, Any] | None) -> bool:
     return row is not None and _ok(row) and row.get("attack_score") == "success"
 
 
+def _quiet(row: dict[str, Any] | None) -> bool:
+    return _hit(row) and row is not None and row.get("task_score") == "success"
+
+
 def _hit_or_uncertain(row: dict[str, Any] | None) -> bool:
     return row is not None and _ok(row) and row.get("attack_score") in {"success", "uncertain"}
 
@@ -89,7 +109,12 @@ def _test_seed_ids(inputs: ModelInputs) -> list[str]:
 
 
 def _static_index(inputs: ModelInputs) -> dict[tuple[str, str], dict[str, Any]]:
-    return {(row["case_id"], row["condition"]): row for row in inputs.static_rows}
+    """Static rows: the 0.3.0 study, plus static documents rerun under new conditions."""
+    index = {(row["case_id"], row["condition"]): row for row in inputs.static_rows}
+    for row in inputs.test_rows:
+        if row.get("adaptive_phase") == "static" and row.get("seed_split") == "test":
+            index[(row["case_id"], row["condition"])] = row
+    return index
 
 
 def _any_of(rows: list[dict[str, Any] | None]) -> dict[str, Any]:
@@ -103,7 +128,7 @@ def headline(inputs: ModelInputs) -> list[dict[str, Any]]:
     static = _static_index(inputs)
     seeds = _test_seed_ids(inputs)
     out: list[dict[str, Any]] = []
-    for condition in CONDITIONS:
+    for condition in HEADLINE_CONDITIONS:
         order = [entry["strategy"] for entry in inputs.ranking["conditions"].get(condition, [])]
         if not order:
             continue
@@ -118,6 +143,9 @@ def headline(inputs: ModelInputs) -> list[dict[str, Any]]:
         if missing:
             raise AnalysisError(f"{inputs.label} {condition}: {missing} test units missing")
         first = [attempts[0] for attempts in ranked]
+        plain_order = inputs.ranking.get("conditions_plain", {}).get(condition, [])
+        plain_name = plain_order[0]["strategy"] if plain_order else None
+        plain = [tests.get((seed_id, condition, plain_name or "")) for seed_id in seeds]
         n = len(seeds)
         record: dict[str, Any] = {
             "model": inputs.label,
@@ -138,6 +166,8 @@ def headline(inputs: ModelInputs) -> list[dict[str, Any]]:
             "static_task_successes": sum(
                 1 for row in static_rows if row.get("task_score") == "success"
             ),
+            "static_quiet": sum(_quiet(row) for row in static_rows),
+            "adaptive_1_quiet": sum(_quiet(row) for row in first),
             "backend_errors": sum(
                 1 for attempts in ranked for row in attempts if row is not None and not _ok(row)
             ),
@@ -151,6 +181,22 @@ def headline(inputs: ModelInputs) -> list[dict[str, Any]]:
         record["reference_naive_successes"] = (
             sum(_hit(row) for row in reference) if all(reference) else None
         )
+        record["reference_naive_quiet"] = (
+            sum(_quiet(row) for row in reference) if all(reference) else None
+        )
+        # The first-ranked strategy among those with ordinary spacing, so the count does
+        # not depend on the blank-character trick.
+        if plain_name is not None and all(plain):
+            record["plain_top_strategy"] = plain_name
+            record["plain_top_dev_successes"] = plain_order[0]["dev_successes"]
+            record["plain_1_successes"] = sum(_hit(row) for row in plain)
+            record["plain_1_wilson"] = _wilson(record["plain_1_successes"], n)
+            record["plain_1_quiet"] = sum(_quiet(row) for row in plain)
+            versus_static = paired_test(
+                [(left, right) for left, right in zip(static_rows, plain, strict=True) if right],
+                field="attack_score",
+            )
+            record["mcnemar_p_plain"] = versus_static["mcnemar"]["p_value"]
         pairs = [(left, right) for left, right in zip(static_rows, first, strict=True) if right]
         test = paired_test(pairs, field="attack_score")
         record["only_static"] = test["only_first"]
@@ -260,7 +306,7 @@ def by_goal(inputs: ModelInputs) -> list[dict[str, Any]]:
     seeds = _test_seed_ids(inputs)
     goal_of = {key[0]: row["goal_type"] for key, row in tests.items()}
     out: list[dict[str, Any]] = []
-    for condition in CONDITIONS:
+    for condition in HEADLINE_CONDITIONS:
         order = [entry["strategy"] for entry in inputs.ranking["conditions"].get(condition, [])]
         if not order:
             continue
@@ -279,6 +325,9 @@ def by_goal(inputs: ModelInputs) -> list[dict[str, Any]]:
                     ),
                     "adaptive_1_successes": sum(
                         _hit(tests.get((seed_id, condition, order[0]))) for seed_id in members
+                    ),
+                    "adaptive_1_quiet": sum(
+                        _quiet(tests.get((seed_id, condition, order[0]))) for seed_id in members
                     ),
                     "adaptive_all_successes": sum(
                         _hit(_any_of([tests.get((seed_id, condition, name)) for name in order]))
@@ -459,11 +508,70 @@ def patch_round(inputs: ModelInputs) -> list[dict[str, Any]]:
     return [record]
 
 
-def adjust_family(rows: list[dict[str, Any]]) -> None:
-    """Holm across every static-versus-adaptive test in the table."""
+def placement(inputs: ModelInputs) -> list[dict[str, Any]]:
+    """User-message against tool-result placement, paired by held-out seed.
+
+    Two attacks: the static document and the plain override. Both are fixed in advance,
+    so neither was tuned to either placement. A comparison is skipped when a side has no
+    rows, for example when the control was not run.
+    """
+    tests = _test_index(inputs)
+    static = _static_index(inputs)
+    seeds = _test_seed_ids(inputs)
+    attacks = {
+        STATIC_STRATEGY: lambda seed_id, condition: static.get((seed_id, condition)),
+        REFERENCE_STRATEGY: lambda seed_id, condition: tests.get(
+            (seed_id, condition, REFERENCE_STRATEGY)
+        ),
+    }
+    out: list[dict[str, Any]] = []
+    for attack, lookup in attacks.items():
+        for first, second, change in PLACEMENT_COMPARISONS:
+            pairs = [(lookup(seed_id, first), lookup(seed_id, second)) for seed_id in seeds]
+            if not all(left and right for left, right in pairs):
+                continue
+            test = paired_test(pairs, field="attack_score")  # type: ignore[arg-type]
+            out.append(
+                {
+                    "model": inputs.label,
+                    "attack": attack,
+                    "first": first,
+                    "second": second,
+                    "change": change,
+                    "pairs": test["pairs"],
+                    "first_successes": test["first_successes"],
+                    "second_successes": test["second_successes"],
+                    "only_first": test["only_first"],
+                    "only_second": test["only_second"],
+                    "mcnemar_p": test["mcnemar"]["p_value"],
+                }
+            )
+    return out
+
+
+def adjust_family(all_rows: list[dict[str, Any]]) -> None:
+    """Holm within each family: user-message templates, and tool-result placements.
+
+    The tool-result conditions were added after the first report, so they are their own
+    family and do not change the adjusted p-values reported for the templates.
+    """
+    families = [
+        [row for row in all_rows if row["condition"] not in TOOL_CONDITIONS],
+        [row for row in all_rows if row["condition"] in TOOL_CONDITIONS],
+    ]
+    for rows in families:
+        if rows:
+            _adjust(rows)
+
+
+def _adjust(rows: list[dict[str, Any]]) -> None:
     adjusted = holm([row["mcnemar_p"] for row in rows])
     for row, value in zip(rows, adjusted, strict=True):
         row["mcnemar_p_holm"] = value
+    with_plain = [row for row in rows if "mcnemar_p_plain" in row]
+    adjusted = holm([row["mcnemar_p_plain"] for row in with_plain])
+    for row, value in zip(with_plain, adjusted, strict=True):
+        row["mcnemar_p_plain_holm"] = value
     with_reference = [row for row in rows if "mcnemar_p_vs_naive" in row]
     adjusted = holm([row["mcnemar_p_vs_naive"] for row in with_reference])
     for row, value in zip(with_reference, adjusted, strict=True):
@@ -489,7 +597,7 @@ def _p(value: float) -> str:
 
 
 def _frac(successes: int | None, total: int) -> str:
-    if successes is None:
+    if successes is None or not total:
         return "n/a"
     return f"{successes}/{total} ({successes / total:.3f})"
 
@@ -504,6 +612,7 @@ def _report(
     arms: list[dict[str, Any]],
     arm_tests: list[dict[str, Any]],
     patch: list[dict[str, Any]],
+    placed: list[dict[str, Any]] | None = None,
 ) -> str:
     lines = [
         "# Adaptive attack report",
@@ -571,6 +680,44 @@ def _report(
             f"{_p(row['mcnemar_p_vs_naive_holm'])} | {row['difference_vs_naive']:+.3f} "
             f"[{row['difference_vs_naive_low']:+.3f}, {row['difference_vs_naive_high']:+.3f}] |"
         )
+    if any("plain_1_successes" in row for row in head):
+        lines += [
+            "",
+            "## Held-out seeds: first-ranked strategy with ordinary spacing",
+            "",
+            "Ranked on the dev seeds among the 12 strategies that do not use the blank "
+            "character. Where it is the same strategy as the first-ranked one, the counts "
+            "match.",
+            "",
+            "| Model | Condition | Static | Any strategy, 1 try | Plain spacing, 1 try | "
+            "95% Wilson | Strategy | Dev successes | p vs static | Holm p |",
+            "| --- | --- | ---: | ---: | ---: | --- | --- | ---: | ---: | ---: |",
+        ]
+        for row in head:
+            if "plain_1_successes" not in row:
+                continue
+            n = row["held_out_seeds"]
+            lines.append(
+                f"| {row['model']} | {row['condition']} | {row['static_successes']}/{n} | "
+                f"{row['adaptive_1_successes']}/{n} | {_frac(row['plain_1_successes'], n)} | "
+                f"{row['plain_1_wilson']} | `{row['plain_top_strategy']}` | "
+                f"{row['plain_top_dev_successes']}/{row['dev_seeds']} | "
+                f"{_p(row['mcnemar_p_plain'])} | {_p(row['mcnemar_p_plain_holm'])} |"
+            )
+    lines += [
+        "",
+        "## Quiet successes: attack succeeded and the task still succeeded",
+        "",
+        "| Model | Condition | Static | Plain override | First-ranked | Plain spacing |",
+        "| --- | --- | ---: | ---: | ---: | ---: |",
+    ]
+    for row in head:
+        n = row["held_out_seeds"]
+        lines.append(
+            f"| {row['model']} | {row['condition']} | {row['static_quiet']}/{n} | "
+            f"{_frac(row['reference_naive_quiet'], n)} | {row['adaptive_1_quiet']}/{n} | "
+            f"{_frac(row.get('plain_1_quiet'), n)} |"
+        )
     lines += ["", "## Attack success by number of ranked strategies tried", ""]
     width = max(
         (
@@ -606,15 +753,16 @@ def _report(
         "",
         "## Held-out seeds by attack goal",
         "",
-        "| Model | Condition | Goal | Static | Adaptive, 1 try | Adaptive, all ranked |",
-        "| --- | --- | --- | ---: | ---: | ---: |",
+        "| Model | Condition | Goal | Static | Adaptive, 1 try | Of which quiet | "
+        "Adaptive, all ranked |",
+        "| --- | --- | --- | ---: | ---: | ---: | ---: |",
     ]
     for row in goals:
         n = row["n"]
         lines.append(
             f"| {row['model']} | {row['condition']} | {row['goal_type']} | "
             f"{row['static_successes']}/{n} | {row['adaptive_1_successes']}/{n} | "
-            f"{row['adaptive_all_successes']}/{n} |"
+            f"{row['adaptive_1_quiet']} | {row['adaptive_all_successes']}/{n} |"
         )
     lines += [
         "",
@@ -708,6 +856,28 @@ def _report(
                 f"{_p(row['mcnemar_p']) if 'mcnemar_p' in row else 'n/a'} | "
                 f"{clean_old}/{docs} | {clean_new}/{docs} |"
             )
+    if placed:
+        lines += [
+            "",
+            "## Placement: user message against tool result, paired by seed",
+            "",
+            "Held-out seeds. Two attacks fixed in advance: the static document and the plain "
+            "override. `defended_no_tail` is `defended-v1` without the line after the "
+            "document. Holm p is adjusted over every row of this table.",
+            "",
+            "| Model | Attack | First | Second | What changes | First | Second | "
+            "Only first | Only second | p | Holm p |",
+            "| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+        for row in placed:
+            n = row["pairs"]
+            lines.append(
+                f"| {row['model']} | {row['attack']} | {row['first']} | {row['second']} | "
+                f"{row['change']} | {row['first_successes']}/{n} | "
+                f"{row['second_successes']}/{n} | {row['only_first']} | "
+                f"{row['only_second']} | {_p(row['mcnemar_p'])} | "
+                f"{_p(row['mcnemar_p_holm'])} |"
+            )
     lines += ["", f"Dev grid cells: {len(grid)}. Full grid in `dev_grid.csv`.", ""]
     return "\n".join(lines)
 
@@ -718,6 +888,7 @@ def _figure(head: list[dict[str, Any]], path: Path) -> None:
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
+    head = [row for row in head if row["condition"] in CONDITIONS]
     models = list(dict.fromkeys(row["model"] for row in head))
     fig, axes = plt.subplots(1, len(models), figsize=(4.2 * len(models), 3.8), sharey=True)
     if len(models) == 1:
@@ -759,6 +930,10 @@ def write_report(all_inputs: list[ModelInputs], output_dir: Path) -> dict[str, A
     arms = [row for inputs in all_inputs for row in attacker_arms(inputs)]
     arm_tests = [row for inputs in all_inputs for row in attacker_paired(inputs)]
     patch = [row for inputs in all_inputs for row in patch_round(inputs)]
+    placed = [row for inputs in all_inputs for row in placement(inputs)]
+    for row, value in zip(placed, holm([row["mcnemar_p"] for row in placed]), strict=True):
+        row["mcnemar_p_holm"] = value
+    _write_csv(output_dir / "placement.csv", placed)
     _write_csv(output_dir / "patch_round.csv", patch)
     _write_csv(output_dir / "carriers.csv", clean)
     _write_csv(output_dir / "attacker_model.csv", arms)
@@ -769,7 +944,8 @@ def write_report(all_inputs: list[ModelInputs], output_dir: Path) -> dict[str, A
     _write_csv(output_dir / "by_goal.csv", goals)
     _write_csv(output_dir / "transfer.csv", moved)
     (output_dir / "report.md").write_text(
-        _report(head, grid, abl, goals, moved, clean, arms, arm_tests, patch), encoding="utf-8"
+        _report(head, grid, abl, goals, moved, clean, arms, arm_tests, patch, placed),
+        encoding="utf-8",
     )
     _figure(head, output_dir / "static_vs_adaptive.png")
     summary = {
@@ -781,6 +957,7 @@ def write_report(all_inputs: list[ModelInputs], output_dir: Path) -> dict[str, A
         "attacker_model": arms,
         "attacker_model_paired": arm_tests,
         "patch_round": patch,
+        "placement": placed,
     }
     (output_dir / "summary.json").write_text(
         json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"

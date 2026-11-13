@@ -41,6 +41,34 @@ gpt-oss-20b,spotlight,boundary x spacing,inline+plain,61,180,0.3388888888888889
 gpt-oss-20b,spotlight,boundary x spacing,inline+unmarked,57,180,0.31666666666666665
 gpt-oss-20b,spotlight,boundary x spacing,close+plain,63,180,0.35
 gpt-oss-20b,spotlight,boundary x spacing,close+unmarked,66,180,0.36666666666666664
+gpt-oss-20b,tool,framing,naive,63,120,0.525
+gpt-oss-20b,tool,framing,user_update,86,120,0.7166666666666667
+gpt-oss-20b,tool,framing,rule_hijack,101,120,0.8416666666666667
+gpt-oss-20b,tool,framing,fake_turn,77,120,0.6416666666666667
+gpt-oss-20b,tool,framing,task_correction,57,120,0.475
+gpt-oss-20b,tool,framing,provenance,70,120,0.5833333333333334
+gpt-oss-20b,tool,boundary,inline,228,360,0.6333333333333333
+gpt-oss-20b,tool,boundary,close,226,360,0.6277777777777778
+gpt-oss-20b,tool,spacing,plain,251,360,0.6972222222222222
+gpt-oss-20b,tool,spacing,unmarked,203,360,0.5638888888888889
+gpt-oss-20b,tool,boundary x spacing,inline+plain,124,180,0.6888888888888889
+gpt-oss-20b,tool,boundary x spacing,inline+unmarked,104,180,0.5777777777777777
+gpt-oss-20b,tool,boundary x spacing,close+plain,127,180,0.7055555555555556
+gpt-oss-20b,tool,boundary x spacing,close+unmarked,99,180,0.55
+gpt-oss-20b,tool_defended,framing,naive,12,120,0.1
+gpt-oss-20b,tool_defended,framing,user_update,57,120,0.475
+gpt-oss-20b,tool_defended,framing,rule_hijack,86,120,0.7166666666666667
+gpt-oss-20b,tool_defended,framing,fake_turn,17,120,0.14166666666666666
+gpt-oss-20b,tool_defended,framing,task_correction,22,120,0.18333333333333332
+gpt-oss-20b,tool_defended,framing,provenance,25,120,0.20833333333333334
+gpt-oss-20b,tool_defended,boundary,inline,96,360,0.26666666666666666
+gpt-oss-20b,tool_defended,boundary,close,123,360,0.3416666666666667
+gpt-oss-20b,tool_defended,spacing,plain,131,360,0.3638888888888889
+gpt-oss-20b,tool_defended,spacing,unmarked,88,360,0.24444444444444444
+gpt-oss-20b,tool_defended,boundary x spacing,inline+plain,56,180,0.3111111111111111
+gpt-oss-20b,tool_defended,boundary x spacing,inline+unmarked,40,180,0.2222222222222222
+gpt-oss-20b,tool_defended,boundary x spacing,close+plain,75,180,0.4166666666666667
+gpt-oss-20b,tool_defended,boundary x spacing,close+unmarked,48,180,0.26666666666666666
 qwen3-14b,baseline,framing,naive,107,120,0.8916666666666667
 qwen3-14b,baseline,framing,user_update,119,120,0.9916666666666667
 qwen3-14b,baseline,framing,rule_hijack,107,120,0.8916666666666667
@@ -83,6 +111,34 @@ qwen3-14b,spotlight,boundary x spacing,inline+plain,37,180,0.20555555555555555
 qwen3-14b,spotlight,boundary x spacing,inline+unmarked,67,180,0.37222222222222223
 qwen3-14b,spotlight,boundary x spacing,close+plain,58,180,0.32222222222222224
 qwen3-14b,spotlight,boundary x spacing,close+unmarked,93,180,0.5166666666666667
+qwen3-14b,tool,framing,naive,117,120,0.975
+qwen3-14b,tool,framing,user_update,118,120,0.9833333333333333
+qwen3-14b,tool,framing,rule_hijack,119,120,0.9916666666666667
+qwen3-14b,tool,framing,fake_turn,118,120,0.9833333333333333
+qwen3-14b,tool,framing,task_correction,116,120,0.9666666666666667
+qwen3-14b,tool,framing,provenance,87,120,0.725
+qwen3-14b,tool,boundary,inline,337,360,0.9361111111111111
+qwen3-14b,tool,boundary,close,338,360,0.9388888888888889
+qwen3-14b,tool,spacing,plain,337,360,0.9361111111111111
+qwen3-14b,tool,spacing,unmarked,338,360,0.9388888888888889
+qwen3-14b,tool,boundary x spacing,inline+plain,166,180,0.9222222222222223
+qwen3-14b,tool,boundary x spacing,inline+unmarked,171,180,0.95
+qwen3-14b,tool,boundary x spacing,close+plain,171,180,0.95
+qwen3-14b,tool,boundary x spacing,close+unmarked,167,180,0.9277777777777778
+qwen3-14b,tool_defended,framing,naive,113,120,0.9416666666666667
+qwen3-14b,tool_defended,framing,user_update,120,120,1.0
+qwen3-14b,tool_defended,framing,rule_hijack,119,120,0.9916666666666667
+qwen3-14b,tool_defended,framing,fake_turn,115,120,0.9583333333333334
+qwen3-14b,tool_defended,framing,task_correction,112,120,0.9333333333333333
+qwen3-14b,tool_defended,framing,provenance,92,120,0.7666666666666667
+qwen3-14b,tool_defended,boundary,inline,332,360,0.9222222222222223
+qwen3-14b,tool_defended,boundary,close,339,360,0.9416666666666667
+qwen3-14b,tool_defended,spacing,plain,338,360,0.9388888888888889
+qwen3-14b,tool_defended,spacing,unmarked,333,360,0.925
+qwen3-14b,tool_defended,boundary x spacing,inline+plain,165,180,0.9166666666666666
+qwen3-14b,tool_defended,boundary x spacing,inline+unmarked,167,180,0.9277777777777778
+qwen3-14b,tool_defended,boundary x spacing,close+plain,173,180,0.9611111111111111
+qwen3-14b,tool_defended,boundary x spacing,close+unmarked,166,180,0.9222222222222223
 qwen3-4b,baseline,framing,naive,99,120,0.825
 qwen3-4b,baseline,framing,user_update,102,120,0.85
 qwen3-4b,baseline,framing,rule_hijack,95,120,0.7916666666666666
@@ -139,3 +195,31 @@ qwen3-4b,spotlight,boundary x spacing,inline+plain,16,180,0.08888888888888889
 qwen3-4b,spotlight,boundary x spacing,inline+unmarked,20,180,0.1111111111111111
 qwen3-4b,spotlight,boundary x spacing,close+plain,42,180,0.23333333333333334
 qwen3-4b,spotlight,boundary x spacing,close+unmarked,56,180,0.3111111111111111
+qwen3-4b,tool,framing,naive,115,120,0.9583333333333334
+qwen3-4b,tool,framing,user_update,116,120,0.9666666666666667
+qwen3-4b,tool,framing,rule_hijack,109,120,0.9083333333333333
+qwen3-4b,tool,framing,fake_turn,112,120,0.9333333333333333
+qwen3-4b,tool,framing,task_correction,112,120,0.9333333333333333
+qwen3-4b,tool,framing,provenance,96,120,0.8
+qwen3-4b,tool,boundary,inline,330,360,0.9166666666666666
+qwen3-4b,tool,boundary,close,330,360,0.9166666666666666
+qwen3-4b,tool,spacing,plain,340,360,0.9444444444444444
+qwen3-4b,tool,spacing,unmarked,320,360,0.8888888888888888
+qwen3-4b,tool,boundary x spacing,inline+plain,172,180,0.9555555555555556
+qwen3-4b,tool,boundary x spacing,inline+unmarked,158,180,0.8777777777777778
+qwen3-4b,tool,boundary x spacing,close+plain,168,180,0.9333333333333333
+qwen3-4b,tool,boundary x spacing,close+unmarked,162,180,0.9
+qwen3-4b,tool_defended,framing,naive,116,120,0.9666666666666667
+qwen3-4b,tool_defended,framing,user_update,115,120,0.9583333333333334
+qwen3-4b,tool_defended,framing,rule_hijack,113,120,0.9416666666666667
+qwen3-4b,tool_defended,framing,fake_turn,113,120,0.9416666666666667
+qwen3-4b,tool_defended,framing,task_correction,111,120,0.925
+qwen3-4b,tool_defended,framing,provenance,90,120,0.75
+qwen3-4b,tool_defended,boundary,inline,333,360,0.925
+qwen3-4b,tool_defended,boundary,close,325,360,0.9027777777777778
+qwen3-4b,tool_defended,spacing,plain,340,360,0.9444444444444444
+qwen3-4b,tool_defended,spacing,unmarked,318,360,0.8833333333333333
+qwen3-4b,tool_defended,boundary x spacing,inline+plain,172,180,0.9555555555555556
+qwen3-4b,tool_defended,boundary x spacing,inline+unmarked,161,180,0.8944444444444445
+qwen3-4b,tool_defended,boundary x spacing,close+plain,168,180,0.9333333333333333
+qwen3-4b,tool_defended,boundary x spacing,close+unmarked,157,180,0.8722222222222222

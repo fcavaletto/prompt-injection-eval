@@ -3,9 +3,15 @@ qwen3-4b,baseline,89,0,0,72
 qwen3-4b,defended,89,0,0,79
 qwen3-4b,spotlight,89,0,0,76
 qwen3-4b,hardened,89,0,0,77
+qwen3-4b,tool,89,0,0,70
+qwen3-4b,tool_defended,89,0,0,78
 qwen3-14b,baseline,89,0,0,72
 qwen3-14b,defended,89,0,0,78
 qwen3-14b,spotlight,89,0,0,80
+qwen3-14b,tool,89,0,0,69
+qwen3-14b,tool_defended,89,0,0,71
 gpt-oss-20b,baseline,89,0,0,66
 gpt-oss-20b,defended,89,0,0,68
 gpt-oss-20b,spotlight,89,0,0,75
+gpt-oss-20b,tool,89,0,0,61
+gpt-oss-20b,tool_defended,89,0,0,67

@@ -43,6 +43,15 @@ class OllamaProvider:
             self._client.close()
 
     def generate(self, request: GenerationRequest) -> GenerationResponse:
+        if request.messages is not None:
+            return GenerationResponse(
+                text=None,
+                provider=self.name,
+                model=request.model,
+                latency_seconds=None,
+                error_type="unsupported",
+                error_message="The Ollama provider does not send tool-result conversations.",
+            )
         payload = self._payload(request)
         started = time.perf_counter()
         try:

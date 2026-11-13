@@ -136,3 +136,20 @@ def test_runner_records_mlx_provenance(tmp_path: Path) -> None:
     assert '"reasoning_effort":"low"' in rows[0]["unit_key"]
     again = run_evaluation(config, provider)
     assert again.skipped == 2 and again.written == 0
+
+
+def test_messages_and_tools_reach_the_chat_template() -> None:
+    backend = FakeBackend("An answer.")
+    provider = MlxProvider(model="org/model", backend=backend)
+    request = _request()
+    request.messages = [
+        {"role": "system", "content": "sys"},
+        {"role": "user", "content": "task"},
+        {"role": "tool", "content": "document"},
+    ]
+    request.tools = [{"type": "function", "function": {"name": "read_document"}}]
+    response = provider.generate(request)
+    assert response.text == "An answer."
+    rendered = backend.rendered[0]
+    assert rendered["messages"] == request.messages
+    assert rendered["kwargs"]["tools"] == request.tools

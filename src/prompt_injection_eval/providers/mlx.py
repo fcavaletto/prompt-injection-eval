@@ -84,7 +84,7 @@ class BackendOutput:
 
 
 class MlxBackend(Protocol):
-    def render(self, messages: list[dict[str, str]], template_kwargs: dict[str, Any]) -> str: ...
+    def render(self, messages: list[dict[str, Any]], template_kwargs: dict[str, Any]) -> str: ...
 
     def generate(
         self,
@@ -123,7 +123,7 @@ class _MlxLmBackend:
         loaded = load(str(self._model_dir) if self._model_dir is not None else model_ref)
         self.model, self.tokenizer = loaded[0], loaded[1]
 
-    def render(self, messages: list[dict[str, str]], template_kwargs: dict[str, Any]) -> str:
+    def render(self, messages: list[dict[str, Any]], template_kwargs: dict[str, Any]) -> str:
         rendered = self.tokenizer.apply_chat_template(
             messages, add_generation_prompt=True, tokenize=False, **template_kwargs
         )
@@ -231,12 +231,15 @@ class MlxProvider:
         started = time.perf_counter()
         try:
             backend = self._ensure()
-            messages = [
+            messages = request.messages or [
                 {"role": "system", "content": request.system_message},
                 {"role": "user", "content": request.user_message},
             ]
             think = request.provider_settings.get("think")
-            prompt = backend.render(messages, self.template_kwargs(think))
+            kwargs = self.template_kwargs(think)
+            if request.tools:
+                kwargs["tools"] = request.tools
+            prompt = backend.render(messages, kwargs)
             output = backend.generate(
                 prompt,
                 max_tokens=request.max_output_tokens,

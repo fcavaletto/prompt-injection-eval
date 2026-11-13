@@ -4,6 +4,10 @@ The order is a greedy set cover. The first strategy is the one that succeeded on
 most dev seeds. Each later strategy is the one that adds the most dev seeds not already
 covered. Ties go to the strategy with more dev successes overall, then to the name, so
 the order is deterministic.
+
+A second order, `conditions_plain`, ranks only the strategies with ordinary spacing. It
+answers a narrower question: how much of the attack survives without the blank-character
+trick, which exploits how this harness implements datamarking rather than the idea.
 """
 
 from __future__ import annotations
@@ -74,6 +78,8 @@ def build_ranking(rows: list[dict[str, Any]], *, top: int) -> dict[str, Any]:
     expected = {strategy.name for strategy in all_strategies()}
     seed_ids = {row["case_id"] for row in dev}
     conditions: dict[str, list[dict[str, Any]]] = {}
+    plain: dict[str, list[dict[str, Any]]] = {}
+    plain_names = {strategy.name for strategy in all_strategies() if strategy.spacing == "plain"}
     for condition in ADAPTIVE_CONDITIONS:
         table = successes_by_strategy(dev, condition)
         if not table:
@@ -82,10 +88,14 @@ def build_ranking(rows: list[dict[str, Any]], *, top: int) -> dict[str, Any]:
         if missing:
             raise RankError(f"{condition}: grid is missing strategies {sorted(missing)}")
         conditions[condition] = greedy_order(table, top)
+        plain[condition] = greedy_order(
+            {name: seeds for name, seeds in table.items() if name in plain_names}, top
+        )
     return {
         "library_version": LIBRARY_VERSION,
         "model": models.pop(),
         "seeds_sha256": hashes.pop(),
         "dev_seed_count": len(seed_ids),
         "conditions": conditions,
+        "conditions_plain": plain,
     }

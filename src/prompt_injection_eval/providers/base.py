@@ -16,6 +16,10 @@ class GenerationRequest:
     max_output_tokens: int
     timeout_seconds: float
     provider_settings: dict[str, Any] = field(default_factory=dict)
+    # A full conversation, used instead of system_message and user_message when set. The
+    # adaptive study uses it to deliver the document as a tool result.
+    messages: list[dict[str, Any]] | None = None
+    tools: list[dict[str, Any]] | None = None
     # Harness metadata is not part of the prompt sent to a real model.
     metadata: dict[str, Any] = field(default_factory=dict)
 

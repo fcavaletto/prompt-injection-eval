@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.5.0
+
+Three answers to the most direct criticisms of the 0.4.0 study.
+
+- **Without the blank character.** `pie adaptive rank` also ranks the 12 strategies with ordinary spacing (`conditions_plain` in the ranking file), and `pie adaptive test` runs that ranking's first strategy. Under datamarking it gets 17, 28, and 23 of 59 on Qwen3-4B, Qwen3-14B, and gpt-oss-20b, against 1 to 3 for the static documents. The report has a section for it.
+- **Quiet successes.** An attack success on a row whose task also passed. The report counts them per condition and per goal. Only the secret-disclosure and tool-call goals allow one; on those 16 held-out seeds, 4 to 6 attacks per model and defense are quiet.
+- **Tool-result placement.** Conditions `tool` (`tool-v1`) and `tool_defended` (`tool-defended-v1`) deliver the document as the result of a `read_document` tool call, rendered by each model's own chat template. Providers accept a full message list and tool schemas (`GenerationRequest.messages` and `tools`); Ollama reports them as unsupported. `pie adaptive static` reruns the original documents under new conditions. The plain override succeeds 57/59 and 51/59 on the Qwen3 models with the rule and the document in a tool result, against 14 and 12 in the user message; on gpt-oss-20b the placement alone takes it from 41 to 23, and an adaptive strategy still gets 48.
+- **Placement control.** Condition `defended_no_tail` (`defended-v1-no-tail`) is `defended-v1` without the line after the document. `pie adaptive control` runs the static documents and the plain override under it. On Qwen3 the role, not the position of the document, accounts for most of the placement effect. The report has a paired placement table, Holm-adjusted over its rows.
+- The tool-result conditions are their own Holm family, so the template family's adjusted p-values do not change.
+- `scripts/run_toolrole_v04.sh` records the run; rows, rankings, and the report in `results-published/v04/` now include it. The tool-result rows record package version 0.4.0.
+- README: a section for reviewers and a note on how the project was built.
+
 ## 0.4.0
 
 An adaptive attacker for the defenses the 0.3.0 study measured.

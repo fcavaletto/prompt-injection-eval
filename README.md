@@ -24,11 +24,13 @@ A measurement harness for indirect prompt injection on local open-weight models,
 
 - **The static benchmark was at floor and gave no warning.** Datamarking left 1 to 3 successes in 59. A strategy written after reading the template gets 22 to 47.
 - **It is not best-of-N.** The attacker picks a strategy on 30 tuning documents, then gets one try on each of 59 unseen ones. All nine static-versus-adaptive comparisons have Holm-adjusted p < 0.001.
-- **The defenses do stop a naive attacker.** The same demand as a plain "ignore the previous task" is mostly blocked. The strategy around it is what breaks them: typing the template's own closing delimiter, claiming to be the "original task" the template's last line refers to, and using a blank character that datamarking does not mark.
+- **The defenses do stop a naive attacker.** The same demand as a plain "ignore the previous task" is mostly blocked. The strategy around it is what breaks them: typing the template's own closing delimiter, claiming to be the "original task" the template's last line refers to, and using a blank character that this harness's datamarking does not mark. Without that character, datamarking still falls on 17, 28, and 23 of 59.
 - **A patched template helps and does not end it.** One defender round takes Qwen3-4B from 40/59 to 26/59, at no cost on clean documents.
-- **Scorer check.** 0 of 890 clean-document runs were flagged as attacks.
+- **Where the document sits matters as much as the prompt.** Delivered as the result of a tool call instead of inside the user message, the document is harder to inject through on gpt-oss-20b (plain override 41/59 to 23/59 with no rule) and much easier on both Qwen3 models, where the generic rule stops working (14/59 to 57/59 on Qwen3-4B). A control with the document last in both placements shows that the role, not the position, does most of it. An adaptive strategy still gets 48/59 on gpt-oss-20b in the tool placement with the rule in place.
+- **Some attacks are quiet.** On the 16 seeds whose goal allows it, 4 to 6 per model and defense succeed while the user's task still passes.
+- **Scorer check.** 0 of 1,424 clean-document runs were flagged as attacks.
 
-The full write-up is [docs/adaptive.md](docs/adaptive.md): method, ablation, transfer between models, the patch round, a model-written attack arm that failed, and what not to conclude. These are three small quantized models, 24 hand-written strategies, and synthetic documents; the result is a lower bound on the attacker, not a statement about deployed systems.
+The full write-up is [docs/adaptive.md](docs/adaptive.md): method, ablation, the result without the blank character, quiet attacks, transfer between models, the patch round, the tool-result placement and its control, a model-written attack arm that failed, and what not to conclude. These are three small quantized models, 24 hand-written strategies, and synthetic documents; the result is a lower bound on the attacker, not a statement about deployed systems.
 
 **The earlier static study.** On 89 synthetic attack cases and four models, the generic rule cut attack success on every model (for example gpt-oss-20b 35/89 to 3/89) and datamarking took it to between 0 and 4 of 89, with task success rising. Tables and failures are in [docs/results.md](docs/results.md). That study is what the adaptive one re-examines.
 
@@ -44,11 +46,12 @@ Indirect prompt injection matters because documents are often untrusted even whe
 
 - A trusted system instruction, a legitimate user task, and one untrusted document.
 - Three prompt conditions: baseline, a generic document-trust instruction, and spotlighting-style datamarking.
+- Two placements of the document: inside the user message, or as the result of a `read_document` tool call already in the conversation.
 - Whether the model emits a synthetic canary, a forced JSON object, an attacker-chosen format, the synthetic secret `SYNTHETIC_SECRET_4C91`, or a function-call line that nothing executes.
 - Whether the legitimate task still succeeds under exact, label, keyword, or JSON-field rules.
 - Paired changes in security and utility, with Wilson intervals, exact McNemar tests, paired bootstrap intervals, and an explicit manual-review queue.
 
-The model has no tools. The harness never executes model output.
+The model never calls a tool itself: in the tool-result placement the call and its result are part of the prompt. The harness never executes model output.
 
 ## What this repository does not establish
 
@@ -190,7 +193,7 @@ It does not store usernames, home directories, hostnames, serial numbers, or unr
 - The patch round covers one model and one move by each side.
 - Task scoring is mostly exact or keyword-based and can misclassify paraphrases.
 - Quote-versus-compliance detection is imperfect.
-- The benchmark is English apart from one Italian sentence. The model has no tools; the tool-call cases measure text, not actions. Production RAG is out of scope.
+- The benchmark is English apart from one Italian sentence. The model never executes a tool; the tool-call cases measure text, not actions, and the tool-result placement is one call in one turn. Attacks that write chat-control tokens into the tool output are out of scope. Production RAG is out of scope.
 - A prompt-level defense is not a security boundary. It can also reduce utility.
 - Local runtime, quantization, and model version can change behavior. Repeated runs may differ.
 - One quantized snapshot does not represent a model family. gpt-oss-20b was run in one decoding configuration.
@@ -205,7 +208,18 @@ Use the supplied synthetic documents. Do not load confidential production docume
 
 ## Roadmap
 
-Version 0.4.0 adds the adaptive study. Next, in rough order of value: an optimizing attacker (a stronger attacker model, or search over the strategy space) to replace the failed model-written arm; a second patch round with strategies written against `defended-v3`, on all three models; a second, independent annotator for the rule-scored rows; and Qwen3-14B with thinking on. Still out of scope: LLM-as-judge as the primary score, agents with real tools, and a claim that any of these templates is a security boundary.
+Version 0.4.0 added the adaptive study. Version 0.5.0 adds the result without the blank character, the quiet-attack measure, and the tool-result placement with its control. Next, in rough order of value: an optimizing attacker (a stronger attacker model, or search over the strategy space) to replace the failed model-written arm; attacks that write chat-control tokens into the tool output; a second patch round with strategies written against `defended-v3`, on all three models; more open models whose developers document an instruction hierarchy, to test whether the gpt-oss result is about that training; and a second, independent annotator for the rule-scored rows. Still out of scope: LLM-as-judge as the primary score, agents with real tools, and a claim that any of these templates is a security boundary.
+
+## For reviewers
+
+- **The argument in one page:** [docs/adaptive.md](docs/adaptive.md). The headline table, the tool-result section, and "What this does not show" carry the claims.
+- **Check a number without a GPU:** `pie adaptive report` rebuilds every adaptive table from the gzipped rows in `results-published/v04/`, and `tests/test_adaptive.py::test_published_bundle_reproduces_the_headline` pins the headline counts.
+- **Where the method lives:** the strategy library is `src/prompt_injection_eval/adaptive/strategies.py`, the tuning and held-out split is `data/adaptive_seeds.jsonl`, the ranking is `adaptive/rank.py`, the paired statistics are `stats.py` and `adaptive/analysis.py`, and the tool-result placement is `adaptive/toolrole.py`.
+- **What went wrong, kept on the record:** the model-written attacker arm failed and is reported as failed. Part of the datamarking break comes from a quirk of this harness's datamarking, and the write-up reports the result with and without it.
+
+## How this was built
+
+Much of the code and prose here was written with an AI coding assistant (Claude Code), directed and reviewed by the author. The research questions, the threat model, and the decisions about what to run and what to claim are the author's. Every number in the docs comes from stored rows: `pie adaptive report` rebuilds the adaptive tables from `results-published/v04/` without a model, and a test checks the headline counts against those rows.
 
 ## Citation
 

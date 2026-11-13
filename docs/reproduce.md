@@ -101,6 +101,20 @@ pie adaptive report --results-dir results-published/v04 --static-dir results-pub
 
 The published rows record package version 0.3.0 and the commit before this work, because they were generated from an uncommitted tree. The seed-file hash, strategy-library version, template versions, and scorer versions in each row identify what ran. Method and findings are in [adaptive.md](adaptive.md).
 
+## The 0.5.0 additions
+
+0.5.0 adds two analyses of the 0.4.0 rows and one new arm. The analyses need no new generations except one: the first-ranked strategy among those with ordinary spacing, which `pie adaptive test` now runs with the others. `scripts/run_adaptive_v04.sh` therefore covers it.
+
+The tool-result arm and its placement control:
+
+```bash
+HF_HUB_CACHE=/path/to/huggingface/hub scripts/run_toolrole_v04.sh
+```
+
+Per model, the script runs the tuning grid under `tool` and `tool_defended` (24 strategies × 30 tuning seeds × 2 conditions), re-ranks, runs the held-out test, reruns the original static documents under both placements (`pie adaptive static`), runs the clean-carrier control, and finally runs the placement control (`pie adaptive control`): `defended-v1` without the line after the document, with the static documents and the plain override. It writes into the same `results/v04/` directories as the 0.4.0 run and took about 10.5 hours on an M4 with 24 GB. Every step resumes.
+
+The published report covers both runs. The `pie adaptive report` command in the 0.4.0 section rebuilds it from the published rows. The tool-result rows record package version 0.4.0: they were generated before the version was raised.
+
 ## The 0.2.0 study
 
 The 40-case study is still reproducible from `data/cases.jsonl` with the commands in that release:

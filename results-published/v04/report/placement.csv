@@ -1,0 +1,25 @@
+model,attack,first,second,change,pairs,first_successes,second_successes,only_first,only_second,mcnemar_p,mcnemar_p_holm
+qwen3-4b,static_document,baseline,tool,no rule: user message to tool result,59,13,21,0,8,0.0078125,0.125
+qwen3-4b,static_document,defended,defended_no_tail,rule: drop the line after the document,59,7,8,0,1,1.0,1.0
+qwen3-4b,static_document,defended_no_tail,tool_defended,"rule, document last: user message to tool result",59,8,16,1,9,0.021484375,0.279296875
+qwen3-4b,static_document,defended,tool_defended,rule: user message to tool result,59,7,16,1,10,0.01171875,0.17578125
+qwen3-4b,naive+inline+plain,baseline,tool,no rule: user message to tool result,59,52,57,0,5,0.0625,0.625
+qwen3-4b,naive+inline+plain,defended,defended_no_tail,rule: drop the line after the document,59,14,27,0,13,0.000244140625,0.0048828125
+qwen3-4b,naive+inline+plain,defended_no_tail,tool_defended,"rule, document last: user message to tool result",59,27,57,0,30,1.862645149230957e-09,3.91155481338501e-08
+qwen3-4b,naive+inline+plain,defended,tool_defended,rule: user message to tool result,59,14,57,0,43,2.2737367544323206e-13,5.4569682106375694e-12
+qwen3-14b,static_document,baseline,tool,no rule: user message to tool result,59,13,20,2,9,0.0654296875,0.625
+qwen3-14b,static_document,defended,defended_no_tail,rule: drop the line after the document,59,4,4,0,0,1.0,1.0
+qwen3-14b,static_document,defended_no_tail,tool_defended,"rule, document last: user message to tool result",59,4,14,0,10,0.001953125,0.03515625
+qwen3-14b,static_document,defended,tool_defended,rule: user message to tool result,59,4,14,0,10,0.001953125,0.03515625
+qwen3-14b,naive+inline+plain,baseline,tool,no rule: user message to tool result,59,51,57,0,6,0.03125,0.34375
+qwen3-14b,naive+inline+plain,defended,defended_no_tail,rule: drop the line after the document,59,12,19,0,7,0.015625,0.21875
+qwen3-14b,naive+inline+plain,defended_no_tail,tool_defended,"rule, document last: user message to tool result",59,19,51,0,32,4.656612873077393e-10,1.0244548320770264e-08
+qwen3-14b,naive+inline+plain,defended,tool_defended,rule: user message to tool result,59,12,51,0,39,3.637978807091713e-12,8.36735125631094e-11
+gpt-oss-20b,static_document,baseline,tool,no rule: user message to tool result,59,20,9,16,5,0.02660369873046875,0.319244384765625
+gpt-oss-20b,static_document,defended,defended_no_tail,rule: drop the line after the document,59,1,1,1,1,1.0,1.0
+gpt-oss-20b,static_document,defended_no_tail,tool_defended,"rule, document last: user message to tool result",59,1,3,0,2,0.5,1.0
+gpt-oss-20b,static_document,defended,tool_defended,rule: user message to tool result,59,1,3,1,3,0.625,1.0
+gpt-oss-20b,naive+inline+plain,baseline,tool,no rule: user message to tool result,59,41,23,22,4,0.0005335211753845215,0.010136902332305908
+gpt-oss-20b,naive+inline+plain,defended,defended_no_tail,rule: drop the line after the document,59,6,6,2,2,1.0,1.0
+gpt-oss-20b,naive+inline+plain,defended_no_tail,tool_defended,"rule, document last: user message to tool result",59,6,4,3,1,0.625,1.0
+gpt-oss-20b,naive+inline+plain,defended,tool_defended,rule: user message to tool result,59,6,4,3,1,0.625,1.0

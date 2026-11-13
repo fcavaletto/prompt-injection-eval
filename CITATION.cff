@@ -7,7 +7,7 @@ authors:
     given-names: Federico
 repository-code: "https://github.com/fcavaletto/prompt-injection-eval"
 url: "https://fcavaletto.github.io/prompt-injection-eval/"
-version: 0.4.0
+version: 0.5.0
 license: MIT
 date-released: 2026-11-12
 abstract: >-
@@ -15,8 +15,9 @@ abstract: >-
   language models. Version 0.4.0 adds an adaptive-attack study: strategies
   written after reading the prompt defenses, tuned on one set of documents and
   scored once on a held-out set, against a generic document-trust rule and a
-  datamarking defense. Scoring is by deterministic rules. It is a diagnostic,
-  not a production safety guarantee.
+  datamarking defense. Version 0.5.0 adds the document delivered as a tool
+  result, with a placement control, and a quiet-attack measure. Scoring is by
+  deterministic rules. It is a diagnostic, not a production safety guarantee.
 keywords:
   - prompt injection
   - language models

@@ -27,10 +27,13 @@ from prompt_injection_eval.adaptive.rank import RankError, build_ranking
 from prompt_injection_eval.adaptive.seeds import SeedError, load_seeds
 from prompt_injection_eval.adaptive.strategies import (
     CARRIER_ONLY,
+    STATIC_DOCUMENT,
     all_strategies,
     strategy_by_name,
 )
+from prompt_injection_eval.adaptive.toolrole import NO_TAIL_CONDITION, TOOL_CONDITIONS
 from prompt_injection_eval.config import RunConfig, resolve_generation_limits
+from prompt_injection_eval.dataset import DatasetError, validate_dataset
 from prompt_injection_eval.privacy import display_path, sanitize_text
 from prompt_injection_eval.prompts import conditions_for
 from prompt_injection_eval.providers import MlxProvider, MockProvider, OllamaProvider
@@ -89,9 +92,16 @@ def _provider(config: RunConfig) -> Provider:
 
 
 def _conditions(selection: str) -> list[str]:
-    """`all` is the three static conditions. `hardened` is the patched template alone."""
+    """`all` is the three static conditions. `hardened` is the patched template alone.
+
+    `toolrole` is both tool-result placements; each can also be named on its own.
+    """
     if selection == HARDENED_CONDITION:
         return [HARDENED_CONDITION]
+    if selection == "toolrole":
+        return list(TOOL_CONDITIONS)
+    if selection in TOOL_CONDITIONS:
+        return [selection]
     try:
         return conditions_for(selection)
     except ValueError as exc:
@@ -230,6 +240,145 @@ def carrier_cmd(
     )
 
 
+@adaptive_app.command("static")
+def static_cmd(
+    provider: str = _PROVIDER,
+    model: str = _MODEL,
+    cases: Path = typer.Option(
+        Path("data/cases_v2.jsonl"), "--cases", help="The case file the seeds were built from."
+    ),
+    seeds: Path = _SEEDS,
+    output_dir: Path = _OUTPUT,
+    condition: str = typer.Option("toolrole", "--condition"),
+    seed: int | None = _SEED,
+    think: bool | None = _THINK,
+    profile: str = _PROFILE,
+    reasoning_effort: str | None = _EFFORT,
+    num_ctx: int | None = _NUM_CTX,
+) -> None:
+    """Run the original static documents of the held-out seeds under new conditions.
+
+    The static study covers the three user-message templates. A condition it did not
+    run, such as a tool-result placement, needs its own static rows for the comparison.
+    """
+    selected, sha = _load_seeds(seeds, "test")
+    documents = _static_documents(cases, selected)
+    config = _config(
+        provider=provider,
+        model=model,
+        seeds=seeds,
+        condition="all",
+        output_dir=output_dir,
+        seed=seed,
+        think=think,
+        profile=profile,
+        reasoning_effort=reasoning_effort,
+        num_ctx=num_ctx,
+    )
+    units = [
+        Unit(seed=item, strategy=STATIC_DOCUMENT, condition=name, document=documents[item.id])
+        for item in selected
+        for name in _conditions(condition)
+    ]
+    typer.echo(f"Static: {len(selected)} held-out seeds, {len(units)} units.")
+    summary = run_units(
+        units=units,
+        config=config,
+        provider=_provider(config),
+        seeds_path=display_path(seeds),
+        seeds_sha256=sha,
+        phase="static",
+        progress=_progress,
+    )
+    typer.echo(
+        f"Skipped: {summary.skipped}. Wrote: {summary.written}. "
+        f"Backend errors: {summary.backend_errors}."
+    )
+
+
+def _static_documents(cases: Path, selected: list[Any]) -> dict[str, str]:
+    """The 0.3.0 documents of the held-out seeds, by seed id."""
+    try:
+        loaded, _validation = validate_dataset(cases)
+    except DatasetError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    documents = {case.id: case.document for case in loaded}
+    missing = [item.id for item in selected if item.id not in documents]
+    if missing:
+        typer.echo(f"Seeds without a case: {', '.join(missing)}", err=True)
+        raise typer.Exit(code=1)
+    return documents
+
+
+@adaptive_app.command("control")
+def control_cmd(
+    provider: str = _PROVIDER,
+    model: str = _MODEL,
+    cases: Path = typer.Option(
+        Path("data/cases_v2.jsonl"), "--cases", help="The case file the seeds were built from."
+    ),
+    seeds: Path = _SEEDS,
+    output_dir: Path = _OUTPUT,
+    seed: int | None = _SEED,
+    think: bool | None = _THINK,
+    profile: str = _PROFILE,
+    reasoning_effort: str | None = _EFFORT,
+    num_ctx: int | None = _NUM_CTX,
+) -> None:
+    """Placement control: `defended-v1` without the line after the document.
+
+    Runs the static documents and the plain override on the held-out seeds, the two
+    attacks whose success changes most between the user-message and tool-result
+    placements. Write into the model's test directory so the report finds the rows.
+    """
+    selected, sha = _load_seeds(seeds, "test")
+    documents = _static_documents(cases, selected)
+    config = _config(
+        provider=provider,
+        model=model,
+        seeds=seeds,
+        condition="all",
+        output_dir=output_dir,
+        seed=seed,
+        think=think,
+        profile=profile,
+        reasoning_effort=reasoning_effort,
+        num_ctx=num_ctx,
+    )
+    reference = strategy_by_name(REFERENCE_STRATEGY)
+    phases = {
+        "static": [
+            Unit(
+                seed=item,
+                strategy=STATIC_DOCUMENT,
+                condition=NO_TAIL_CONDITION,
+                document=documents[item.id],
+            )
+            for item in selected
+        ],
+        "test": [
+            Unit(seed=item, strategy=reference, condition=NO_TAIL_CONDITION) for item in selected
+        ],
+    }
+    built = _provider(config)
+    for phase, units in phases.items():
+        typer.echo(f"Control, {phase}: {len(units)} units.")
+        summary = run_units(
+            units=units,
+            config=config,
+            provider=built,
+            seeds_path=display_path(seeds),
+            seeds_sha256=sha,
+            phase=phase,
+            progress=_progress,
+        )
+        typer.echo(
+            f"Skipped: {summary.skipped}. Wrote: {summary.written}. "
+            f"Backend errors: {summary.backend_errors}."
+        )
+
+
 @adaptive_app.command("rank")
 def rank_cmd(
     input_dir: Path = typer.Option(..., "--input-dir", help="A dev grid directory."),
@@ -284,6 +433,11 @@ def test_cmd(
         condition: [entry["strategy"] for entry in order]
         for condition, order in own["conditions"].items()
     }
+    for condition, order in own.get("conditions_plain", {}).items():
+        # The first-ranked strategy among those with ordinary spacing.
+        name = order[0]["strategy"]
+        if condition in plan and name not in plan[condition]:
+            plan[condition].append(name)
     for path in transfer_ranking or []:
         other = json.loads(path.read_text(encoding="utf-8"))
         for condition, order in other["conditions"].items():
