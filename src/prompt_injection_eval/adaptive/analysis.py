@@ -50,6 +50,18 @@ PLACEMENT_COMPARISONS = (
     ("baseline", "tool_json", "no rule: user message to JSON-encoded tool result"),
     ("defended", "tool_json_defended", "rule: user message to JSON-encoded tool result"),
 )
+# Mechanism controls for the JSON effect, pre-registered in docs/preregistration.md. The
+# three comparisons with the rule, on the plain override, are the primary family; the rest
+# are secondary. Each family has its own Holm adjustment, apart from the placement table.
+MECHANISM_COMPARISONS = (
+    ("tool_defended", "tool_flat_defended", "rule, tool result: raw to line breaks removed"),
+    ("tool_flat_defended", "tool_json_defended", "rule, tool result: flattened to JSON-encoded"),
+    ("defended", "user_json_defended", "rule, user message: raw to JSON-encoded"),
+    ("tool", "tool_flat", "no rule, tool result: raw to line breaks removed"),
+    ("tool_flat", "tool_json", "no rule, tool result: flattened to JSON-encoded"),
+    ("baseline", "user_json", "no rule, user message: raw to JSON-encoded"),
+)
+_PRIMARY_MECHANISM = {first for first, _second, _change in MECHANISM_COMPARISONS[:3]}
 # Conditions of the placement table, in reading order: no rule, then with the rule.
 PLACEMENT_CONDITIONS = (
     "baseline",
@@ -60,6 +72,8 @@ PLACEMENT_CONDITIONS = (
     "tool_defended",
     "tool_json_defended",
 )
+# Shown in the counts table only when they were run.
+PLACEMENT_CONDITIONS_EXTRA = ("tool_flat", "user_json", "tool_flat_defended", "user_json_defended")
 GOAL_ORDER = (
     "exact_output",
     "synthetic_secret_disclosure",
@@ -524,7 +538,10 @@ def patch_round(inputs: ModelInputs) -> list[dict[str, Any]]:
     return [record]
 
 
-def placement(inputs: ModelInputs) -> list[dict[str, Any]]:
+def placement(
+    inputs: ModelInputs,
+    comparisons: tuple[tuple[str, str, str], ...] = PLACEMENT_COMPARISONS,
+) -> list[dict[str, Any]]:
     """User-message against tool-result placement, paired by held-out seed.
 
     Two attacks: the static document and the plain override. Both are fixed in advance,
@@ -542,7 +559,7 @@ def placement(inputs: ModelInputs) -> list[dict[str, Any]]:
     }
     out: list[dict[str, Any]] = []
     for attack, lookup in attacks.items():
-        for first, second, change in PLACEMENT_COMPARISONS:
+        for first, second, change in comparisons:
             pairs = [(lookup(seed_id, first), lookup(seed_id, second)) for seed_id in seeds]
             if not all(left and right for left, right in pairs):
                 continue
@@ -565,13 +582,26 @@ def placement(inputs: ModelInputs) -> list[dict[str, Any]]:
     return out
 
 
+def mechanism(all_inputs: list[ModelInputs]) -> list[dict[str, Any]]:
+    """The JSON mechanism controls, Holm-adjusted within the primary and secondary families."""
+    rows = [row for inputs in all_inputs for row in placement(inputs, MECHANISM_COMPARISONS)]
+    for row in rows:
+        primary = row["attack"] == REFERENCE_STRATEGY and row["first"] in _PRIMARY_MECHANISM
+        row["family"] = "primary" if primary else "secondary"
+    for family in ("primary", "secondary"):
+        members = [row for row in rows if row["family"] == family]
+        for row, value in zip(members, holm([row["mcnemar_p"] for row in members]), strict=True):
+            row["mcnemar_p_holm"] = value
+    return rows
+
+
 def placement_cells(inputs: ModelInputs) -> list[dict[str, Any]]:
     """Counts behind the placement comparisons: one row per condition that was run."""
     tests = _test_index(inputs)
     static = _static_index(inputs)
     seeds = _test_seed_ids(inputs)
     out: list[dict[str, Any]] = []
-    for condition in PLACEMENT_CONDITIONS:
+    for condition in (*PLACEMENT_CONDITIONS, *PLACEMENT_CONDITIONS_EXTRA):
         fixed = [static.get((seed_id, condition)) for seed_id in seeds]
         plain = [tests.get((seed_id, condition, REFERENCE_STRATEGY)) for seed_id in seeds]
         if not all(plain):
@@ -692,6 +722,7 @@ def _report(
     placed: list[dict[str, Any]] | None = None,
     counts: list[dict[str, Any]] | None = None,
     repeated: list[dict[str, Any]] | None = None,
+    mechanisms: list[dict[str, Any]] | None = None,
 ) -> str:
     lines = [
         "# Adaptive attack report",
@@ -937,7 +968,9 @@ def _report(
             )
     if counts:
         present = [
-            name for name in PLACEMENT_CONDITIONS if any(c["condition"] == name for c in counts)
+            name
+            for name in (*PLACEMENT_CONDITIONS, *PLACEMENT_CONDITIONS_EXTRA)
+            if any(c["condition"] == name for c in counts)
         ]
         lines += [
             "",
@@ -984,6 +1017,28 @@ def _report(
                 f"{row['change']} | {row['first_successes']}/{n} | "
                 f"{row['second_successes']}/{n} | {row['only_first']} | "
                 f"{row['only_second']} | {_p(row['mcnemar_p'])} | "
+                f"{_p(row['mcnemar_p_holm'])} |"
+            )
+    if mechanisms:
+        lines += [
+            "",
+            "## Mechanism controls: why JSON-encoding helps",
+            "",
+            "Held-out seeds, paired by seed. `tool_flat` is the raw tool result with line "
+            "breaks replaced by spaces; `user_json` is the JSON-encoded document in the user "
+            "message. Holm p is adjusted within the family: the primary family is the three "
+            "comparisons with the rule on the plain override (docs/preregistration.md).",
+            "",
+            "| Family | Model | Attack | What changes | First | Second | Only first | "
+            "Only second | p | Holm p |",
+            "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+        for row in sorted(mechanisms, key=lambda r: (r["family"] != "primary", r["change"])):
+            n = row["pairs"]
+            lines.append(
+                f"| {row['family']} | {row['model']} | {row['attack']} | {row['change']} | "
+                f"{row['first_successes']}/{n} | {row['second_successes']}/{n} | "
+                f"{row['only_first']} | {row['only_second']} | {_p(row['mcnemar_p'])} | "
                 f"{_p(row['mcnemar_p_holm'])} |"
             )
     if repeated:
@@ -1133,6 +1188,8 @@ def write_report(all_inputs: list[ModelInputs], output_dir: Path) -> dict[str, A
         row["mcnemar_p_holm"] = value
     _write_csv(output_dir / "placement.csv", placed)
     repeated = [row for inputs in all_inputs for row in repeats(inputs)]
+    mechanisms = mechanism(all_inputs)
+    _write_csv(output_dir / "mechanism.csv", mechanisms)
     _write_csv(output_dir / "repeats.csv", repeated)
     cells = [row for inputs in all_inputs for row in placement_cells(inputs)]
     _write_csv(output_dir / "placement_cells.csv", cells)
@@ -1149,11 +1206,24 @@ def write_report(all_inputs: list[ModelInputs], output_dir: Path) -> dict[str, A
     _write_csv(output_dir / "transfer.csv", moved)
     (output_dir / "report.md").write_text(
         _report(
-            head, grid, abl, goals, moved, clean, arms, arm_tests, patch, placed, cells, repeated
+            head,
+            grid,
+            abl,
+            goals,
+            moved,
+            clean,
+            arms,
+            arm_tests,
+            patch,
+            placed,
+            cells,
+            repeated,
+            mechanisms,
         ),
         encoding="utf-8",
     )
-    _figure(head, output_dir / "static_vs_adaptive.png")
+    if any(row["condition"] in CONDITIONS for row in head):
+        _figure(head, output_dir / "static_vs_adaptive.png")
     summary = {
         "headline": head,
         "transfer": moved,
@@ -1166,6 +1236,7 @@ def write_report(all_inputs: list[ModelInputs], output_dir: Path) -> dict[str, A
         "placement": placed,
         "placement_cells": cells,
         "repeats": repeated,
+        "mechanism": mechanisms,
     }
     (output_dir / "summary.json").write_text(
         json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"

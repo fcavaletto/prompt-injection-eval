@@ -21,10 +21,13 @@ from prompt_injection_eval.adaptive.strategies import LIBRARY_VERSION, Strategy,
 from prompt_injection_eval.adaptive.toolrole import (
     NO_TAIL_CONDITION,
     TOOL_CONDITIONS,
+    TOOL_FLAT_CONDITIONS,
     TOOL_JSON_CONDITIONS,
+    USER_JSON_CONDITIONS,
     ToolPrompt,
     render_no_tail,
     render_tool,
+    render_user_json,
 )
 from prompt_injection_eval.config import RunConfig
 from prompt_injection_eval.constants import SCORER_BUNDLE_VERSION
@@ -57,8 +60,10 @@ def render_condition(case: EvalCase, condition: str) -> RenderedPrompt | ToolPro
     """The static templates, plus the patched template and tool-result placements."""
     if condition == HARDENED_CONDITION:
         return render_hardened(case)
-    if condition in TOOL_CONDITIONS or condition in TOOL_JSON_CONDITIONS:
+    if condition in (*TOOL_CONDITIONS, *TOOL_JSON_CONDITIONS, *TOOL_FLAT_CONDITIONS):
         return render_tool(case, condition)
+    if condition in USER_JSON_CONDITIONS:
+        return render_user_json(case, condition)
     if condition == NO_TAIL_CONDITION:
         return render_no_tail(case)
     return render_prompt(case, condition)

@@ -16,6 +16,7 @@ nav:
   - Home: index.md
   - Adaptive attacks: adaptive.md
   - Where the document sits: placement.md
+  - Pre-registration: preregistration.md
   - Start here: learn.md
   - Walkthrough: notebooks/01_walkthrough.ipynb
   - Reading the results: notebooks/02_reading_the_results.ipynb

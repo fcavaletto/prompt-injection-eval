@@ -64,6 +64,41 @@ TOOL_JSON_TEMPLATE_VERSIONS = {
     TOOL_JSON_DEFENDED_CONDITION: "tool-json-defended-v1",
 }
 
+# Mechanism controls for the JSON effect. JSON-encoding does two things at once: it marks
+# the text as a data value (quotes, escapes), and it removes the line breaks that set the
+# injected sentence apart. Each control keeps one of the two.
+# `tool_flat`: the raw tool result with every line break replaced by a space.
+# `user_json`: the JSON-encoded document inside the user-message templates.
+TOOL_FLAT_CONDITION = "tool_flat"
+TOOL_FLAT_DEFENDED_CONDITION = "tool_flat_defended"
+USER_JSON_CONDITION = "user_json"
+USER_JSON_DEFENDED_CONDITION = "user_json_defended"
+TOOL_FLAT_CONDITIONS = (TOOL_FLAT_CONDITION, TOOL_FLAT_DEFENDED_CONDITION)
+USER_JSON_CONDITIONS = (USER_JSON_CONDITION, USER_JSON_DEFENDED_CONDITION)
+MECHANISM_CONDITIONS = (*TOOL_FLAT_CONDITIONS, *USER_JSON_CONDITIONS)
+_FLAT_BASE = {
+    TOOL_FLAT_CONDITION: TOOL_CONDITION,
+    TOOL_FLAT_DEFENDED_CONDITION: TOOL_DEFENDED_CONDITION,
+}
+_USER_JSON_BASE = {USER_JSON_CONDITION: "baseline", USER_JSON_DEFENDED_CONDITION: "defended"}
+MECHANISM_TEMPLATE_VERSIONS = {
+    TOOL_FLAT_CONDITION: "tool-flat-v1",
+    TOOL_FLAT_DEFENDED_CONDITION: "tool-flat-defended-v1",
+    USER_JSON_CONDITION: "baseline-v1-json",
+    USER_JSON_DEFENDED_CONDITION: "defended-v1-json",
+}
+
+
+def encode_json(document: str) -> str:
+    """The document as one JSON string value: quoted, with newlines escaped."""
+    return json.dumps(document, ensure_ascii=False)
+
+
+def flatten(document: str) -> str:
+    """The document with every line break replaced by a space, and nothing else changed."""
+    return document.replace("\r\n", " ").replace("\n", " ").replace("\r", " ")
+
+
 NO_TAIL_CONDITION = "defended_no_tail"
 NO_TAIL_TEMPLATE_VERSION = "defended-v1-no-tail"
 _TAIL = "\n\nComplete the original task."
@@ -120,12 +155,15 @@ class ToolPrompt:
 
 
 def render_tool(case: EvalCase, condition: str) -> ToolPrompt:
-    base = _JSON_BASE.get(condition, condition)
+    base = _JSON_BASE.get(condition) or _FLAT_BASE.get(condition) or condition
     if base not in _TEMPLATES:
         raise ValueError(f"Unknown tool condition: {condition}")
-    as_json = condition in _JSON_BASE
-    content = json.dumps(case.document, ensure_ascii=False) if as_json else case.document
-    version = (TOOL_JSON_TEMPLATE_VERSIONS if as_json else TOOL_TEMPLATE_VERSIONS)[condition]
+    if condition in _JSON_BASE:
+        content, version = encode_json(case.document), TOOL_JSON_TEMPLATE_VERSIONS[condition]
+    elif condition in _FLAT_BASE:
+        content, version = flatten(case.document), MECHANISM_TEMPLATE_VERSIONS[condition]
+    else:
+        content, version = case.document, TOOL_TEMPLATE_VERSIONS[condition]
     user_message = _TEMPLATES[base].replace("{user_task}", case.user_task)
     call_id = "call_read_document"
     messages: list[dict[str, Any]] = [
@@ -161,4 +199,20 @@ def render_no_tail(case: EvalCase) -> RenderedPrompt:
         template_version=NO_TAIL_TEMPLATE_VERSION,
         system_message=case.system_instruction,
         user_message=_fill(NO_TAIL_USER_TEMPLATE, case.user_task, case.document),
+    )
+
+
+def render_user_json(case: EvalCase, condition: str) -> RenderedPrompt:
+    """A user-message template with the document JSON-encoded in place of the raw text."""
+    from prompt_injection_eval.prompts import render_prompt
+
+    if condition not in _USER_JSON_BASE:
+        raise ValueError(f"Unknown user-JSON condition: {condition}")
+    encoded = case.model_copy(update={"document": encode_json(case.document)})
+    rendered = render_prompt(encoded, _USER_JSON_BASE[condition])
+    return RenderedPrompt(
+        condition=condition,
+        template_version=MECHANISM_TEMPLATE_VERSIONS[condition],
+        system_message=rendered.system_message,
+        user_message=rendered.user_message,
     )

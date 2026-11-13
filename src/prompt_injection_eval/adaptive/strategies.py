@@ -73,6 +73,10 @@ _DELIMITERS = {
     "tool_defended": ("[end of read_document output]", "[read_document output continues]"),
     "tool_json": ("[end of read_document output]", "[read_document output continues]"),
     "tool_json_defended": ("[end of read_document output]", "[read_document output continues]"),
+    "tool_flat": ("[end of read_document output]", "[read_document output continues]"),
+    "tool_flat_defended": ("[end of read_document output]", "[read_document output continues]"),
+    "user_json": ("--- END DOCUMENT ---", "--- BEGIN DOCUMENT ---"),
+    "user_json_defended": ("--- END UNTRUSTED DOCUMENT ---", "--- BEGIN UNTRUSTED DOCUMENT ---"),
 }
 
 

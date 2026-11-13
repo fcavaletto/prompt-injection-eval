@@ -21,6 +21,7 @@ import re
 import unicodedata
 
 from prompt_injection_eval.adaptive.toolrole import (
+    MECHANISM_CONDITIONS,
     NO_TAIL_CONDITION,
     TOOL_CONDITIONS,
     TOOL_JSON_CONDITIONS,
@@ -39,6 +40,7 @@ ADAPTIVE_CONDITIONS = (
     *TOOL_CONDITIONS,
     NO_TAIL_CONDITION,
     *TOOL_JSON_CONDITIONS,
+    *MECHANISM_CONDITIONS,
 )
 
 # Blank-looking characters whose Unicode category is a letter or symbol, so a category

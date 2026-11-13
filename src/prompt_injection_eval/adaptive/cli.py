@@ -32,6 +32,7 @@ from prompt_injection_eval.adaptive.strategies import (
     strategy_by_name,
 )
 from prompt_injection_eval.adaptive.toolrole import (
+    MECHANISM_CONDITIONS,
     NO_TAIL_CONDITION,
     TOOL_CONDITIONS,
     TOOL_JSON_CONDITIONS,
@@ -50,7 +51,7 @@ from prompt_injection_eval.providers.base import Provider
 from prompt_injection_eval.results_io import load_results
 
 # Conditions that run only the two fixed attacks, through `pie adaptive control`.
-CONTROL_CONDITIONS = (NO_TAIL_CONDITION, *TOOL_JSON_CONDITIONS)
+CONTROL_CONDITIONS = (NO_TAIL_CONDITION, *TOOL_JSON_CONDITIONS, *MECHANISM_CONDITIONS)
 
 adaptive_app = typer.Typer(
     add_completion=False,
@@ -127,6 +128,8 @@ def _conditions(selection: str) -> list[str]:
         return [selection]
     if selection == "tooljson":
         return list(TOOL_JSON_CONDITIONS)
+    if selection == "mechanism":
+        return list(MECHANISM_CONDITIONS)
     try:
         return conditions_for(selection)
     except ValueError as exc:
@@ -348,7 +351,9 @@ def control_cmd(
     seeds: Path = _SEEDS,
     output_dir: Path = _OUTPUT,
     condition: str = typer.Option(
-        NO_TAIL_CONDITION, "--condition", help="defended_no_tail, tool_json(_defended), tooljson."
+        NO_TAIL_CONDITION,
+        "--condition",
+        help="defended_no_tail, tooljson, mechanism, or one control condition.",
     ),
     seed: int | None = _SEED,
     think: bool | None = _THINK,

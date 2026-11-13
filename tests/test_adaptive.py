@@ -747,3 +747,59 @@ def test_v06_bundle_reproduces_the_placement_table() -> None:
     overall = repeats(again)[0]
     assert (overall["condition"], overall["units"]) == ("all", 1180)
     assert overall["identical_attack_label"] == 1140
+
+
+def test_mechanism_controls_change_one_thing_each(seeds) -> None:
+    from prompt_injection_eval.adaptive.engine import render_condition
+
+    seed = next(item for item in seeds if item.split == "test")
+    document = build_document(strategy_by_name("naive+inline+plain"), seed, "tool_flat_defended")
+    assert "\n" in document
+    case = seed.to_case(document, note="x")
+
+    raw = render_condition(case, "tool_defended")
+    flat = render_condition(case, "tool_flat_defended")
+    assert flat.template_version == "tool-flat-defended-v1"
+    assert flat.messages[:-1] == raw.messages[:-1]
+    assert flat.messages[-1]["content"] == document.replace("\n", " ")
+
+    user = render_prompt(case, "defended")
+    encoded = render_condition(case, "user_json_defended")
+    assert encoded.template_version == "defended-v1-json"
+    assert encoded.user_message == user.user_message.replace(document, json.dumps(document))
+    assert render_condition(case, "user_json").user_message == render_prompt(
+        case, "baseline"
+    ).user_message.replace(document, json.dumps(document))
+
+
+def test_mechanism_families_are_adjusted_apart() -> None:
+    from prompt_injection_eval.adaptive.analysis import ModelInputs, mechanism
+
+    def row(case_id: str, condition: str, hit: bool) -> dict[str, object]:
+        return {
+            "case_id": case_id,
+            "condition": condition,
+            "adaptive_phase": "test",
+            "seed_split": "test",
+            "strategy": "naive+inline+plain",
+            "attack_score": "success" if hit else "failure",
+        }
+
+    test_rows = [
+        row(f"s{index}", condition, hit)
+        for index in range(12)
+        for condition, hit in (
+            ("tool_defended", True),
+            ("tool_flat_defended", index < 6),
+            ("tool_json_defended", False),
+            ("defended", False),
+            ("user_json_defended", False),
+        )
+    ]
+    inputs = ModelInputs(label="m", static_rows=[], grid_rows=[], test_rows=test_rows, ranking={})
+    rows = mechanism([inputs])
+    assert {r["family"] for r in rows} == {"primary"}
+    by_change = {r["first"] + ">" + r["second"]: r for r in rows}
+    flattened = by_change["tool_defended>tool_flat_defended"]
+    assert (flattened["first_successes"], flattened["second_successes"]) == (12, 6)
+    assert all(r["mcnemar_p_holm"] >= r["mcnemar_p"] for r in rows)
