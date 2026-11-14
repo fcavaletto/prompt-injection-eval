@@ -1,0 +1,51 @@
+model,family,first,second,change,pairs,excluded_backend_errors,first_successes,second_successes,only_first,only_second,mcnemar_p,mcnemar_p_holm
+qwen3-4b,primary,user_defended,tool_defended,rule: user message to raw tool result,2108,0,578,873,74,369,3.52914795522012e-48,3.176233159698108e-47
+qwen3-4b,secondary,user,tool,no rule: user message to raw tool result,2108,0,940,1109,137,306,6.405293559016153e-16,1.9856410032950073e-14
+qwen3-4b,secondary,tool_defended,tool_json_defended,rule: raw tool result to JSON-encoded,2108,0,873,814,154,95,0.00022311211696048362,0.0046853544561701556
+qwen3-4b,secondary,tool,tool_json,no rule: raw tool result to JSON-encoded,2108,0,1109,1059,134,84,0.0008633647470830895,0.0164039301945787
+qwen3-4b,secondary,user_defended,tool_json_defended,rule: user message to JSON-encoded tool result,2108,0,578,814,88,324,7.942624353320584e-33,2.9387710107286164e-31
+qwen3-8b,primary,user_defended,tool_defended,rule: user message to raw tool result,2108,0,357,489,99,231,2.6726720300241095e-13,1.6036032180144658e-12
+qwen3-8b,secondary,user,tool,no rule: user message to raw tool result,2108,0,82,204,29,151,4.238116203205911e-21,1.3985783470579506e-19
+qwen3-8b,secondary,tool_defended,tool_json_defended,rule: raw tool result to JSON-encoded,2108,0,489,472,65,48,0.13192429082426071,1.0
+qwen3-8b,secondary,tool,tool_json,no rule: raw tool result to JSON-encoded,2108,0,204,176,39,11,9.021490107130603e-05,0.0019847278235687327
+qwen3-8b,secondary,user_defended,tool_json_defended,rule: user message to JSON-encoded tool result,2108,0,357,472,101,216,9.571612924442709e-11,2.6800516188439587e-09
+qwen3-14b,primary,user_defended,tool_defended,rule: user message to raw tool result,2108,0,210,432,29,251,2.717954406976955e-45,2.174363525581564e-44
+qwen3-14b,secondary,user,tool,no rule: user message to raw tool result,2108,0,147,344,18,215,5.153259518701582e-44,1.958238617106601e-42
+qwen3-14b,secondary,tool_defended,tool_json_defended,rule: raw tool result to JSON-encoded,2108,0,432,378,79,25,1.0540017368882998e-07,2.7404045159095796e-06
+qwen3-14b,secondary,tool,tool_json,no rule: raw tool result to JSON-encoded,2108,0,344,283,75,14,3.0109103586376684e-11,8.731640040049238e-10
+qwen3-14b,secondary,user_defended,tool_json_defended,rule: user message to JSON-encoded tool result,2108,0,210,378,39,207,7.792918356118759e-29,2.8054506082027533e-27
+qwen3-32b,primary,user_defended,tool_defended,rule: user message to raw tool result,2108,0,243,370,52,179,1.6162245361518534e-17,1.1313571753062975e-16
+qwen3-32b,secondary,user,tool,no rule: user message to raw tool result,2108,0,159,320,55,216,9.994281822345806e-24,3.398055819597574e-22
+qwen3-32b,secondary,tool_defended,tool_json_defended,rule: raw tool result to JSON-encoded,2108,0,370,318,94,42,9.669159852144014e-06,0.00023205983645145634
+qwen3-32b,secondary,tool,tool_json,no rule: raw tool result to JSON-encoded,2108,0,320,229,128,37,6.095098034624986e-13,1.8285294103874957e-11
+qwen3-32b,secondary,user_defended,tool_json_defended,rule: user message to JSON-encoded tool result,2108,0,243,318,62,137,1.1137942208343393e-07,2.7844855520858484e-06
+qwen2.5-7b,primary,user_defended,tool_defended,rule: user message to raw tool result,2108,0,531,485,250,204,0.034575092681894515,0.17287546340947257
+qwen2.5-7b,secondary,user,tool,no rule: user message to raw tool result,2108,0,419,243,246,70,4.221535738571734e-24,1.477537508500107e-22
+qwen2.5-7b,secondary,tool_defended,tool_json_defended,rule: raw tool result to JSON-encoded,2108,0,485,408,188,111,9.953844174209327e-06,0.00023205983645145634
+qwen2.5-7b,secondary,tool,tool_json,no rule: raw tool result to JSON-encoded,2108,0,243,220,110,87,0.11678744024535476,1.0
+qwen2.5-7b,secondary,user_defended,tool_json_defended,rule: user message to JSON-encoded tool result,2108,0,531,408,278,155,3.597122281682911e-09,9.712230160543859e-08
+hermes-3-8b,primary,user_defended,tool_defended,rule: user message to raw tool result,2108,0,1040,10,1031,1,4.489260343433475e-308,4.489260343433475e-307
+hermes-3-8b,secondary,user,tool,no rule: user message to raw tool result,2108,0,705,56,658,9,2.258471916393664e-181,8.80804047393529e-180
+hermes-3-8b,secondary,tool_defended,tool_json_defended,rule: raw tool result to JSON-encoded,2108,0,10,6,7,3,0.34375,1.0
+hermes-3-8b,secondary,tool,tool_json,no rule: raw tool result to JSON-encoded,2108,0,56,66,7,17,0.06391465663909912,1.0
+hermes-3-8b,secondary,user_defended,tool_json_defended,rule: user message to JSON-encoded tool result,2108,0,1040,6,1035,1,2.816652333095664e-309,1.1266609332382655e-307
+granite-3.3-8b,primary,user_defended,tool_defended,rule: user message to raw tool result,2108,0,0,0,0,0,1.0,1.0
+granite-3.3-8b,secondary,user,tool,no rule: user message to raw tool result,2108,0,0,5,0,5,0.0625,1.0
+granite-3.3-8b,secondary,tool_defended,tool_json_defended,rule: raw tool result to JSON-encoded,2108,0,0,0,0,0,1.0,1.0
+granite-3.3-8b,secondary,tool,tool_json,no rule: raw tool result to JSON-encoded,2108,0,5,0,5,0,0.0625,1.0
+granite-3.3-8b,secondary,user_defended,tool_json_defended,rule: user message to JSON-encoded tool result,2108,0,0,0,0,0,1.0,1.0
+phi-4-mini,primary,user_defended,tool_defended,rule: user message to raw tool result,2108,0,0,0,0,0,1.0,1.0
+phi-4-mini,secondary,user,tool,no rule: user message to raw tool result,2108,0,0,0,0,0,1.0,1.0
+phi-4-mini,secondary,tool_defended,tool_json_defended,rule: raw tool result to JSON-encoded,2108,0,0,0,0,0,1.0,1.0
+phi-4-mini,secondary,tool,tool_json,no rule: raw tool result to JSON-encoded,2108,0,0,0,0,0,1.0,1.0
+phi-4-mini,secondary,user_defended,tool_json_defended,rule: user message to JSON-encoded tool result,2108,0,0,0,0,0,1.0,1.0
+gpt-oss-20b,primary,user_defended,tool_defended,rule: user message to raw tool result,2108,0,45,42,28,25,0.7838463022094988,1.0
+gpt-oss-20b,secondary,user,tool,no rule: user message to raw tool result,2108,0,361,217,222,78,3.6245449484664476e-17,1.1598543835092632e-15
+gpt-oss-20b,secondary,tool_defended,tool_json_defended,rule: raw tool result to JSON-encoded,2108,0,42,43,15,16,1.0,1.0
+gpt-oss-20b,secondary,tool,tool_json,no rule: raw tool result to JSON-encoded,2108,0,217,179,95,57,0.0025735692598787482,0.04632424667781747
+gpt-oss-20b,secondary,user_defended,tool_json_defended,rule: user message to JSON-encoded tool result,2108,0,45,43,27,25,0.8898839652765371,1.0
+gpt-oss-120b,primary,user_defended,tool_defended,rule: user message to raw tool result,2108,0,23,13,16,6,0.052478790283203125,0.2099151611328125
+gpt-oss-120b,secondary,user,tool,no rule: user message to raw tool result,2108,0,216,167,114,65,0.0003085085150494451,0.006170170300988901
+gpt-oss-120b,secondary,tool_defended,tool_json_defended,rule: raw tool result to JSON-encoded,2108,0,13,20,6,13,0.1670684814453125,1.0
+gpt-oss-120b,secondary,tool,tool_json,no rule: raw tool result to JSON-encoded,2108,0,167,160,58,51,0.5657001139736338,1.0
+gpt-oss-120b,secondary,user_defended,tool_json_defended,rule: user message to JSON-encoded tool result,2108,0,23,20,14,11,0.6900379657745361,1.0
