@@ -1,0 +1,309 @@
+{
+  "fixed_on": "2026-11-15",
+  "rule": [
+    "Group A: every model in Studies A and B of this project (ten models, six template lineages expected).",
+    "Group B: open-weight models used as the agent or probe model in the closest literature read for the 2026-11 audit (ChatInject, ToolHazard, Role Confusion, Silent Failures, the serving-stack confounds paper, Yu et al.), one checkpoint per named family and size class.",
+    "Group C: the Study R candidates not already in A or B.",
+    "One repository per model. Where the official repository is gated, an ungated mirror is used and recorded as a mirror; the official template was not read.",
+    "Revisions are pinned to the commit that was current on 2026-11-15."
+  ],
+  "limits": [
+    "This is not a random or popularity-weighted sample of the Hub. It is the set of models this project and its closest literature have made claims about.",
+    "Hosted, closed models are out of reach: their rendering cannot be observed.",
+    "Quantised or converted redistributions (GGUF, MLX, AWQ) can ship a different template from the original repository and are not sampled, except for the Ollama library entries listed under ollama.",
+    "Models that share a template are one lineage and count as related observations, not independent ones."
+  ],
+  "stacks": {
+    "transformers": "Every configuration. tokenizer.apply_chat_template of the pinned revision, run locally. Observed through the actual implementation, but it is a tokenizer-level observation, not a server.",
+    "vllm_replay": "The eight Study B models whose rows stored the prompt returned by vLLM 0.33.0. The stored prompt is a server observation of the Study B conversations, not of the census fixtures; it is compared with a transformers rendering of the same conversation.",
+    "ollama_server": "Models whose weights were already on this machine before the census (no download). The prompt is read from the debug log of a local Ollama server. A server observation.",
+    "ollama_template": "Ollama library templates for the families in group A plus Llama, Gemma and Mistral. Template source is fetched and inspected, not executed. Reconstructed from code.",
+    "llama_cpp": "Not run. Recorded as unverified.",
+    "vllm_harmony": "The gpt-oss path in vLLM does not use the chat template and returns no prompt. Recorded as unverified."
+  },
+  "ollama_template_tags": [
+    "qwen3:8b",
+    "qwen2.5:7b",
+    "hermes3:8b",
+    "granite3.3:8b",
+    "phi4-mini:latest",
+    "gpt-oss:20b",
+    "llama3.1:8b",
+    "llama3.2:3b",
+    "gemma3:4b",
+    "mistral-small3.2:24b",
+    "deepseek-r1:14b"
+  ],
+  "configs": [
+    {
+      "id": "qwen3-4b",
+      "hf_repo": "Qwen/Qwen3-4B",
+      "revision": "1cfa9a7208912126459214e8b04321603b3df60c",
+      "repo_last_modified": "2025-07-26",
+      "mirror_of_gated_repo": null,
+      "group": "A",
+      "why": "Model in Studies A and B of this project",
+      "template_kwargs": {
+        "enable_thinking": false
+      }
+    },
+    {
+      "id": "qwen3-8b",
+      "hf_repo": "Qwen/Qwen3-8B",
+      "revision": "b968826d9c46dd6066d109eabc6255188de91218",
+      "repo_last_modified": "2025-07-26",
+      "mirror_of_gated_repo": null,
+      "group": "A",
+      "why": "Model in Studies A and B of this project",
+      "template_kwargs": {
+        "enable_thinking": false
+      }
+    },
+    {
+      "id": "qwen3-14b",
+      "hf_repo": "Qwen/Qwen3-14B",
+      "revision": "40c069824f4251a91eefaf281ebe4c544efd3e18",
+      "repo_last_modified": "2025-07-26",
+      "mirror_of_gated_repo": null,
+      "group": "A",
+      "why": "Model in Studies A and B of this project",
+      "template_kwargs": {
+        "enable_thinking": false
+      }
+    },
+    {
+      "id": "qwen3-32b",
+      "hf_repo": "Qwen/Qwen3-32B",
+      "revision": "9216db5781bf21249d130ec9da846c4624c16137",
+      "repo_last_modified": "2025-07-26",
+      "mirror_of_gated_repo": null,
+      "group": "A",
+      "why": "Model in Studies A and B of this project; Study R candidate",
+      "template_kwargs": {
+        "enable_thinking": false
+      }
+    },
+    {
+      "id": "qwen2.5-7b",
+      "hf_repo": "Qwen/Qwen2.5-7B-Instruct",
+      "revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+      "repo_last_modified": "2025-01-12",
+      "mirror_of_gated_repo": null,
+      "group": "A",
+      "why": "Model in Studies A and B of this project",
+      "template_kwargs": {}
+    },
+    {
+      "id": "hermes-3-8b",
+      "hf_repo": "NousResearch/Hermes-3-Llama-3.1-8B",
+      "revision": "896ea440e5a9e6070e3d8a2774daf2b481ab425b",
+      "repo_last_modified": "2024-09-08",
+      "mirror_of_gated_repo": null,
+      "group": "A",
+      "why": "Model in Studies A and B of this project",
+      "template_kwargs": {}
+    },
+    {
+      "id": "granite-3.3-8b",
+      "hf_repo": "ibm-granite/granite-3.3-8b-instruct",
+      "revision": "51dd4bc2ade4059a6bd87649d68aa11e4fb2529b",
+      "repo_last_modified": "2025-05-12",
+      "mirror_of_gated_repo": null,
+      "group": "A",
+      "why": "Model in Studies A and B of this project",
+      "template_kwargs": {}
+    },
+    {
+      "id": "phi-4-mini",
+      "hf_repo": "microsoft/Phi-4-mini-instruct",
+      "revision": "cfbefacb99257ffa30c83adab238a50856ac3083",
+      "repo_last_modified": "2025-12-10",
+      "mirror_of_gated_repo": null,
+      "group": "A",
+      "why": "Model in Studies A and B of this project",
+      "template_kwargs": {}
+    },
+    {
+      "id": "gpt-oss-20b",
+      "hf_repo": "openai/gpt-oss-20b",
+      "revision": "6cee5e81ee83917806bbde320786a8fb61efebee",
+      "repo_last_modified": "2025-08-26",
+      "mirror_of_gated_repo": null,
+      "group": "A",
+      "why": "Model in Studies A and B of this project",
+      "template_kwargs": {}
+    },
+    {
+      "id": "gpt-oss-120b",
+      "hf_repo": "openai/gpt-oss-120b",
+      "revision": "b5c939de8f754692c1647ca79fbf85e8c1e70f8a",
+      "repo_last_modified": "2025-08-26",
+      "mirror_of_gated_repo": null,
+      "group": "A",
+      "why": "Model in Studies A and B of this project; Study R candidate",
+      "template_kwargs": {}
+    },
+    {
+      "id": "qwen3-235b-2507",
+      "hf_repo": "Qwen/Qwen3-235B-A22B-Instruct-2507",
+      "revision": "ac9c66cc9b46af7306746a9250f23d47083d689e",
+      "repo_last_modified": "2025-09-17",
+      "mirror_of_gated_repo": null,
+      "group": "B",
+      "why": "ChatInject (arXiv:2509.22830) agent model",
+      "template_kwargs": {}
+    },
+    {
+      "id": "qwen3-30b-a3b",
+      "hf_repo": "Qwen/Qwen3-30B-A3B",
+      "revision": "ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+      "repo_last_modified": "2025-07-26",
+      "mirror_of_gated_repo": null,
+      "group": "B",
+      "why": "Role confusion (arXiv:2603.12277) probe model",
+      "template_kwargs": {
+        "enable_thinking": false
+      }
+    },
+    {
+      "id": "llama-3.1-8b",
+      "hf_repo": "unsloth/Meta-Llama-3.1-8B-Instruct",
+      "revision": "a2856192dd7c25b842431f39c179a6c2c2f627d1",
+      "repo_last_modified": "2025-02-15",
+      "mirror_of_gated_repo": "meta-llama/Llama-3.1-8B-Instruct",
+      "group": "B",
+      "why": "Silent Failures (arXiv:2609.32691); Yu et al. use the 70B of the same family",
+      "template_kwargs": {}
+    },
+    {
+      "id": "llama-3.2-3b",
+      "hf_repo": "unsloth/Llama-3.2-3B-Instruct",
+      "revision": "006f5dcd1393c3add266de40994ba96225e9689d",
+      "repo_last_modified": "2025-06-02",
+      "mirror_of_gated_repo": "meta-llama/Llama-3.2-3B-Instruct",
+      "group": "B",
+      "why": "Serving-stack confounds (arXiv:2609.26693)",
+      "template_kwargs": {}
+    },
+    {
+      "id": "llama-4-maverick",
+      "hf_repo": "unsloth/Llama-4-Maverick-17B-128E-Instruct",
+      "revision": "86c5ecb6f2fbddf604c60120125fb202e09f2556",
+      "repo_last_modified": "2025-06-17",
+      "mirror_of_gated_repo": "meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+      "group": "B",
+      "why": "ChatInject agent model",
+      "template_kwargs": {}
+    },
+    {
+      "id": "glm-4.5",
+      "hf_repo": "zai-org/GLM-4.5",
+      "revision": "cbb2c7cfb52fa128a9660cb1a7a78e017899e115",
+      "repo_last_modified": "2025-08-11",
+      "mirror_of_gated_repo": null,
+      "group": "B",
+      "why": "ChatInject agent model",
+      "template_kwargs": {}
+    },
+    {
+      "id": "kimi-k2",
+      "hf_repo": "moonshotai/Kimi-K2-Instruct",
+      "revision": "fd1984e2b7a3350dbf7305fe73a4ede25c14de50",
+      "repo_last_modified": "2026-04-23",
+      "mirror_of_gated_repo": null,
+      "group": "B",
+      "why": "ChatInject agent model",
+      "template_kwargs": {}
+    },
+    {
+      "id": "deepseek-v3.2",
+      "hf_repo": "deepseek-ai/DeepSeek-V3.2",
+      "revision": "a7e62ac04ecb2c0a54d736dc46601c5606cf10a6",
+      "repo_last_modified": "2025-12-01",
+      "mirror_of_gated_repo": null,
+      "group": "B",
+      "why": "ToolHazard (arXiv:2608.11878) agent model",
+      "template_kwargs": {}
+    },
+    {
+      "id": "nemotron-3-nano-30b",
+      "hf_repo": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16",
+      "revision": "bf77c3174f68ad409e1c2aa60daeb46e32d1c606",
+      "repo_last_modified": "2026-08-24",
+      "mirror_of_gated_repo": null,
+      "group": "B",
+      "why": "Role confusion probe model (Nemotron-3)",
+      "template_kwargs": {}
+    },
+    {
+      "id": "gemma-3-4b",
+      "hf_repo": "unsloth/gemma-3-4b-it",
+      "revision": "bf46152c47f5dd20b896357cb51abc4c03b8ee8c",
+      "repo_last_modified": "2025-05-12",
+      "mirror_of_gated_repo": "google/gemma-3-4b-it",
+      "group": "B",
+      "why": "Serving-stack confounds (arXiv:2609.26693)",
+      "template_kwargs": {}
+    },
+    {
+      "id": "gemma-4-12b",
+      "hf_repo": "google/gemma-4-12b-it",
+      "revision": "43c9d014b231474fa7212dbb48a762566c2b255d",
+      "repo_last_modified": "2026-10-30",
+      "mirror_of_gated_repo": null,
+      "group": "B",
+      "why": "Silent Failures (gemma4:12b)",
+      "template_kwargs": {}
+    },
+    {
+      "id": "qwen2.5-coder-7b",
+      "hf_repo": "Qwen/Qwen2.5-Coder-7B-Instruct",
+      "revision": "c03e6d358207e414f1eca0bb1891e29f1db0e242",
+      "repo_last_modified": "2025-01-12",
+      "mirror_of_gated_repo": null,
+      "group": "B",
+      "why": "Silent Failures; serving-stack confounds",
+      "template_kwargs": {}
+    },
+    {
+      "id": "phi-3-mini",
+      "hf_repo": "microsoft/Phi-3-mini-4k-instruct",
+      "revision": "f39ac1d28e925b323eae81227eaba4464caced4e",
+      "repo_last_modified": "2025-12-10",
+      "mirror_of_gated_repo": null,
+      "group": "B",
+      "why": "Serving-stack confounds",
+      "template_kwargs": {}
+    },
+    {
+      "id": "mistral-small-3.2",
+      "hf_repo": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+      "revision": "95a6d26c4bfb886c58daf9d3f7332c857cb27b43",
+      "repo_last_modified": "2025-12-22",
+      "mirror_of_gated_repo": null,
+      "group": "C",
+      "why": "Study R candidate",
+      "template_kwargs": {}
+    },
+    {
+      "id": "granite-4.0-h-small",
+      "hf_repo": "ibm-granite/granite-4.0-h-small",
+      "revision": "b8c0982bab7fde4eb48110f5a069527c008fab39",
+      "repo_last_modified": "2025-11-03",
+      "mirror_of_gated_repo": null,
+      "group": "C",
+      "why": "Study R candidate",
+      "template_kwargs": {}
+    },
+    {
+      "id": "glm-4-32b",
+      "hf_repo": "zai-org/GLM-4-32B-0414",
+      "revision": "077b5c2f5c43bd3239fd605a0600229e8facbd4a",
+      "repo_last_modified": "2025-05-01",
+      "mirror_of_gated_repo": null,
+      "group": "C",
+      "why": "Study R candidate",
+      "template_kwargs": {}
+    }
+  ]
+}
