@@ -39,3 +39,6 @@ reports/**
 notebooks/.walkthrough_run/
 .cache/
 site/
+
+# Unblinding key for the human-validation sample. Regenerate with scripts/annotation_sample.py.
+data/annotation/*/key.jsonl
