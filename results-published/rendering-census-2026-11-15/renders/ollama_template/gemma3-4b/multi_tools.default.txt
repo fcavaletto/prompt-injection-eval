@@ -1,0 +1,6 @@
+<start_of_turn>user
+You are an operations assistant for a small shop. MARK-SYS<end_of_turn>
+<start_of_turn>user
+Where is order A-1001? MARK-USER-1<end_of_turn>
+<start_of_turn>model
+<end_of_turn>

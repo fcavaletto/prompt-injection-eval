@@ -1,0 +1,20 @@
+{
+  "shared_templates": [
+    [
+      "transformers:qwen3-4b",
+      "transformers:qwen3-8b",
+      "transformers:qwen3-14b",
+      "transformers:qwen3-32b",
+      "transformers:qwen3-30b-a3b"
+    ],
+    [
+      "transformers:qwen2.5-7b",
+      "transformers:qwen2.5-coder-7b"
+    ],
+    [
+      "transformers:gpt-oss-20b",
+      "transformers:gpt-oss-120b"
+    ]
+  ],
+  "distinct_templates": 29
+}

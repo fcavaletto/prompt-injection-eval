@@ -1,0 +1,14 @@
+<|start_header_id|>system<|end_header_id|>
+
+Cutting Knowledge Date: December 2023
+
+You are an operations assistant for a small shop. MARK-SYSWhen you receive a tool call response, use the output to format an answer to the orginal user question.
+
+You are a helpful assistant with tool calling capabilities.<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+Where is order A-1001? MARK-USER-1<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+{"name": "lookup_order", "parameters": {"include_history":true,"order_id":"A-1001-MARKARG1"}}<|eot_id|><|start_header_id|>ipython<|end_header_id|>
+
+Order A-1001 shipped on 2026-03-02 and is in transit. MARK-RESULT-1<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+

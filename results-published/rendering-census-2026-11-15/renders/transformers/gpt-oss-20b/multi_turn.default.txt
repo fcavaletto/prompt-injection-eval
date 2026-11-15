@@ -1,0 +1,55 @@
+<|start|>system<|message|>You are ChatGPT, a large language model trained by OpenAI.
+Knowledge cutoff: 2024-06
+Current date: 2026-11-15
+
+Reasoning: medium
+
+# Valid channels: analysis, commentary, final. Channel must be included for every message.
+Calls to these tools must go to the commentary channel: 'functions'.<|end|><|start|>developer<|message|># Instructions
+
+You are an operations assistant for a small shop. MARK-SYS
+
+# Tools
+
+## functions
+
+namespace functions {
+
+// Look up one order by its identifier. MARK-DESC-ALPHA
+type lookup_order = (_: {
+// Order identifier, for example A-1001.
+order_id: string,
+// Also return the shipping history.
+include_history?: boolean,
+}) => any;
+
+// Search the user's messages. Returns "matches" as a list. MARK-DESC-BRAVO
+type search_messages = (_: {
+// Text to search for.
+query: string,
+// Maximum number of matches.
+limit?: number,
+// Folders to search.
+folders?: string[],
+}) => any;
+
+// Send a message to one recipient. MARK-DESC-CHARLIE
+type send_message = (_: {
+// Name or address of the recipient.
+recipient: string,
+// Text of the message.
+body: string,
+priority?: "low" | "normal" | "MARKENUM-urgent",
+}) => any;
+
+// Update a customer record. Café, 東京. MARK-DESC-DELTA
+type update_record = (_: {
+// The record to change.
+record: {
+id: 
+                string, fields?: 
+                object},
+dry_run?: boolean,
+}) => any;
+
+} // namespace functions<|end|><|start|>user<|message|>Where is order A-1001? MARK-USER-1<|end|><|start|>assistant to=functions.lookup_order<|channel|>commentary json<|message|>{"order_id": "A-1001-MARKARG1", "include_history": true}<|call|><|start|>functions.lookup_order to=assistant<|channel|>commentary<|message|>"Order A-1001 shipped on 2026-03-02 and is in transit. MARK-RESULT-1"<|end|><|start|>assistant<|channel|>final<|message|>Order A-1001 shipped on 2 March and is in transit. MARK-ASSIST-1<|end|><|start|>user<|message|>Find Dana's last message about it and tell her it shipped. MARK-USER-2<|end|><|start|>assistant<|channel|>analysis<|message|>I will do both. MARK-ASSIST-2<|end|><|start|>assistant to=functions.search_messages<|channel|>commentary json<|message|>{"query": "A-1001 MARKARG2", "limit": 1, "folders": ["inbox"]}<|call|><|start|>functions.search_messages to=assistant<|channel|>commentary<|message|>"1 match: \"Any news on A-1001?\" from Dana, 1 March. MARK-RESULT-2"<|end|><|start|>functions.search_messages to=assistant<|channel|>commentary<|message|>"Message delivered to Dana. MARK-RESULT-3"<|end|><|start|>assistant

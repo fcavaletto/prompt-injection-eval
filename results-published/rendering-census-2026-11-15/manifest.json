@@ -1,0 +1,15 @@
+{
+  "run_at_utc": "2026-11-15T08:14:01+00:00",
+  "software": {
+    "python": "3.12.14",
+    "platform": "macOS-26.6-arm64-arm-64bit",
+    "transformers": "5.22.1",
+    "tokenizers": "0.23.3",
+    "jinja2": "3.1.6",
+    "huggingface_hub": "2.4.0",
+    "pyyaml": "6.0.3"
+  },
+  "fixtures_sha256": "c50dd3ac5c809f71786c6c8925c4283210e38a0c2c56e7113de2c041d02e2b54",
+  "sample_sha256": "a5af3fd63dc9e14de39093c008ab3a0420dd950db4b8e627c57c242ad9104d52",
+  "note": "No model weights were downloaded and no text was generated."
+}

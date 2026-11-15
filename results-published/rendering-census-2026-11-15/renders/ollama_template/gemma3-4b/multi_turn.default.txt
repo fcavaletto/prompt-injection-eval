@@ -1,0 +1,12 @@
+<start_of_turn>user
+You are an operations assistant for a small shop. MARK-SYS<end_of_turn>
+<start_of_turn>user
+Where is order A-1001? MARK-USER-1<end_of_turn>
+<start_of_turn>model
+<end_of_turn>
+<start_of_turn>model
+Order A-1001 shipped on 2 March and is in transit. MARK-ASSIST-1<end_of_turn>
+<start_of_turn>user
+Find Dana's last message about it and tell her it shipped. MARK-USER-2<end_of_turn>
+<start_of_turn>model
+I will do both. MARK-ASSIST-2<end_of_turn>

@@ -1,0 +1,94 @@
+<|im_start|>system
+You are an operations assistant for a small shop. MARK-SYS
+
+# Tools
+
+You have access to the following functions:
+
+<tools>
+<function>
+<name>lookup_order</name>
+<description>Look up one order by its identifier. MARK-DESC-ALPHA</description>
+<parameters>
+<parameter>
+<name>order_id</name>
+<type>string</type>
+<description>Order identifier, for example A-1001.</description>
+</parameter>
+<parameter>
+<name>include_history</name>
+<type>boolean</type>
+<description>Also return the shipping history.</description>
+</parameter>
+<required>["order_id"]</required>
+</parameters>
+</function>
+<function>
+<name>search_messages</name>
+<description>Search the user's messages. Returns "matches" as a list. MARK-DESC-BRAVO</description>
+<parameters>
+<parameter>
+<name>query</name>
+<type>string</type>
+<description>Text to search for.</description>
+</parameter>
+<parameter>
+<name>limit</name>
+<type>integer</type>
+<description>Maximum number of matches.</description>
+</parameter>
+<parameter>
+<name>folders</name>
+<type>array</type>
+<description>Folders to search.</description>
+<items>{"type": "string"}</items>
+</parameter>
+<required>["query"]</required>
+</parameters>
+</function>
+</tools>
+
+If you choose to call a function ONLY reply in the following format with NO suffix:
+
+<tool_call>
+<function=example_function_name>
+<parameter=example_parameter_1>
+value_1
+</parameter>
+<parameter=example_parameter_2>
+This is the value for the second parameter
+that can span
+multiple lines
+</parameter>
+</function>
+</tool_call>
+
+<IMPORTANT>
+Reminder:
+- Function calls MUST follow the specified format: an inner <function=...></function> block must be nested within <tool_call></tool_call> XML tags
+- Required parameters MUST be specified
+- You may provide optional reasoning for your function call in natural language BEFORE the function call, but NOT after
+- If there is no function call available, answer the question like normal with your current knowledge and do not tell the user about function calls
+</IMPORTANT><|im_end|>
+<|im_start|>user
+Where is order A-1001? MARK-USER-1<|im_end|>
+<|im_start|>assistant
+<think></think>
+<tool_call>
+<function=lookup_order>
+<parameter=order_id>
+A-1001-MARKARG1
+</parameter>
+<parameter=include_history>
+True
+</parameter>
+</function>
+</tool_call>
+<|im_end|>
+<|im_start|>user
+<tool_response>
+Order A-1001 shipped on 2026-03-02 and is in transit. MARK-RESULT-1
+</tool_response>
+<|im_end|>
+<|im_start|>assistant
+<think>

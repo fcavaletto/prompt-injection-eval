@@ -1,0 +1,9 @@
+<|begin_of_text|><|im_start|>system
+You are an operations assistant for a small shop. MARK-SYS<|im_end|>
+<|im_start|>user
+Where is order A-1001? MARK-USER-1<|im_end|>
+<|im_start|>assistant
+<|im_end|>
+<|im_start|>tool
+Order A-1001 shipped on 2026-03-02 and is in transit. MARK-RESULT-1<|im_end|>
+<|im_start|>assistant

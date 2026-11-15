@@ -1,0 +1,1 @@
+<|user|>Where is order A-1001? MARK-USER-1<|end|><|assistant|><|end|><|tool|>Order A-1001 shipped on 2026-03-02 and is in transit. MARK-RESULT-1<|end|><|assistant|>

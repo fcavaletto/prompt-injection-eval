@@ -1,0 +1,148 @@
+<|begin_of_text|><|header_start|>system<|header_end|>
+
+Environment: ipython
+You are an operations assistant for a small shop. MARK-SYS<|eot|><|header_start|>user<|header_end|>
+
+Given the following functions, please respond with a JSON for a function call with its proper arguments that best answers the given prompt.
+
+Respond in the format {"name": function name, "parameters": dictionary of argument name and its value}.Do not use variables.
+
+{
+    "type": "function",
+    "function": {
+        "name": "lookup_order",
+        "description": "Look up one order by its identifier. MARK-DESC-ALPHA",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "order_id": {
+                    "type": "string",
+                    "description": "Order identifier, for example A-1001."
+                },
+                "include_history": {
+                    "type": "boolean",
+                    "description": "Also return the shipping history."
+                }
+            },
+            "required": [
+                "order_id"
+            ]
+        }
+    }
+}
+
+{
+    "type": "function",
+    "function": {
+        "name": "search_messages",
+        "description": "Search the user's messages. Returns \"matches\" as a list. MARK-DESC-BRAVO",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "Text to search for."
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum number of matches."
+                },
+                "folders": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Folders to search."
+                }
+            },
+            "required": [
+                "query"
+            ]
+        }
+    }
+}
+
+{
+    "type": "function",
+    "function": {
+        "name": "send_message",
+        "description": "Send a message to one recipient. MARK-DESC-CHARLIE",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "recipient": {
+                    "type": "string",
+                    "description": "Name or address of the recipient."
+                },
+                "body": {
+                    "type": "string",
+                    "description": "Text of the message."
+                },
+                "priority": {
+                    "type": "string",
+                    "enum": [
+                        "low",
+                        "normal",
+                        "MARKENUM-urgent"
+                    ]
+                }
+            },
+            "required": [
+                "recipient",
+                "body"
+            ]
+        }
+    }
+}
+
+{
+    "type": "function",
+    "function": {
+        "name": "update_record",
+        "description": "Update a customer record. Café, 東京. MARK-DESC-DELTA",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "record": {
+                    "type": "object",
+                    "description": "The record to change.",
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "fields": {
+                            "type": "object",
+                            "description": "MARKNESTED field names and new values."
+                        }
+                    },
+                    "required": [
+                        "id"
+                    ]
+                },
+                "dry_run": {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "record"
+            ]
+        }
+    }
+}
+
+Where is order A-1001? MARK-USER-1<|eot|><|header_start|>assistant<|header_end|>
+
+<|python_start|><|python_end|>{"name": "lookup_order", "parameters": {"order_id": "A-1001-MARKARG1", "include_history": true}}<|eot|><|header_start|>ipython<|header_end|>
+
+"Order A-1001 shipped on 2026-03-02 and is in transit. MARK-RESULT-1"<|eot|><|header_start|>assistant<|header_end|>
+
+Order A-1001 shipped on 2 March and is in transit. MARK-ASSIST-1<|eot|><|header_start|>user<|header_end|>
+
+Find Dana's last message about it and tell her it shipped. MARK-USER-2<|eot|><|header_start|>assistant<|header_end|>
+
+<|python_start|>I will do both. MARK-ASSIST-2<|python_end|>{"name": "search_messages", "parameters": {"query": "A-1001 MARKARG2", "limit": 1, "folders": ["inbox"]}}{"name": "send_message", "parameters": {"recipient": "Dana", "body": "Order A-1001 has shipped. MARKARG3", "priority": "normal"}}<|eot|><|header_start|>ipython<|header_end|>
+
+"1 match: \"Any news on A-1001?\" from Dana, 1 March. MARK-RESULT-2"<|eot|><|header_start|>ipython<|header_end|>
+
+"Message delivered to Dana. MARK-RESULT-3"<|eot|><|header_start|>assistant<|header_end|>
+

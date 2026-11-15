@@ -1,0 +1,30 @@
+<|im_start|>system
+You are an operations assistant for a small shop. MARK-SYS
+
+# Tools
+
+You may call one or more functions to assist with the user query.
+
+You are provided with function signatures within <tools></tools> XML tags:
+<tools>
+{"type": "function", "function": {"name": "lookup_order", "description": "Look up one order by its identifier. MARK-DESC-ALPHA", "parameters": {"type": "object", "properties": {"order_id": {"type": "string", "description": "Order identifier, for example A-1001."}, "include_history": {"type": "boolean", "description": "Also return the shipping history."}}, "required": ["order_id"]}}}
+{"type": "function", "function": {"name": "search_messages", "description": "Search the user's messages. Returns \"matches\" as a list. MARK-DESC-BRAVO", "parameters": {"type": "object", "properties": {"query": {"type": "string", "description": "Text to search for."}, "limit": {"type": "integer", "description": "Maximum number of matches."}, "folders": {"type": "array", "items": {"type": "string"}, "description": "Folders to search."}}, "required": ["query"]}}}
+{"type": "function", "function": {"name": "send_message", "description": "Send a message to one recipient. MARK-DESC-CHARLIE", "parameters": {"type": "object", "properties": {"recipient": {"type": "string", "description": "Name or address of the recipient."}, "body": {"type": "string", "description": "Text of the message."}, "priority": {"type": "string", "enum": ["low", "normal", "MARKENUM-urgent"]}}, "required": ["recipient", "body"]}}}
+{"type": "function", "function": {"name": "update_record", "description": "Update a customer record. Café, 東京. MARK-DESC-DELTA", "parameters": {"type": "object", "properties": {"record": {"type": "object", "description": "The record to change.", "properties": {"id": {"type": "string"}, "fields": {"type": "object", "description": "MARKNESTED field names and new values."}}, "required": ["id"]}, "dry_run": {"type": "boolean"}}, "required": ["record"]}}}
+</tools>
+
+For each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:
+<tool_call>
+{"name": <function-name>, "arguments": <args-json-object>}
+</tool_call><|im_end|>
+<|im_start|>user
+Where is order A-1001? MARK-USER-1<|im_end|>
+<|im_start|>assistant
+<tool_call>
+{"name": "lookup_order", "arguments": {"order_id": "A-1001-MARKARG1", "include_history": true}}
+</tool_call><|im_end|>
+<|im_start|>user
+<tool_response>
+Order A-1001 shipped on 2026-03-02 and is in transit. MARK-RESULT-1
+</tool_response><|im_end|>
+<|im_start|>assistant

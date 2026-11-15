@@ -1,0 +1,16 @@
+<|start_of_role|>system<|end_of_role|>You are an operations assistant for a small shop. MARK-SYS<|end_of_text|>
+<|start_of_role|>available_tools<|end_of_role|>[
+{"type":"function","function":{"name":"lookup_order","description":"Look up one order by its identifier. MARK-DESC-ALPHA","parameters":{"type":"object","required":["order_id"],"properties":{"include_history":{"type":"boolean","description":"Also return the shipping history."},"order_id":{"type":"string","description":"Order identifier, for example A-1001."}}}}},
+{"type":"function","function":{"name":"search_messages","description":"Search the user's messages. Returns \"matches\" as a list. MARK-DESC-BRAVO","parameters":{"type":"object","required":["query"],"properties":{"folders":{"type":"array","items":{"type":"string"},"description":"Folders to search."},"limit":{"type":"integer","description":"Maximum number of matches."},"query":{"type":"string","description":"Text to search for."}}}}},
+{"type":"function","function":{"name":"send_message","description":"Send a message to one recipient. MARK-DESC-CHARLIE","parameters":{"type":"object","required":["recipient","body"],"properties":{"body":{"type":"string","description":"Text of the message."},"priority":{"type":"string","enum":["low","normal","MARKENUM-urgent"]},"recipient":{"type":"string","description":"Name or address of the recipient."}}}}},
+{"type":"function","function":{"name":"update_record","description":"Update a customer record. Café, 東京. MARK-DESC-DELTA","parameters":{"type":"object","required":["record"],"properties":{"dry_run":{"type":"boolean"},"record":{"type":"object","description":"The record to change.","properties":{"id":{"type":"string"},"fields":{"type":"object","description":"MARKNESTED field names and new values."}},"required":["id"]}}}}}
+]<|end_of_text|>
+<|start_of_role|>user<|end_of_role|>Where is order A-1001? MARK-USER-1<|end_of_text|>
+<|start_of_role|>assistant<|end_of_role|><|tool_call|>{"name": "lookup_order", "arguments": {"include_history":true,"order_id":"A-1001-MARKARG1"}}<|end_of_text|>
+<|start_of_role|>tool_response<|end_of_role|>Order A-1001 shipped on 2026-03-02 and is in transit. MARK-RESULT-1<|end_of_text|>
+<|start_of_role|>assistant<|end_of_role|>Order A-1001 shipped on 2 March and is in transit. MARK-ASSIST-1<|end_of_text|>
+<|start_of_role|>user<|end_of_role|>Find Dana's last message about it and tell her it shipped. MARK-USER-2<|end_of_text|>
+<|start_of_role|>assistant<|end_of_role|>I will do both. MARK-ASSIST-2<|end_of_text|>
+<|start_of_role|>tool_response<|end_of_role|>1 match: "Any news on A-1001?" from Dana, 1 March. MARK-RESULT-2<|end_of_text|>
+<|start_of_role|>tool_response<|end_of_role|>Message delivered to Dana. MARK-RESULT-3<|end_of_text|>
+<|start_of_role|>assistant<|end_of_role|>

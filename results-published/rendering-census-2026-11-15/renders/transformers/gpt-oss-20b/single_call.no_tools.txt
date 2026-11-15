@@ -1,0 +1,11 @@
+<|start|>system<|message|>You are ChatGPT, a large language model trained by OpenAI.
+Knowledge cutoff: 2024-06
+Current date: 2026-11-15
+
+Reasoning: medium
+
+# Valid channels: analysis, commentary, final. Channel must be included for every message.<|end|><|start|>developer<|message|># Instructions
+
+You are an operations assistant for a small shop. MARK-SYS
+
+<|end|><|start|>user<|message|>Where is order A-1001? MARK-USER-1<|end|><|start|>assistant to=functions.lookup_order<|channel|>commentary json<|message|>{"order_id": "A-1001-MARKARG1", "include_history": true}<|call|><|start|>functions.lookup_order to=assistant<|channel|>commentary<|message|>"Order A-1001 shipped on 2026-03-02 and is in transit. MARK-RESULT-1"<|end|><|start|>assistant

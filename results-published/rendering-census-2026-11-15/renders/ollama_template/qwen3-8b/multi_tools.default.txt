@@ -1,0 +1,31 @@
+<|im_start|>system
+
+You are an operations assistant for a small shop. MARK-SYS
+
+# Tools
+
+You may call one or more functions to assist with the user query.
+
+You are provided with function signatures within <tools></tools> XML tags:
+<tools>
+{"type": "function", "function": {lookup_order Look up one order by its identifier. MARK-DESC-ALPHA {object <nil> <nil> [order_id] {"include_history":{"type":"boolean","description":"Also return the shipping history."},"order_id":{"type":"string","description":"Order identifier, for example A-1001."}}}}}
+{"type": "function", "function": {search_messages Search the user's messages. Returns "matches" as a list. MARK-DESC-BRAVO {object <nil> <nil> [query] {"folders":{"type":"array","items":{"type":"string"},"description":"Folders to search."},"limit":{"type":"integer","description":"Maximum number of matches."},"query":{"type":"string","description":"Text to search for."}}}}}
+{"type": "function", "function": {send_message Send a message to one recipient. MARK-DESC-CHARLIE {object <nil> <nil> [recipient body] {"body":{"type":"string","description":"Text of the message."},"priority":{"type":"string","enum":["low","normal","MARKENUM-urgent"]},"recipient":{"type":"string","description":"Name or address of the recipient."}}}}}
+{"type": "function", "function": {update_record Update a customer record. Café, 東京. MARK-DESC-DELTA {object <nil> <nil> [record] {"dry_run":{"type":"boolean"},"record":{"type":"object","description":"The record to change.","properties":{"id":{"type":"string"},"fields":{"type":"object","description":"MARKNESTED field names and new values."}},"required":["id"]}}}}}
+</tools>
+
+For each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:
+<tool_call>
+{"name": <function-name>, "arguments": <args-json-object>}
+</tool_call><|im_end|>
+<|im_start|>user
+Where is order A-1001? MARK-USER-1<|im_end|>
+<|im_start|>assistant
+<tool_call>
+{"name": "lookup_order", "arguments": {"include_history":true,"order_id":"A-1001-MARKARG1"}}
+</tool_call><|im_end|>
+<|im_start|>user
+<tool_response>
+Order A-1001 shipped on 2026-03-02 and is in transit. MARK-RESULT-1
+</tool_response><|im_end|>
+<|im_start|>assistant

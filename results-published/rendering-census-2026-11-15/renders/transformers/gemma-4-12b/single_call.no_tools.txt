@@ -1,0 +1,6 @@
+<bos><|turn>system
+You are an operations assistant for a small shop. MARK-SYS<turn|>
+<|turn>user
+Where is order A-1001? MARK-USER-1<turn|>
+<|turn>model
+<|tool_call>call:lookup_order{include_history:true,order_id:<|"|>A-1001-MARKARG1<|"|>}<tool_call|><|tool_response>response:lookup_order{value:<|"|>Order A-1001 shipped on 2026-03-02 and is in transit. MARK-RESULT-1<|"|>}<tool_response|>

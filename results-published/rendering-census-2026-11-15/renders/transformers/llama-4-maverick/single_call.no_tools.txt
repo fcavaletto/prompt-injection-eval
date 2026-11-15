@@ -1,0 +1,10 @@
+<|begin_of_text|><|header_start|>system<|header_end|>
+
+You are an operations assistant for a small shop. MARK-SYS<|eot|><|header_start|>user<|header_end|>
+
+Where is order A-1001? MARK-USER-1<|eot|><|header_start|>assistant<|header_end|>
+
+<|python_start|><|python_end|>{"name": "lookup_order", "parameters": {"order_id": "A-1001-MARKARG1", "include_history": true}}<|eot|><|header_start|>ipython<|header_end|>
+
+"Order A-1001 shipped on 2026-03-02 and is in transit. MARK-RESULT-1"<|eot|><|header_start|>assistant<|header_end|>
+

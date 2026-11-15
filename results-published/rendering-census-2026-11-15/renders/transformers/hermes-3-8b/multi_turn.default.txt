@@ -1,0 +1,51 @@
+<|begin_of_text|><|im_start|>system
+You are a function calling AI model. You are provided with function signatures within <tools></tools> XML tags. You may call one or more functions to assist with the user query. Don't make assumptions about what values to plug into functions. Here are the available tools: <tools> {"type": "function", "function": {"name": "lookup_order", "description": "lookup_order(order_id: str, include_history: bool) - Look up one order by its identifier. MARK-DESC-ALPHA
+
+    Args:
+        order_id(str): Order identifier, for example A-1001.        include_history(bool): Also return the shipping history.", "parameters": {"type": "object", "properties": {"order_id": {"type": "string", "description": "Order identifier, for example A-1001."}, "include_history": {"type": "boolean", "description": "Also return the shipping history."}}, "required": ["order_id"]}}
+{"type": "function", "function": {"name": "search_messages", "description": "search_messages(query: str, limit: int, folders: list[Union[]]) - Search the user's messages. Returns "matches" as a list. MARK-DESC-BRAVO
+
+    Args:
+        query(str): Text to search for.        limit(int): Maximum number of matches.        folders(list[Union[]]): Folders to search.", "parameters": {"type": "object", "properties": {"query": {"type": "string", "description": "Text to search for."}, "limit": {"type": "integer", "description": "Maximum number of matches."}, "folders": {"type": "array", "items": {"type": "string"}, "description": "Folders to search."}}, "required": ["query"]}}
+{"type": "function", "function": {"name": "send_message", "description": "send_message(recipient: str, body: str, priority: str) - Send a message to one recipient. MARK-DESC-CHARLIE
+
+    Args:
+        recipient(str): Name or address of the recipient.        body(str): Text of the message.        priority(str): ", "parameters": {"type": "object", "properties": {"recipient": {"type": "string", "description": "Name or address of the recipient."}, "body": {"type": "string", "description": "Text of the message."}, "priority": {"type": "string", "enum": ["low", "normal", "MARKENUM-urgent"]}}, "required": ["recipient", "body"]}}
+{"type": "function", "function": {"name": "update_record", "description": "update_record(record: dict, dry_run: bool) - Update a customer record. Café, 東京. MARK-DESC-DELTA
+
+    Args:
+        record(dict): The record to change.        dry_run(bool): ", "parameters": {"type": "object", "properties": {"record": {"type": "object", "description": "The record to change.", "properties": {"id": {"type": "string"}, "fields": {"type": "object", "description": "MARKNESTED field names and new values."}}, "required": ["id"]}, "dry_run": {"type": "boolean"}}, "required": ["record"]}} </tools>Use the following pydantic model json schema for each tool call you will make: {"properties": {"name": {"title": "Name", "type": "string"}, "arguments": {"title": "Arguments", "type": "object"}}, "required": ["name", "arguments"], "title": "FunctionCall", "type": "object"}}
+For each function call return a json object with function name and arguments within <tool_call></tool_call> XML tags as follows:
+<tool_call>
+{"name": <function-name>, "arguments": <args-dict>}
+</tool_call><|im_end|>
+<|im_start|>system
+You are an operations assistant for a small shop. MARK-SYS<|im_end|>
+<|im_start|>user
+Where is order A-1001? MARK-USER-1<|im_end|>
+<|im_start|>assistant
+<tool_call>
+{"name": "lookup_order", "arguments": {"order_id": "A-1001-MARKARG1", "include_history": true}}
+</tool_call><|im_end|>
+<|im_start|>tool
+<tool_response>
+Order A-1001 shipped on 2026-03-02 and is in transit. MARK-RESULT-1
+</tool_response>
+<|im_end|><|im_start|>assistant
+Order A-1001 shipped on 2 March and is in transit. MARK-ASSIST-1<|im_end|>
+<|im_start|>user
+Find Dana's last message about it and tell her it shipped. MARK-USER-2<|im_end|>
+<|im_start|>assistant
+<tool_call>
+{"name": "search_messages", "arguments": {"query": "A-1001 MARKARG2", "limit": 1, "folders": ["inbox"]}}
+</tool_call>
+<tool_call>
+{"name": "send_message", "arguments": {"recipient": "Dana", "body": "Order A-1001 has shipped. MARKARG3", "priority": "normal"}}
+</tool_call><|im_end|>
+<|im_start|>tool
+<tool_response>
+1 match: "Any news on A-1001?" from Dana, 1 March. MARK-RESULT-2
+</tool_response>
+<tool_response>
+Message delivered to Dana. MARK-RESULT-3
+</tool_response><|im_end|><|im_start|>assistant

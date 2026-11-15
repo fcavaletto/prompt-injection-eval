@@ -1,0 +1,1 @@
+<|system|>You are an operations assistant for a small shop. MARK-SYS<|user|>Where is order A-1001? MARK-USER-1<|end|><|assistant|><|tool_call|>[{"name":"lookup_order","arguments":{"include_history":true,"order_id":"A-1001-MARKARG1"}]<|/tool_call|><|end|><|tool|>Order A-1001 shipped on 2026-03-02 and is in transit. MARK-RESULT-1<|end|><|assistant|>

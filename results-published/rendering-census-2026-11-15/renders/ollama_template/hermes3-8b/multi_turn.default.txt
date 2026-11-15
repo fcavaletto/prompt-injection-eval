@@ -1,0 +1,34 @@
+<|im_start|>system
+You are a function calling AI model. You are provided with function signatures within <tools></tools> XML tags. You may call one or more functions to assist with the user query. Don't make assumptions about what values to plug into functions. Here are the available tools: <tools>
+{"type": "function", "function": {lookup_order Look up one order by its identifier. MARK-DESC-ALPHA {object <nil> <nil> [order_id] {"include_history":{"type":"boolean","description":"Also return the shipping history."},"order_id":{"type":"string","description":"Order identifier, for example A-1001."}}}}}
+{"type": "function", "function": {search_messages Search the user's messages. Returns "matches" as a list. MARK-DESC-BRAVO {object <nil> <nil> [query] {"folders":{"type":"array","items":{"type":"string"},"description":"Folders to search."},"limit":{"type":"integer","description":"Maximum number of matches."},"query":{"type":"string","description":"Text to search for."}}}}}
+{"type": "function", "function": {send_message Send a message to one recipient. MARK-DESC-CHARLIE {object <nil> <nil> [recipient body] {"body":{"type":"string","description":"Text of the message."},"priority":{"type":"string","enum":["low","normal","MARKENUM-urgent"]},"recipient":{"type":"string","description":"Name or address of the recipient."}}}}}
+{"type": "function", "function": {update_record Update a customer record. Café, 東京. MARK-DESC-DELTA {object <nil> <nil> [record] {"dry_run":{"type":"boolean"},"record":{"type":"object","description":"The record to change.","properties":{"id":{"type":"string"},"fields":{"type":"object","description":"MARKNESTED field names and new values."}},"required":["id"]}}}}}  </tools> Use the following pydantic model json schema for each tool call you will make: {"properties": {"arguments": {"title": "Arguments", "type": "object"}, "name": {"title": "Name", "type": "string"}}, "required": ["arguments", "name"], "title": "FunctionCall", "type": "object"} For each function call return a json object with function name and arguments within <tool_call></tool_call> XML tags as follows:
+<tool_call>
+{"arguments": <args-dict>, "name": <function-name>}
+</tool_call><|im_end|>
+<|im_start|>user
+Where is order A-1001? MARK-USER-1<|im_end|>
+<|im_start|>assistant
+<tool_call>
+{"name": "lookup_order", "arguments": {"include_history":true,"order_id":"A-1001-MARKARG1"}}
+</tool_call><|im_end|>
+<|im_start|>user
+<tool_response>
+Order A-1001 shipped on 2026-03-02 and is in transit. MARK-RESULT-1
+</tool_response><|im_end|>
+<|im_start|>assistant
+Order A-1001 shipped on 2 March and is in transit. MARK-ASSIST-1<|im_end|>
+<|im_start|>user
+Find Dana's last message about it and tell her it shipped. MARK-USER-2<|im_end|>
+<|im_start|>assistant
+I will do both. MARK-ASSIST-2<|im_end|>
+<|im_start|>user
+<tool_response>
+1 match: "Any news on A-1001?" from Dana, 1 March. MARK-RESULT-2
+</tool_response><|im_end|>
+<|im_start|>user
+<tool_response>
+Message delivered to Dana. MARK-RESULT-3
+</tool_response><|im_end|>
+<|im_start|>assistant

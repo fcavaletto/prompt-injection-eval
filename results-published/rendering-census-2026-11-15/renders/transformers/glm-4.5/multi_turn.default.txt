@@ -1,0 +1,60 @@
+[gMASK]<sop><|system|>
+# Tools
+
+You may call one or more functions to assist with the user query.
+
+You are provided with function signatures within <tools></tools> XML tags:
+<tools>
+{"type": "function", "function": {"name": "lookup_order", "description": "Look up one order by its identifier. MARK-DESC-ALPHA", "parameters": {"type": "object", "properties": {"order_id": {"type": "string", "description": "Order identifier, for example A-1001."}, "include_history": {"type": "boolean", "description": "Also return the shipping history."}}, "required": ["order_id"]}}}
+{"type": "function", "function": {"name": "search_messages", "description": "Search the user's messages. Returns \"matches\" as a list. MARK-DESC-BRAVO", "parameters": {"type": "object", "properties": {"query": {"type": "string", "description": "Text to search for."}, "limit": {"type": "integer", "description": "Maximum number of matches."}, "folders": {"type": "array", "items": {"type": "string"}, "description": "Folders to search."}}, "required": ["query"]}}}
+{"type": "function", "function": {"name": "send_message", "description": "Send a message to one recipient. MARK-DESC-CHARLIE", "parameters": {"type": "object", "properties": {"recipient": {"type": "string", "description": "Name or address of the recipient."}, "body": {"type": "string", "description": "Text of the message."}, "priority": {"type": "string", "enum": ["low", "normal", "MARKENUM-urgent"]}}, "required": ["recipient", "body"]}}}
+{"type": "function", "function": {"name": "update_record", "description": "Update a customer record. Café, 東京. MARK-DESC-DELTA", "parameters": {"type": "object", "properties": {"record": {"type": "object", "description": "The record to change.", "properties": {"id": {"type": "string"}, "fields": {"type": "object", "description": "MARKNESTED field names and new values."}}, "required": ["id"]}, "dry_run": {"type": "boolean"}}, "required": ["record"]}}}
+</tools>
+
+For each function call, output the function name and arguments within the following XML format:
+<tool_call>{function-name}
+<arg_key>{arg-key-1}</arg_key>
+<arg_value>{arg-value-1}</arg_value>
+<arg_key>{arg-key-2}</arg_key>
+<arg_value>{arg-value-2}</arg_value>
+...
+</tool_call><|system|>
+You are an operations assistant for a small shop. MARK-SYS<|user|>
+Where is order A-1001? MARK-USER-1<|assistant|>
+<think></think>
+<tool_call>lookup_order
+<arg_key>order_id</arg_key>
+<arg_value>A-1001-MARKARG1</arg_value>
+<arg_key>include_history</arg_key>
+<arg_value>true</arg_value>
+</tool_call><|observation|>
+<tool_response>
+Order A-1001 shipped on 2026-03-02 and is in transit. MARK-RESULT-1
+</tool_response><|assistant|>
+<think></think>
+Order A-1001 shipped on 2 March and is in transit. MARK-ASSIST-1<|user|>
+Find Dana's last message about it and tell her it shipped. MARK-USER-2<|assistant|>
+<think></think>
+I will do both. MARK-ASSIST-2
+<tool_call>search_messages
+<arg_key>query</arg_key>
+<arg_value>A-1001 MARKARG2</arg_value>
+<arg_key>limit</arg_key>
+<arg_value>1</arg_value>
+<arg_key>folders</arg_key>
+<arg_value>["inbox"]</arg_value>
+</tool_call>
+<tool_call>send_message
+<arg_key>recipient</arg_key>
+<arg_value>Dana</arg_value>
+<arg_key>body</arg_key>
+<arg_value>Order A-1001 has shipped. MARKARG3</arg_value>
+<arg_key>priority</arg_key>
+<arg_value>normal</arg_value>
+</tool_call><|observation|>
+<tool_response>
+1 match: "Any news on A-1001?" from Dana, 1 March. MARK-RESULT-2
+</tool_response>
+<tool_response>
+Message delivered to Dana. MARK-RESULT-3
+</tool_response><|assistant|>

@@ -1,0 +1,27 @@
+<|start_header_id|>system<|end_header_id|>
+
+You are an operations assistant for a small shop. MARK-SYS
+
+Cutting Knowledge Date: December 2023
+
+When you receive a tool call response, use the output to format an answer to the orginal user question.
+
+You are a helpful assistant with tool calling capabilities.<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+Where is order A-1001? MARK-USER-1<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+{"name": "lookup_order", "parameters": {"include_history":true,"order_id":"A-1001-MARKARG1"}}<|eot_id|><|start_header_id|>ipython<|end_header_id|>
+
+Order A-1001 shipped on 2026-03-02 and is in transit. MARK-RESULT-1<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+Order A-1001 shipped on 2 March and is in transit. MARK-ASSIST-1<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+Find Dana's last message about it and tell her it shipped. MARK-USER-2<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+{"name": "search_messages", "parameters": {"folders":["inbox"],"limit":1,"query":"A-1001 MARKARG2"}}
+{"name": "send_message", "parameters": {"body":"Order A-1001 has shipped. MARKARG3","priority":"normal","recipient":"Dana"}}<|eot_id|><|start_header_id|>ipython<|end_header_id|>
+
+1 match: "Any news on A-1001?" from Dana, 1 March. MARK-RESULT-2<|eot_id|><|start_header_id|>ipython<|end_header_id|>
+
+Message delivered to Dana. MARK-RESULT-3<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+

@@ -29,8 +29,8 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import csv
 import copy
+import csv
 import datetime as dt
 import gzip
 import hashlib
@@ -299,8 +299,13 @@ def analyse(
     return row
 
 
-def template_features(source: str) -> dict[str, Any]:
+def template_features(source: str | dict[str, str]) -> dict[str, Any]:
+    named = None
+    if isinstance(source, dict):  # a repository can ship several named templates
+        named = sorted(source)
+        source = "\n".join(f"{{# {name} #}}\n{source[name]}" for name in named)
     return {
+        "named_templates": named,
         "template_sha256": sha(source),
         "template_chars": len(source),
         "mentions_tools": "tools" in source,
@@ -408,8 +413,10 @@ def stage_transformers(only: str | None) -> None:
         base = {
             "stack": "transformers",
             "observation": {
-                "transformers": "rendered by tokenizer.apply_chat_template (actual implementation, tokenizer level)",
-                "transformers_jinja": "template file rendered by the transformers Jinja environment, tokenizer not loaded",
+                "transformers": "rendered by tokenizer.apply_chat_template "
+                "(actual implementation, tokenizer level)",
+                "transformers_jinja": "template file rendered by the transformers Jinja "
+                "environment, tokenizer not loaded",
                 "none": "not observed",
             }[renderer],
             "renderer": renderer,
@@ -452,7 +459,8 @@ def stage_transformers(only: str | None) -> None:
             rows.append(row)
         token_ids[config["id"]] = ids_for_config
         print(
-            f"{config['id']:22s} {renderer:18s} rendered {ok}/{len(cases(fx))}  template {base['template_sha256'][:10]}"
+            f"{config['id']:22s} {renderer:18s} rendered {ok}/{len(cases(fx))}  "
+            f"template {base['template_sha256'][:10]}"
         )
     if only:
         print(json.dumps(rows, indent=1, ensure_ascii=False)[:6000])
@@ -461,7 +469,7 @@ def stage_transformers(only: str | None) -> None:
     with gzip.open(OUT / "token_ids.json.gz", "wt") as handle:
         json.dump(token_ids, handle)
     manifest = {
-        "run_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+        "run_at_utc": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
         "software": software(),
         "fixtures_sha256": sha(FIXTURES.read_bytes()),
         "sample_sha256": sha(SAMPLE.read_bytes()),
@@ -475,11 +483,12 @@ def stage_transformers(only: str | None) -> None:
 
 def stage_vllm_replay() -> None:
     sys.path.insert(0, str(ROOT / "src"))
-    from prompt_injection_eval import injecagent
     from transformers import AutoTokenizer
 
+    from prompt_injection_eval import injecagent
+
     sample = {c["id"]: c for c in json.loads(SAMPLE.read_text())["configs"]}
-    cases_by_id = {c.case_id: c for c in injecagent.load_cases(ROOT / injecagent.DATA_DIR)}
+    cases_by_id = {c.id: c for c in injecagent.load_cases(ROOT / injecagent.DATA_DIR)}
     tools = injecagent.load_tools(ROOT / injecagent.DATA_DIR)
     rows = []
     for folder in sorted(STUDY_B.iterdir()):
@@ -498,7 +507,8 @@ def stage_vllm_replay() -> None:
                     stored.append(r)
         summary: dict[str, Any] = {
             "stack": "vllm_replay",
-            "observation": "prompt returned by the vLLM server during Study B, compared with a transformers rendering",
+            "observation": "prompt returned by the vLLM server during Study B, "
+            "compared with a transformers rendering",
             "config": label,
             "hf_repo": sample[label]["hf_repo"],
             "revision_used_for_comparison": sample[label]["revision"],
@@ -562,7 +572,8 @@ def stage_vllm_replay() -> None:
         summary["first_mismatch"] = example
         rows.append(summary)
         print(
-            f"{label:16s} stored {len(stored):3d}  identical {match_converted} (arguments parsed) / {match_wire} (as sent)"
+            f"{label:16s} stored {len(stored):3d}  identical {match_converted} (arguments parsed) "
+            f"/ {match_wire} (as sent)"
         )
     write_rows(OUT / "vllm_replay.jsonl", rows)
 
@@ -607,7 +618,8 @@ def stage_ollama(renderer_binary: str) -> None:
         )
         meta[tag] = {
             "stack": "ollama_template",
-            "observation": "rendered by Ollama's template and renderer packages (v0.34.4 source), not by a running server",
+            "observation": "rendered by Ollama's template and renderer packages (v0.34.4 source), "
+            "not by a running server",
             "config": tag,
             "manifest_sha256": sha(json.dumps(manifest, sort_keys=True)),
             "model_layer_digest": layers.get("model", {}).get("digest"),
@@ -661,7 +673,8 @@ def stage_ollama(renderer_binary: str) -> None:
     for tag in meta:
         good = sum(1 for r in rows if r["config"] == tag and not r["error"])
         print(
-            f"{tag:22s} rendered {good}  renderer={meta[tag]['renderer_in_config']}  template {meta[tag]['template_sha256'][:10]}"
+            f"{tag:22s} rendered {good}  renderer={meta[tag]['renderer_in_config']}  "
+            f"template {meta[tag]['template_sha256'][:10]}"
         )
 
 
@@ -786,7 +799,8 @@ def stage_summary() -> None:
         + "\n"
     )
     print(
-        f"{len(out)} configurations, {len(lineage)} distinct templates, {len(families)} templates shared by more than one"
+        f"{len(out)} configurations, {len(lineage)} distinct templates, "
+        f"{len(families)} templates shared by more than one"
     )
 
 
