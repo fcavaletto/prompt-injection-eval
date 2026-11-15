@@ -52,6 +52,12 @@ docs = [
   "mkdocs-material>=9.5",
   "mkdocs-jupyter>=0.25",
 ]
+# The serialization pilot. Pinned: the harness checks the installed version before it runs.
+pilot = [
+  "agentdojo==0.1.35",
+  "numpy>=1.26",
+  "pyyaml>=6.0",
+]
 
 [project.scripts]
 pie = "prompt_injection_eval.cli:app"
@@ -71,6 +77,9 @@ select = ["E", "F", "I", "UP", "B"]
 "src/prompt_injection_eval/cli.py" = ["B008"]
 "src/prompt_injection_eval/adaptive/cli.py" = ["B008"]
 "src/prompt_injection_eval/injecagent_cli.py" = ["B008"]
+# Report sentences and command messages are kept on one line each.
+"src/prompt_injection_eval/pilot/cli.py" = ["B008", "E501"]
+"src/prompt_injection_eval/pilot/analysis.py" = ["E501"]
 "notebooks/*.ipynb" = ["E501"]
 
 [tool.pytest.ini_options]
@@ -93,5 +102,5 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
-module = ["pandas", "matplotlib", "matplotlib.pyplot", "mlx", "mlx.*", "mlx_lm", "mlx_lm.*", "huggingface_hub"]
+module = ["pandas", "matplotlib", "matplotlib.pyplot", "mlx", "mlx.*", "mlx_lm", "mlx_lm.*", "huggingface_hub", "agentdojo", "agentdojo.*", "yaml", "transformers"]
 ignore_missing_imports = true
