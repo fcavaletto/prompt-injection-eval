@@ -1,0 +1,27 @@
+{
+ "what": "Precision attainable for a paired format contrast, estimated from development data (banking, 16 user tasks, 72 pairs, fixed baseline attack, one run). Only the interval widths were used for planning; the point estimate is descriptive development data and was not used.",
+ "task_interval_half_width_points": 10.4,
+ "two_way_interval_half_width_points": 16.0,
+ "projected_half_width_slack_21_tasks": 9.1,
+ "projected_half_width_reserved_60_tasks": 5.4,
+ "projection_assumption": "Half-width scales with the inverse square root of the number of user tasks; between-task variance on Slack, workspace and travel is assumed similar to banking. Unverified.",
+ "repeat_runs": "In the 100 development-control cells run three times, 0 had disagreeing runs (temperature 0). Attack episodes were run once, so their repeatability is unmeasured.",
+ "contrast_row": {
+  "name": "baseline, text minus JSON, development",
+  "first": "text",
+  "second": "json",
+  "cases": 72,
+  "planned_cases": 72,
+  "rate_first": 76.38888888888889,
+  "rate_second": 62.5,
+  "difference": 13.88888888888889,
+  "task_interval": "+4.2 to +25.0",
+  "two_way_interval": "-1.3 to +30.7",
+  "sign_flip_p": 0.01953125,
+  "cells_with_disagreeing_runs": 0.0,
+  "bound_low": 13.88888888888889,
+  "bound_high": 13.88888888888889,
+  "invalid_share": 0.0,
+  "interpretable": true
+ }
+}

@@ -1,0 +1,138 @@
+{
+ "authorization": "F1, development data only, at most 3.00 USD across both pods (2026-11-16)",
+ "budget_accounting_usd": {
+  "authorized": 3.0,
+  "reserve_for_disk_and_billing_granularity": 0.1,
+  "before_F1a": {
+   "spent": 0.0,
+   "expiry_set": "20 min after creation",
+   "maximum_if_expiry_reached": 0.904
+  },
+  "before_F1b": {
+   "F1a_estimated": 0.284,
+   "remaining_after_reserve": 2.616,
+   "expiry_set": "50 min after creation (remaining allowance buys 58 min, minus 5 min deletion margin, rounded down)",
+   "maximum_if_expiry_reached": 2.259
+  },
+  "worst_case_total_if_both_expiries_reached": 2.543
+ },
+ "F1a_granite": {
+  "pod": "t5ze8z024whrwy",
+  "gpu": "RTX PRO 6000 Blackwell 96 GB, SECURE",
+  "listed_price_per_hour": 2.69,
+  "container_disk_gb": 150,
+  "data_center": "not reported by the API at creation",
+  "times_utc": {
+   "created": "2026-11-15T23:18:20Z",
+   "image": "cached on host",
+   "weights_downloaded": "23:19:46 (47.8 s, 60.0 GiB)",
+   "server_healthy_first_seen": "23:23:34",
+   "rendering_check": "23:23:47",
+   "smoke": "23:23:55 to 23:24:15",
+   "deletion_confirmed_by": "23:24:37 (API 204, list-pods empty)",
+   "in_pod_expiry": "23:37:56, never reached"
+  },
+  "seconds": {
+   "created_to_healthy": 314,
+   "lifetime_upper_bound": 377
+  },
+  "throughput": {
+   "episodes": 24,
+   "model_calls": 88,
+   "wall_clock_seconds": 17.8,
+   "workers": 8,
+   "aggregate_calls_per_second": 4.94,
+   "per_request_latency_seconds": {
+    "median": 1.28,
+    "mean": 1.5,
+    "p95": 2.65,
+    "max": 2.85
+   },
+   "calls_per_episode": {
+    "mean": 3.67,
+    "median": 3.0,
+    "max": 11
+   },
+   "round_limited": 0,
+   "prompt_tokens": {
+    "median": 2079.5,
+    "max": 3493
+   }
+  },
+  "estimated_cost_from_lifetime_and_listed_rates_usd": 0.284
+ },
+ "F1b_qwen": {
+  "pod": "lnumay2bk1o50t",
+  "gpu": "RTX PRO 6000 Blackwell 96 GB, SECURE",
+  "data_center": "EUR-IS-2",
+  "listed_price_per_hour": 2.69,
+  "container_disk_gb": 150,
+  "times_utc": {
+   "created": "2026-11-15T23:25:00Z",
+   "image": "pulled at creation (not cached on this host)",
+   "server_healthy_first_seen": "23:33:22",
+   "rendering_check": "23:33:3x",
+   "dev_controls": "23:33:42 to 23:36:18",
+   "feasibility": "23:36:30 to 23:39:24",
+   "deletion_confirmed_by": "23:39:47 (API 204, list-pods empty)",
+   "in_pod_expiry": "2026-11-16T00:14:37Z, never reached"
+  },
+  "seconds": {
+   "created_to_healthy": 502,
+   "lifetime_upper_bound": 887
+  },
+  "throughput": {
+   "dev_controls": {
+    "episodes": 300,
+    "model_calls": 725,
+    "wall_clock_seconds": 153.7,
+    "workers": 16,
+    "aggregate_calls_per_second": 4.72,
+    "per_request_latency_seconds": {
+     "median": 3.04,
+     "mean": 3.25,
+     "p95": 6.72,
+     "max": 12.84
+    },
+    "calls_per_episode": {
+     "mean": 2.42,
+     "median": 2.0,
+     "max": 5
+    },
+    "round_limited": 0,
+    "prompt_tokens": {
+     "median": 1920,
+     "max": 2629
+    }
+   },
+   "feasibility": {
+    "episodes": 144,
+    "model_calls": 626,
+    "wall_clock_seconds": 171.3,
+    "workers": 16,
+    "aggregate_calls_per_second": 3.65,
+    "per_request_latency_seconds": {
+     "median": 3.81,
+     "mean": 3.85,
+     "p95": 6.09,
+     "max": 28.9
+    },
+    "calls_per_episode": {
+     "mean": 4.35,
+     "median": 3.5,
+     "max": 16
+    },
+    "round_limited": 10,
+    "prompt_tokens": {
+     "median": 2375.5,
+     "max": 11884
+    }
+   }
+  },
+  "estimated_cost_from_lifetime_and_listed_rates_usd": 0.668
+ },
+ "F1_estimated_total_usd": 0.952,
+ "billing_api": "No record for 23:00 to 01:00 UTC had posted when checked shortly after deletion. The costs above are estimates from lifetime and listed rates, not billing records.",
+ "no_rehearsal_pod_rented": true,
+ "no_expiry_extended": true
+}

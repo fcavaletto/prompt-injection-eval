@@ -1,0 +1,13 @@
+Excerpt of the Qwen3-32B F1 pod's log (EUR-IS-2), read through RunPod's log API before
+deletion. The startup lines of this pod were not copied, apart from the image pull: the
+image was not cached on this host and was pulled at creation.
+
+REDACTED: the copied tail also held one access-log line per request, each showing a
+client address in 100.64.0.0/10 (RunPod's internal proxy network). Those lines are omitted
+here. Only the engine's periodic statistics lines are kept.
+
+2026-11-15T23:25:08Z system  create container: still fetching image vllm/vllm-openai:v0.33.0 (layers downloading)
+2026-11-15T23:38:58Z Engine 000: Avg prompt throughput: 619.5 tokens/s, Avg generation throughput: 229.6 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 12.0%, Prefix cache hit rate: 94.6%
+2026-11-15T23:39:08Z Engine 000: Avg prompt throughput: 406.7 tokens/s, Avg generation throughput: 91.2 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 12.7%, Prefix cache hit rate: 94.5%
+2026-11-15T23:39:18Z Engine 000: Avg prompt throughput: 236.4 tokens/s, Avg generation throughput: 57.8 tokens/s, Running: 3 reqs, Waiting: 0 reqs, GPU KV cache usage: 13.9%, Prefix cache hit rate: 94.4%
+2026-11-15T23:39:28Z Engine 000: Avg prompt throughput: 163.5 tokens/s, Avg generation throughput: 19.8 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 94.4%

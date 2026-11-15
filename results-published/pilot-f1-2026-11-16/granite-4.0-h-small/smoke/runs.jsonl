@@ -1,0 +1,1 @@
+{"finished": "2026-11-15T23:24:15+00:00", "deadline_minutes": 11.01, "fail_fast": true, "workers": 8, "planned": 24, "already_done": 0, "written": 24, "statuses": {"completed": 24}, "not_started": 0, "stopped_by_deadline": false, "stopped_after_failure": null, "remaining": 0, "seconds": 17.812116540968418, "model_calls": 88, "deadline_at": 629999.46943225}

@@ -1,0 +1,3 @@
+condition,planned,completed,invalid_delivery,unverified_delivery,prefix_error,harness_error,infra_error,interrupted,not_run
+attack/baseline/json,72,72,0,0,0,0,0,0,0
+attack/baseline/text,72,72,0,0,0,0,0,0,0

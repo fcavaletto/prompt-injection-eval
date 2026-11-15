@@ -1,0 +1,12 @@
+{
+  "phase_dir": "results/pilot/granite-4.0-h-small/smoke",
+  "tokenizer": "ibm-granite/granite-4.0-h-small@b8c0982bab7fde4eb48110f5a069527c008fab39",
+  "transformers": "5.22.1",
+  "template_kwargs": {},
+  "episodes": 24,
+  "turns_checked": 88,
+  "hashes_matching_local_rendering": 88,
+  "full_prompts_kept_and_compared": 72,
+  "full_prompts_identical": 72,
+  "mismatches": []
+}

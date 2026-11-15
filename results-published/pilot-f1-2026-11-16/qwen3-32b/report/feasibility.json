@@ -1,0 +1,351 @@
+{
+ "summary": {
+  "planned": 144,
+  "started": 144,
+  "completed": 144,
+  "interrupted": 0,
+  "invalid": 0,
+  "other_errors": 0,
+  "not_started": 0
+ },
+ "coverage_by_user_task": [
+  {
+   "user_task": "user_task_0",
+   "planned": 10,
+   "completed": 10,
+   "completed text": 5,
+   "completed json": 5,
+   "pairs complete in both formats": 5,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "user_task": "user_task_1",
+   "planned": 8,
+   "completed": 8,
+   "completed text": 4,
+   "completed json": 4,
+   "pairs complete in both formats": 4,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "user_task": "user_task_10",
+   "planned": 10,
+   "completed": 10,
+   "completed text": 5,
+   "completed json": 5,
+   "pairs complete in both formats": 5,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "user_task": "user_task_11",
+   "planned": 8,
+   "completed": 8,
+   "completed text": 4,
+   "completed json": 4,
+   "pairs complete in both formats": 4,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "user_task": "user_task_12",
+   "planned": 10,
+   "completed": 10,
+   "completed text": 5,
+   "completed json": 5,
+   "pairs complete in both formats": 5,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "user_task": "user_task_13",
+   "planned": 8,
+   "completed": 8,
+   "completed text": 4,
+   "completed json": 4,
+   "pairs complete in both formats": 4,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "user_task": "user_task_14",
+   "planned": 10,
+   "completed": 10,
+   "completed text": 5,
+   "completed json": 5,
+   "pairs complete in both formats": 5,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "user_task": "user_task_15",
+   "planned": 8,
+   "completed": 8,
+   "completed text": 4,
+   "completed json": 4,
+   "pairs complete in both formats": 4,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "user_task": "user_task_2",
+   "planned": 10,
+   "completed": 10,
+   "completed text": 5,
+   "completed json": 5,
+   "pairs complete in both formats": 5,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "user_task": "user_task_3",
+   "planned": 8,
+   "completed": 8,
+   "completed text": 4,
+   "completed json": 4,
+   "pairs complete in both formats": 4,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "user_task": "user_task_4",
+   "planned": 10,
+   "completed": 10,
+   "completed text": 5,
+   "completed json": 5,
+   "pairs complete in both formats": 5,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "user_task": "user_task_5",
+   "planned": 8,
+   "completed": 8,
+   "completed text": 4,
+   "completed json": 4,
+   "pairs complete in both formats": 4,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "user_task": "user_task_6",
+   "planned": 10,
+   "completed": 10,
+   "completed text": 5,
+   "completed json": 5,
+   "pairs complete in both formats": 5,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "user_task": "user_task_7",
+   "planned": 8,
+   "completed": 8,
+   "completed text": 4,
+   "completed json": 4,
+   "pairs complete in both formats": 4,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "user_task": "user_task_8",
+   "planned": 10,
+   "completed": 10,
+   "completed text": 5,
+   "completed json": 5,
+   "pairs complete in both formats": 5,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "user_task": "user_task_9",
+   "planned": 8,
+   "completed": 8,
+   "completed text": 4,
+   "completed json": 4,
+   "pairs complete in both formats": 4,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  }
+ ],
+ "coverage_by_attacker_goal": [
+  {
+   "injection_task": "injection_task_0",
+   "planned": 16,
+   "completed": 16,
+   "completed text": 8,
+   "completed json": 8,
+   "pairs complete in both formats": 8,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "injection_task": "injection_task_1",
+   "planned": 16,
+   "completed": 16,
+   "completed text": 8,
+   "completed json": 8,
+   "pairs complete in both formats": 8,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "injection_task": "injection_task_2",
+   "planned": 16,
+   "completed": 16,
+   "completed text": 8,
+   "completed json": 8,
+   "pairs complete in both formats": 8,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "injection_task": "injection_task_3",
+   "planned": 16,
+   "completed": 16,
+   "completed text": 8,
+   "completed json": 8,
+   "pairs complete in both formats": 8,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "injection_task": "injection_task_4",
+   "planned": 16,
+   "completed": 16,
+   "completed text": 8,
+   "completed json": 8,
+   "pairs complete in both formats": 8,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "injection_task": "injection_task_5",
+   "planned": 16,
+   "completed": 16,
+   "completed text": 8,
+   "completed json": 8,
+   "pairs complete in both formats": 8,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "injection_task": "injection_task_6",
+   "planned": 16,
+   "completed": 16,
+   "completed text": 8,
+   "completed json": 8,
+   "pairs complete in both formats": 8,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "injection_task": "injection_task_7",
+   "planned": 16,
+   "completed": 16,
+   "completed text": 8,
+   "completed json": 8,
+   "pairs complete in both formats": 8,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "injection_task": "injection_task_8",
+   "planned": 16,
+   "completed": 16,
+   "completed text": 8,
+   "completed json": 8,
+   "pairs complete in both formats": 8,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  }
+ ],
+ "coverage_by_format": [
+  {
+   "fmt": "json",
+   "planned": 72,
+   "completed": 72,
+   "completed text": 0,
+   "completed json": 72,
+   "pairs complete in both formats": 0,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  },
+  {
+   "fmt": "text",
+   "planned": 72,
+   "completed": 72,
+   "completed text": 72,
+   "completed json": 0,
+   "pairs complete in both formats": 0,
+   "interrupted": 0,
+   "invalid or error": 0,
+   "not started": 0
+  }
+ ],
+ "interrupted_episodes": [],
+ "completed_length": {
+  "n": 144,
+  "mean": 4.347222222222222,
+  "min": 1.0,
+  "q1": 3.0,
+  "median": 3.5,
+  "q3": 4.0,
+  "max": 16.0
+ },
+ "completed_length_by_format": {
+  "text": {
+   "n": 72,
+   "mean": 4.416666666666667,
+   "min": 1.0,
+   "q1": 3.0,
+   "median": 4.0,
+   "q3": 4.25,
+   "max": 16.0
+  },
+  "json": {
+   "n": 72,
+   "mean": 4.277777777777778,
+   "min": 1.0,
+   "q1": 3.0,
+   "median": 3.0,
+   "q3": 4.0,
+   "max": 16.0
+  }
+ },
+ "round_limited_completed": 10,
+ "started_mean_calls_bounds": [
+  4.347222222222222,
+  4.347222222222222
+ ],
+ "model_calls_made": 626,
+ "request_seconds": 2411.6786098968005
+}

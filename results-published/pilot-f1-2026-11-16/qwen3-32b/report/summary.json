@@ -1,0 +1,67 @@
+{
+  "label": "qwen3-32b",
+  "synthetic": false,
+  "phases": {
+    "dev-controls": {
+      "planned": 300,
+      "traces": 300,
+      "cases_in_both_formats": 16,
+      "cases_with_different_states": 0,
+      "round_limited": 0
+    },
+    "feasibility": {
+      "planned": 144,
+      "traces": 144,
+      "cases_in_both_formats": 72,
+      "cases_with_different_states": 0,
+      "round_limited": 10
+    }
+  },
+  "feasibility": {
+    "summary": {
+      "planned": 144,
+      "started": 144,
+      "completed": 144,
+      "interrupted": 0,
+      "invalid": 0,
+      "other_errors": 0,
+      "not_started": 0
+    },
+    "completed_length": {
+      "n": 144,
+      "mean": 4.347222222222222,
+      "min": 1.0,
+      "q1": 3.0,
+      "median": 3.5,
+      "q3": 4.0,
+      "max": 16.0
+    },
+    "completed_length_by_format": {
+      "text": {
+        "n": 72,
+        "mean": 4.416666666666667,
+        "min": 1.0,
+        "q1": 3.0,
+        "median": 4.0,
+        "q3": 4.25,
+        "max": 16.0
+      },
+      "json": {
+        "n": 72,
+        "mean": 4.277777777777778,
+        "min": 1.0,
+        "q1": 3.0,
+        "median": 3.0,
+        "q3": 4.0,
+        "max": 16.0
+      }
+    },
+    "round_limited_completed": 10,
+    "started_mean_calls_bounds": [
+      4.347222222222222,
+      4.347222222222222
+    ],
+    "model_calls_made": 626,
+    "request_seconds": 2411.6786098968005
+  }
+}

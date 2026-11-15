@@ -1,0 +1,14 @@
+{
+  "phase_dir": "results/pilot/qwen3-32b-f1/feasibility",
+  "tokenizer": "Qwen/Qwen3-32B@9216db5781bf21249d130ec9da846c4624c16137",
+  "transformers": "5.22.1",
+  "template_kwargs": {
+    "enable_thinking": false
+  },
+  "episodes": 144,
+  "turns_checked": 626,
+  "hashes_matching_local_rendering": 626,
+  "full_prompts_kept_and_compared": 31,
+  "full_prompts_identical": 31,
+  "mismatches": []
+}

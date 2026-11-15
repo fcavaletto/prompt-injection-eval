@@ -1,0 +1,58 @@
+{
+  "label": "granite-4.0-h-small",
+  "synthetic": false,
+  "phases": {
+    "smoke": {
+      "planned": 24,
+      "traces": 24,
+      "cases_in_both_formats": 6,
+      "cases_with_different_states": 0,
+      "round_limited": 0
+    }
+  },
+  "smoke": {
+    "criterion": "smoke-v1, 2026-11-15",
+    "passed": true,
+    "checks": [
+      {
+        "check": "every planned episode completed with verified delivery",
+        "observed": "24/24",
+        "required": "24/24",
+        "passed": true
+      },
+      {
+        "check": "turns with call-shaped text left unparsed",
+        "observed": "0/88 turns",
+        "required": "at most 5%",
+        "passed": true
+      },
+      {
+        "check": "turns with tool arguments that are not a JSON object",
+        "observed": "0/88 turns",
+        "required": "at most 5%",
+        "passed": true
+      },
+      {
+        "check": "turns cut off at the output limit",
+        "observed": "0/88 turns",
+        "required": "at most 5%",
+        "passed": true
+      },
+      {
+        "check": "from-request user tasks completed, text",
+        "observed": "1/2",
+        "required": "at least 1 of 2",
+        "passed": true
+      },
+      {
+        "check": "from-request user tasks completed, json",
+        "observed": "2/2",
+        "required": "at least 1 of 2",
+        "passed": true
+      }
+    ],
+    "statuses": {
+      "completed": 24
+    }
+  }
+}
