@@ -175,21 +175,25 @@ python -m pytest tests/test_pilot.py tests/test_pilot_analysis.py tests/test_pil
 
 ### 9.2 Server, one model at a time
 
-One rented GPU with 96 GB, image `vllm/vllm-openai:v0.33.0`. State the hourly price before creating the pod and confirm it is deleted afterwards.
+One rented GPU with 96 GB, image `vllm/vllm-openai:v0.33.0`, no volume. State the hourly price before creating the pod and confirm it is deleted afterwards.
+
+The pod's start command runs the expiry script in the background and the server in the foreground. The script's text is passed in the environment variable `POD_EXPIRY_PY`, and `EXPIRES_AT` is set to an absolute UNIX time computed from the spending limit (section 9.6). Entrypoint `["/bin/bash", "-c"]`, command:
 
 ```bash
-vllm serve Qwen/Qwen3-32B --revision 9216db5781bf21249d130ec9da846c4624c16137 --max-model-len 32768 --enable-auto-tool-choice --tool-call-parser hermes
+python3 -u -c "$POD_EXPIRY_PY" & vllm serve Qwen/Qwen3-32B --revision 9216db5781bf21249d130ec9da846c4624c16137 --dtype bfloat16 --max-model-len 32768 --generation-config vllm --enable-auto-tool-choice --tool-call-parser hermes --host 0.0.0.0 --port 8000; echo "[launcher] vllm exited with code $?"; wait
 ```
 
+If the server exits, `wait` keeps the container alive until the expiry script ends the pod, so a crash does not restart the clock. For Granite 4.0 H Small the server part is:
+
 ```bash
-vllm serve ibm-granite/granite-4.0-h-small --revision b8c0982bab7fde4eb48110f5a069527c008fab39 --max-model-len 32768 --enable-auto-tool-choice --tool-call-parser granite4
+vllm serve ibm-granite/granite-4.0-h-small --revision b8c0982bab7fde4eb48110f5a069527c008fab39 --dtype bfloat16 --max-model-len 32768 --generation-config vllm --enable-auto-tool-choice --tool-call-parser granite4 --host 0.0.0.0 --port 8000
 ```
 
 On the client, with the launch line repeated so it is stored in the manifest:
 
 ```bash
-export PIE_OPENAI_BASE_URL=http://<server>:8000 PIE_OPENAI_CONCURRENCY=32
-export PIE_OPENAI_LAUNCH_ARGS="vllm/vllm-openai:v0.33.0 Qwen/Qwen3-32B --revision 9216db5781bf21249d130ec9da846c4624c16137 --max-model-len 32768 --enable-auto-tool-choice --tool-call-parser hermes"
+export PIE_OPENAI_BASE_URL=https://<pod id>-8000.proxy.runpod.net PIE_OPENAI_CONCURRENCY=8
+export PIE_OPENAI_LAUNCH_ARGS="vllm/vllm-openai:v0.33.0 Qwen/Qwen3-32B --revision 9216db5781bf21249d130ec9da846c4624c16137 --dtype bfloat16 --max-model-len 32768 --generation-config vllm --enable-auto-tool-choice --tool-call-parser hermes"
 ```
 
 ### 9.3 Live smoke test: development data only, 24 episodes
