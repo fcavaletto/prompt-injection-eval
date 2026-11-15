@@ -11,6 +11,8 @@ The [ten-model study](placement.md) found that, under the same security rule, a 
 
     Details: [appendix](research-audit-2026-11.md).
 
+    **Added 2026-11-15.** A [rendering census](rendering-census.md) confirmed both template defects from pinned revisions: all 18 stored server prompts for Phi-4-mini, and all 18 for Granite 3.3, equal a local rendering that contains no tool definitions (Phi-4-mini) and no completed call (both). The Phi-4-mini row and the Granite 3.3 tool-result columns in the table below are **invalid measurements**, not floors. "4 of 10" should be read as four of the six models that were validly run and can be checked, all from one family. See [Corrections](corrections.md), C1, C2, C3, C5 and C6. The scoring has not been validated by a human rater; a [protocol](annotation-protocol.md) is prepared.
+
 **Short answer: it does not, by the pre-registered criterion.** With the rule in place, a raw tool result raised attack success over the user message on 4 of 10 models, all four from the Qwen3 family, and significantly so on all four. The criterion asked for at least seven in that direction and five significant. On the other families the effect is absent or reversed, and on two of them the benchmark could not measure it at all.
 
 ## What was run

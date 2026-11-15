@@ -11,6 +11,8 @@ The [adaptive study](adaptive.md) found that delivering the document as a tool r
 
     Details: [appendix](research-audit-2026-11.md).
 
+    **Added 2026-11-15.** A [rendering census](rendering-census.md) confirmed the two template defects from pinned revisions and found that on every Qwen template a tool result is text in a user turn. Each affected statement on this page is listed in [Corrections](corrections.md): C3, C4, C7, C8 and C9. The bullet "It is the role, not the position" below is withdrawn as worded.
+
 **Short answer.** On all ten models, on this project's synthetic documents, a document delivered as raw text in a tool result is easier to inject through than the same document in the user message under the same security rule. A pre-registered replication on the InjecAgent benchmark found the same effect only in the Qwen3 family: see [Does the placement effect replicate?](injecagent.md). Writing the same document into the tool message as a JSON string, as some chat templates do, takes much of that back. It is not a defense. With the rule in place, an adaptive strategy tuned on other documents still succeeds on 45 to 58 of 59 held-out documents, in the user message or a raw tool result, on every model. (The JSON-encoded placement was not attacked adaptively.)
 
 ![Plain override by where the document sits, ten models](assets/placement_ten_models.png)

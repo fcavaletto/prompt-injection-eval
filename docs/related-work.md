@@ -76,6 +76,8 @@ Wallace et al. argue that a model should give instructions different authority d
 
 **Not done here.** No training, and no test of a model trained with the hierarchy on tool outputs specifically. The result says that, for these models as served, the tool role is not the protection the hierarchy describes.
 
+*Correction, 2026-11-15:* the comparison did not isolate the tool role. On Qwen the tool result is rendered inside a user turn, two models had malformed tool turns, and the gpt-oss prompts cannot be checked. See [Corrections](corrections.md), C3, C4 and C9.
+
 Charles Ye, Jasmine Cui, and Dylan Hadfield-Menell. "Prompt Injection as Role Confusion." arXiv:2603.12277, 2026.
 
 They train linear probes that read which role a model thinks a token belongs to, on gpt-oss-20b and 120b, Nemotron-3 and Qwen3-30B, and find that text written in a user's style is still represented as largely user-like when it sits inside tool tags, and that how user-like injected text looks to the model predicts attack success.

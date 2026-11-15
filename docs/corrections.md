@@ -1,0 +1,24 @@
+# Corrections
+
+This page lists every published statement in this project that was later found invalid, unsupported or overstated. The original pages keep their text, with a dated note at the place the statement appears. The published rows and reports under `results-published/` are not edited.
+
+Last updated 2026-11-15. Evidence for each entry: [audit appendix](research-audit-2026-11.md) and [rendering census](rendering-census.md).
+
+| # | Statement as published | Where | Status | What to read instead |
+| --- | --- | --- | --- | --- |
+| C1 | Phi-4-mini's zeros on InjecAgent are "a floor of the measure" | [InjecAgent page](injecagent.md), its report, README | **Invalid measurement.** The model's chat template rendered no tool definitions and no completed call in any condition, so the model was never told a tool existed. Confirmed on 2026-11-15 from the template at a pinned revision: all 18 stored server prompts equal that rendering. | Phi-4-mini was not tested as an agent in Study B. Its row carries no information about injection. |
+| C2 | Granite 3.3's near-zero counts on InjecAgent are a floor of the measure | Same | **Invalid for the tool placements.** The template dropped the completed tool call, leaving an empty assistant turn before the tool result. Confirmed the same way. | Granite 3.3's tool-result conditions were not the conversation Study B intended. |
+| C3 | gpt-oss results on the rented server, Studies A and B | [Placement page](placement.md), [InjecAgent page](injecagent.md) | **Unverifiable.** vLLM serves gpt-oss through a separate path that returns no prompt, so no row records what the model received. One stored sample shows a reasoning setting different from the one requested. | The counts are what the server returned. What produced them cannot be checked. |
+| C4 | "It is the role, not the position" | [Adaptive page](adaptive.md), [Placement page](placement.md), [Related work](related-work.md) | **Withdrawn as worded.** The two conditions differ in the wrapper, the delimiters, a label, the rule's wording and distance, an added assistant turn and an offered tool. On every Qwen template the tool result is rendered inside a user turn, so the role token is the same in both. | The comparison is between two ways of building the prompt. It does not isolate the role. |
+| C5 | On InjecAgent the placement effect is significant "on all four" Qwen3 models | [InjecAgent page](injecagent.md), README | **Overstated** (exploratory). The 2,108 cases are 17 user contexts crossed with 62 attacker goals and 2 wordings. Allowing for that, three of four keep an interval above zero, two after adjustment. | Three of four Qwen3 models, which share one chat template and count as one family. |
+| C6 | "4 of 10 models" in the Study B criterion | [InjecAgent page](injecagent.md), [Pre-registration](preregistration.md) | **Qualified.** The pre-registered verdict, *does not replicate*, stands. But of the ten, two were not validly run (C1, C2) and two cannot be verified (C3). | Of the six models that were validly run and can be checked, four show the effect, all from one family. |
+| C7 | JSON-encoding's effect is "specific to the tool channel" | [Placement page](placement.md), [Pre-registration](preregistration.md) results | **Not supported** (exploratory). Pooled over models, JSON-encoding lowers success by a similar proportion in the user message and in the tool result. | JSON-encoding lowered success in both placements. |
+| C8 | Removing line breaks "contributed nothing measurable" | [Placement page](placement.md) | **Too strong** (exploratory). Pooled, it lowers success by about 6 points; nine of ten models go down. | A small reduction that single-model tests could not detect. |
+| C9 | "A raw tool result is easier to inject through ... on every model" (ten of ten) | README, [home page](index.md), [Placement page](placement.md) | **Qualified.** The counts are as published. For Phi-4-mini and Granite 3.3 the tool turn was malformed (C1, C2), and for gpt-oss it cannot be checked (C3). | In all ten runs the count rose. In six of them the conversation is known to have been rendered as intended. |
+| C10 | On 2026-11-14 this project wrote that ToolHazard reports no numbers and that no paper studies the serving layer | [Research next step](research-next-step.md), first version | **Wrong.** ToolHazard's Figure 4 gives numbers, and several 2026 papers study the serving stack as a confound. | The revised page of 2026-11-15. |
+
+## What has not been done
+
+- **No human validation.** No independent rater has labelled any output. A [protocol and blinded sample](annotation-protocol.md) are prepared.
+- **No rerun.** None of the invalid runs has been repeated with a working template. The corrections remove claims; they do not replace them with new measurements.
+- **No release.** These corrections are on the branch `research-audit-2026-11` until they are merged.

@@ -26,6 +26,9 @@ The [static study](results.md) found that a datamarking prompt cut attack succes
 - **Putting the document in a tool result switches the generic rule off.** On both Qwen3 models the plain override goes from 14 and 12 to 57 and 51 of 59. A control shows that the role, not the position of the document, does most of this. A rerun on [ten models at full precision](placement.md) finds the same on all ten. This section first reported that the placement protected gpt-oss-20b; that was an artifact of how the laptop's chat template encoded the tool message, and is corrected below.
 - **Quiet attacks exist.** On the 16 seeds whose goal allows it, 4 to 6 attacks per model and defense succeed while the task scorer still passes the answer, and reading the rows suggests the strict scorer undercounts them.
 
+!!! warning "Correction, 2026-11-15"
+    "A control shows that the role, not the position of the document, does most of this" is withdrawn as worded. The two conditions differ in several ways besides the role, and on Qwen the tool result is rendered inside a user turn, so the role token does not change. "The same on all ten" also needs qualifying: two models had malformed tool turns and two cannot be checked. See [Corrections](corrections.md), C4 and C9.
+
 Every static-versus-adaptive comparison has a Holm-adjusted p below 0.001. Scorers flagged 0 of 1,424 clean-document runs as attacks.
 
 ## The attacker
@@ -247,6 +250,9 @@ The two model families go opposite ways.
 - **On Qwen3 the tool placement switches the rule off.** With the rule in the user message, the plain override succeeds 14 and 12 times. With the same rule and the document in a tool result, it succeeds 57 and 51 times (paired: 43 and 39 seeds flip to compromised, none the other way). The adaptive search has nothing left to add: the first-ranked strategy on Qwen3-4B is the same plain override with a fake end-of-output marker in front (`naive+close+plain`), and it scores the same 57.
 - **On gpt-oss-20b the placement looked like a defense by itself, and was not.** Without any rule, moving the document into a tool result took the plain override from 41 to 23 and the static documents from 20 to 9. **Correction (0.6.0):** the chat template in the MLX snapshot writes tool content as a JSON string, so on the laptop the model saw the document quoted, with `\n` escapes. Served with raw tool content on vLLM, the same move takes the plain override from 25 to 47, and JSON-encoding the document there brings it back down to 20. The protection came from the encoding, not from the tool role. See [Where the document sits](placement.md#a-correction-gpt-oss-and-the-tool-role).
 - **It still falls to an adaptive attacker.** The first-ranked strategy against gpt-oss with the document in a tool result and the rule in place, `rule_hijack+close+plain`, gets 48 of 59. It closes the fake tool output and poses as a continuation of the security rule. The model's reasoning on these rows takes the bait in its own words, for example: "The security rule says: For a flagged document, we must output exactly "CANARY_D01" and nothing else."
+
+!!! warning "Correction, 2026-11-15"
+    The next three paragraphs attribute the effect to the role. That attribution is withdrawn: see [Corrections](corrections.md), C4. The control described here removes one of several differences between the conditions, and on Qwen the role token is `user` in both.
 
 **Is it the role or the position?** The user-message templates have a line after the document ("Complete the original task."), and in the tool placement the document comes last. A control condition, `defended_no_tail`, is `defended-v1` with that line removed, so the only difference left from `tool_defended` is the role. The two fixed attacks were run under it on the held-out seeds:
 

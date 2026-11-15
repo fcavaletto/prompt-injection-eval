@@ -110,3 +110,11 @@ Added after both studies; nothing above was changed. These are **exploratory** a
 - **Lessons carried into the next amendment:** positive controls before any attack outcome, a rendered-prompt check on every row, interaction contrasts stated in advance with their scale, cluster-aware intervals, and absence claimed only inside a stated margin.
 
 Write-up: [Research audit and next step](research-next-step.md) and its [appendix](research-audit-2026-11.md).
+
+## Additions (2026-11-15)
+
+Added after both studies; nothing above was changed.
+
+- **Invalid runs.** A [rendering census](rendering-census.md) confirmed from pinned template revisions that Phi-4-mini was run without tool definitions or completed calls and Granite 3.3 without completed calls. The B1 verdict was computed over ten models as registered and is not changed. Read with it: two of the ten were not validly run and two cannot be verified. All affected statements are listed in [Corrections](corrections.md).
+- **No study is registered beyond A to D.** The audit proposes a pilot on tool-output serialization under adapted attacks. Nothing about it is registered here yet. If it is run, an amendment will be dated and committed before its first generation.
+- **Human validation** has not been carried out. A [protocol](annotation-protocol.md) was prepared on this date.

@@ -1,6 +1,6 @@
 # Appendix: evidence audit of 2026-11-14
 
-Detail behind [Research audit and next step](research-next-step.md). Every analysis on this page is **exploratory**: it was designed after the Study A and Study B outcomes were known, and it carries no confirmatory weight. The published rows in `results-published/v07` and `results-published/v08` were read and not changed.
+Detail behind [Research audit and next step](research-next-step.md). Section D was replaced on 2026-11-15 after the closest papers were read in full; the rest is as written on 2026-11-14. Every analysis on this page is **exploratory**: it was designed after the Study A and Study B outcomes were known, and it carries no confirmatory weight. The published rows in `results-published/v07` and `results-published/v08` were read and not changed.
 
 To rebuild every table here from the published rows, without a GPU:
 
@@ -146,32 +146,53 @@ Per model, with the rule (the full table for all six conditions is `injecagent_c
 
 **Judgment.** Correct on every point. **Severity.** Medium now, high for a paper. **Remedy.** Work package WP1.
 
-## D. Literature notes
+## D. Literature, re-verified on 2026-11-15
 
-Read on 2026-11-14 through a fetching tool that returned the first 40,000 characters or so of each paper verbatim and a machine summary of the rest. "Partly verified" marks claims that rest on the summary. Venue information for the two 2026 conference papers comes from search listings, not from the papers.
+The first version of this section (2026-11-14, commit `31b63c5`) was written from a fetching tool that returned the opening of each paper and a summary of the rest. On 2026-11-15 the closest papers were read directly from the arXiv full text, their figures and, where released, their code. Bibliographic data for every entry was checked against the arXiv API. Three statements in the first version were wrong and are corrected here:
 
-| Work | Identifier | Verification | Note relevant here |
+- **ToolHazard does report numbers.** They are in its Figure 4, which the first version had not read.
+- **A controlled study of the serving stack does exist**, for tool-call capability though not for security: Tang and Zheng, with Pape et al. and Masoudian et al. for benchmarks in general. The first version said two searches had found none.
+- **Yu et al. do not re-format tool results.** Their defense has a model extract only the fields it needs.
+
+"Direct" means the cited sections were read in full text by the assistant on 2026-11-15. "Metadata only" means title, authors, date and venue comment were checked and the content claim still rests on the 2026-11-14 partial reading. No claim in this project should cite a "metadata only" row for content without reading it first.
+
+### D1. Closest work
+
+| Work | Verified how | What it establishes | What it leaves open |
 | --- | --- | --- | --- |
-| Nasr, Carlini et al., *The Attacker Moves Second* | arXiv:2510.09023 | Partly | 12 defenses; search and RL attacks and a human red-team; spotlighting and prompt sandwiching above 95% under search on AgentDojo. Nothing on serialization. |
-| Zhan, Fang, Panchal, Kang, *Adaptive Attacks Break Defenses...* | arXiv:2503.00061 (Findings of NAACL 2025) | Partly | White-box GCG variants; 100 InjecAgent cases; Vicuna-7B and a fine-tuned Llama 3 8B; above 50% against all eight defenses. |
-| Chang, Jun, Lee, *ChatInject* | arXiv:2509.22830 (listed as ICLR 2026) | Partly | Forged role tags in tool output. Explains success by the role hierarchy; evidence is success rates, template similarity and attention. No placement or serialization comparison. |
-| Ye, Cui, Hadfield-Menell, *Prompt Injection as Role Confusion* | arXiv:2603.12277 (listed as ICML 2026) | Partly: sections 1 to 4.2 verbatim | Role probes on gpt-oss, Nemotron and Qwen3; forged reasoning traces; a style ablation. No behavioral role swap with content fixed was found in the text read; no causal intervention; no AgentDojo or InjecAgent. |
-| Debenedetti et al., *AgentDojo* | arXiv:2406.13352 | Partly | 97 user tasks, 27 injection targets, 629 crossed cases. Tool output is YAML by default; no format ablation reported. Position ablation: injections near the end work best. |
-| Zhan et al., *InjecAgent* | arXiv:2403.02691 | Partly | 17 user cases × 62 attacker cases, stated in the paper. Success by the tool invoked. Single turn acknowledged as a limit; the number of user cases is not. |
-| Mou et al., *ToolHazard* | arXiv:2608.11878 | Text of section 7.2 verbatim; figure 4 not read | "Work in progress." Free-form output gives higher success than JSON or YAML "under identical settings". No numbers, models or case counts in the text. |
-| Shaw, *Silent Failures in Agentic Security Evaluation* | arXiv:2609.32691 | Verbatim | Single-author audit of one harness. Undelivered payloads; tool-identity scoring 21.7% against 1.2% by arguments; incapacity scored as rejection. Scenarios treated as independent. |
-| McCauley, Kan, Martin, *IH-Benchmark* | arXiv:2607.25987 | Partly | 2,336 scenarios, 37 models. System-over-user compliance does not predict resistance to tool-output injection. No matched content across channels. |
-| Zhang et al., *IHEval* | arXiv:2502.08745 (NAACL 2025) | Partly | 3,538 examples, 13 models. A priority instruction in the system prompt did not help. |
-| Rashidi, *Structural Role Injection in Handlebars-Templated LLM Prompts* | arXiv:2606.18120 | Partly | Escaped against raw template slots; escaping helps only for angle-bracket delimiters. User message only. |
-| Yu, Cheng, Liu, *Defense ... via Tool Result Parsing* | arXiv:2601.04795 | Partly | Re-formatting tool results as a defense on AgentDojo. Point estimates only. |
-| Hofer, Debenedetti, Tramèr, *Assessing Automated Prompt Injection Attacks in Agentic Environments* | arXiv:2606.10525 | Partly | GCG and TAP on AgentDojo; could not run one model for lack of a compatible tool-call template. |
-| Nguyen et al., *INFUSE* | arXiv:2610.20776 | Partly | 19 models; validates its judge against blinded human labels; intervals treat cells as independent. |
-| Lee, Kim, Lee, *Will the User Ever Know?* | arXiv:2608.30362 (EMNLP 2026) | Partly | Covert against overt success on AgentDojo. |
-| Abdelnabi, Bagdasarian, *AI Agents May Always Fall for Prompt Injections* | arXiv:2605.17634 | Partly | Position paper with experiments; argues separation of data and instructions cannot be sufficient. |
+| Shaw, *Silent Failures in Agentic Security Evaluation*, arXiv:2609.32691 v1 (single author, not peer reviewed) | Direct, whole paper. Code not located: the paper says it is released but the text read gives no address. | Four defect classes in one benchmark harness (Sec. IV): payloads never delivered (39 of 43), success scored by tool name (21.7% against 1.2% by arguments, Table I), incapacity and environment errors scored as defense rejections, no per-scenario trace. A capability probe; a model that cannot call tools is "unmeasurable rather than secure" (Sec. VII-C). Loader-level feasibility checks (Sec. V-D). | Delivery is checked against the environment, not against the prompt the model receives. Nothing on chat templates, serving stacks or serialization. Scenarios are treated as independent. 43 attack scenarios, one harness. |
+| Mou et al., *ToolHazard*, arXiv:2608.11878 v1 ("Work in Progress") | Direct: Sec. 6.1, 7.1, 7.2, Fig. 4 (image read), App. D. Code read at commit `544b73b`. | **Tool-output format changes attack success on frontier models** (Sec. 7.2, Fig. 4). GPT-4.1, "basic combined" attack: 52.6% free-form, 5.9% JSON, 1.2% YAML. GPT-4.1, "tool selection": 80.4%, 62.0%, 75.6%. Gemini-3.1-Pro, "basic combined": 4.7%, 2.4%, 3.5%; "tool selection": 77.7%, 40.5%, 32.6%. | Two models, two attacks, 87 tasks, no intervals. The formats are not defined in the paper. The released agent has a YAML formatter, an older free-form formatter left as comments, and no JSON formatter or switch that I could find, so the figure cannot be rebuilt from the release as it stands. All reported results use prompt mode, where tool output is appended as a user message (README). Attacks are fixed, not written for each format. No defense. The proposed reason ("semantic boundaries") is a hypothesis without a test. |
+| Tang and Zheng, *Measuring the Serving Stack Instead of the Model*, arXiv:2609.26693 v1 (REALM workshop at EMNLP 2026) | Direct, whole paper except some tables. Code not read. | **The serving layer confounds tool-use evaluation.** Ollama gates the `tools` request per model, a refused request is logged as a model that did not call, and a capable model is reported at 0%. The same request is handled four ways by Ollama, llama.cpp, vLLM and SGLang. A checklist: fix and report the stack, log serving failures separately, diagnose a 0% call rate before blaming the model. | About emitting a tool call, not about what a tool result looks like once it is in the history. Capability, not security. No attack, no defense. |
+| Chang, Jun, Lee, *ChatInject*, arXiv:2509.22830 v3 (arXiv comment: ICLR 2026) | Direct: Sec. 3, 4.1, 4.2, 5.1, 6, App. B, C.3, C.4, D. | Wrapping a payload in the target's own role tags raises success (5.18% to 32.05% on AgentDojo, 15.13% to 45.90% on InjecAgent, abstract); transfer grows with template similarity (Sec. 5.1); prompt defenses do not stop it (Sec. 6.1). | Models were reached through OpenRouter providers (App. D), so the serving stack is neither controlled nor known. The paper does not say whether the forged tags reached the model as control tokens. Tool-output serialization is not varied. |
+| Ye, Cui, Hadfield-Menell, *Prompt Injection as Role Confusion*, arXiv:2603.12277 v6 (PMLR 306, ICML 2026) | Direct: abstract, Sec. 1, 4.2, 5.2, 7.4, App. G, J, K. | In four open models, text that sounds like a user is represented as user text even inside tool tags: "Userness" stays at 76% to 88% (Sec. 4.2, Table 1). On gpt-oss-20b, how an injection is framed predicts success from 2% to 70% (Sec. 5.2, Fig. 10); frames that look like tool data or JSON score lowest (App. J, Fig. 31). | Varies the attacker's wrapping, not the harness's rendering. One model for the behavioral result, 10 web pages, one command. No comparison of serializations chosen by the defender, and no defense. Its finding predicts that changing only the role tag should do little, which agrees with this audit's reading of Study B. |
+| Pape, Evertz, Schönherr, *The Silent Hyperparameter*, arXiv:2605.19537 v3 | Abstract only | Inference backend alone shifts benchmark scores by up to 16.6 points; the stack is rarely reported. | General benchmarks; cause traced to numerical optimizations, not templates. Not security. |
+| Masoudian et al., *What We Observe as LLM Behavior Can Be a Side-effect of Inference Backend*, arXiv:2608.04714 v1 | Direct: abstract, Sec. 1 | Five backends, three small models, six benchmarks: backend is a non-negligible factor; names template rendering as one route. | Not tool use, not security. |
+| Yao et al., *Harness-Bench*, arXiv:2605.27922 v2 | Abstract only | Agent results vary by harness with the model fixed. | Not security. |
+| Yu, Cheng, Liu, *Defense ... via Tool Result Parsing*, arXiv:2601.04795 v1 | Direct: Sec. 3.2, 3.3, 4.1 | A second model call extracts only the fields the agent needs from a tool result; AgentDojo; gpt-oss-120b, Llama-3.1-70B, Qwen3-32B. | A filtering defense, not a serialization comparison. |
+| Rashidi, *Structural Role Injection in Handlebars-Templated LLM Prompts*, arXiv:2606.18120 v1 | Abstract direct; body not re-read | HTML escaping in a prompt template neutralizes angle-bracket role delimiters and not others. | Application templates, user content. |
+| Deng et al., *Automating Agent Hijacking via Structural Template Injection*, arXiv:2602.16958 v1 | A few passages only | Attack success depends on tag-like structure surviving. | Not read closely. |
+| Fogel et al., *Inference-Time Backdoors via Chat Templates*, arXiv:2602.04653 v4 | Metadata only | Chat templates as a supply-chain attack surface. | **Unresolved**: not read. |
+| AgentDojo, arXiv:2406.13352 v3, and its code at commit `089ed46` | Code read: `tool_execution.py`. Paper: metadata only. | Tool results are rendered with `yaml.safe_dump` by default; the docstring notes `json.dumps` would also work. The arXiv comment on v3 records "fixing a bug in the Llama implementation". | No format comparison in the code read. |
+| Hofer, Debenedetti, Tramèr, arXiv:2606.10525 v1 | Direct: Sec. 2.1 and the configuration appendix | Notes that one attack "was not evaluated against Gemma3-4B because no compatible" chat template was available. | The census finds the same: Gemma 3's template rejects tool messages. |
 
-Two searches aimed specifically at the proposed gap (attack success under different tool-result encodings with the template held fixed; sensitivity of results to the serving stack) returned no controlled study. That is evidence of a gap, not proof.
+### D2. Checked for metadata only
+
+Nasr et al., *The Attacker Moves Second* (arXiv:2510.09023); Zhan et al., *Adaptive Attacks Break Defenses...* (arXiv:2503.00061, Findings of NAACL 2025); Zhan et al., *InjecAgent* (arXiv:2403.02691, Findings of ACL 2024); McCauley et al., *IH-Benchmark* (arXiv:2607.25987); Zhang et al., *IHEval* (arXiv:2502.08745, NAACL 2025); Nguyen et al., *INFUSE* (arXiv:2610.20776); Lee et al., *Will the User Ever Know?* (arXiv:2608.30362, EMNLP 2026); Abdelnabi and Bagdasarian (arXiv:2605.17634). What the first version said about their content has not been re-verified.
+
+### D3. Novelty claims that remain unresolved
+
+- **Whether anyone has published the crossed structure of InjecAgent as a statistical problem.** Not found in the papers read; no targeted search was run.
+- **Whether a prompt-level delivery check exists elsewhere.** Shaw's checks are the nearest and work at the environment level. Code for that paper was not located.
+- **Fogel et al.** has not been read.
+- **Search coverage.** Two extended web searches on 2026-11-15. Work that does not use the words "template", "serialization" or "serving" could have been missed.
 
 ## E. Files
 
 - `scripts/audit_exploratory.py`: the analyses.
 - `results-published/audit-2026-11-14/`: `injecagent_dependence.csv`, `injecagent_competence.csv`, `injecagent_subgroups.csv`, `injecagent_smoke.csv`, `study_a_pooled.csv`, `study_a_per_model.csv`, `study_a_relative.csv`, `summary.json`.
+
+Added 2026-11-15:
+
+- `scripts/rendering_census.py`, `scripts/ollama_render/`, `data/rendering_census/`: the [rendering census](rendering-census.md); results in `results-published/rendering-census-2026-11-15/`.
+- `scripts/annotation_sample.py`, `data/annotation/study-b-v1/`: the blinded sample for the [human validation protocol](annotation-protocol.md). Not yet labelled.
+- [Corrections](corrections.md) and `results-published/CORRECTIONS.md`.

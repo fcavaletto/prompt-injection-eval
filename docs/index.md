@@ -6,6 +6,9 @@ They do not. On 59 held-out documents, with one attempt each and no feedback, a 
 
 Where the document sits matters too. On [ten open models](placement.md) at full precision and this project's synthetic documents, a document delivered as a raw tool result is easier to inject through than the same document in the user message under the same security rule, on every model: the plain override succeeds 43/59 on Qwen3-32B instead of 4/59. A [pre-registered replication on InjecAgent](injecagent.md) found the effect only in the Qwen3 family. JSON-encoding the tool message takes much of that back, which also explains an apparent gpt-oss exception reported in 0.5.0. With the rule in place, an adaptive strategy still succeeds on 45 to 58 of 59 in either placement, on every model.
 
+!!! warning "Corrections, 2026-11-15"
+    The paragraph above overstates the placement result. Two of the ten models were run with chat templates that hid the tool call from them, two more cannot be checked, and "on every model" should be read with those limits. On InjecAgent, one model was never shown the tools at all. See [Corrections](corrections.md), entries C1 to C6 and C9. No result on this site has been validated by a human rater.
+
 ![Attack success on the 59 held-out seeds, by model and defense](assets/static_vs_adaptive.png)
 
 - [Adaptive attacks](adaptive.md) is the main result: method, tables, ablation, the result without the blank character, quiet attacks, transfer, the patch round, the tool-result placement, and limits.
