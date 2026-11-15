@@ -100,3 +100,13 @@ Appended after the runs; nothing above was changed.
 
 - **Study A** ran on 2026-11-13 after commit `5a3deb0`, on all ten models, with no exclusions and no reruns. Primary verdict: *mixed* (A1 held on 0 models, A2 on 4, A3 on 0). Write-up: [Why JSON-encoding helps](placement.md#why-json-encoding-helps-a-pre-registered-test). One deviation: the run script's `all` selection also generated datamarking (`spotlight`) rows, which no comparison uses.
 - **Study B** ran on 2026-11-13 after commit `9733fec` (Amendment 1), on all ten models; no model met the smoke-test drop rule, and there were no backend errors, exclusions or reruns. Primary verdict: **B1 does not replicate** (higher in the raw tool result on 4 of 10 models, all four significant; the criterion needed 7 and 5). The pre-registered unparsed-call caveat applies to nine models. Granite 3.3 and Phi-4-mini made almost no parsed tool calls, so the measure is at its floor for them. A design confound not anticipated here, that the user-message placement has no completed tool call, is described in the write-up: [Does the placement effect replicate?](injecagent.md). As the Study B section requires, the write-up is reframed around the non-replication before Study C runs.
+
+## Audit additions (2026-11-14)
+
+Added after both studies; nothing above was changed. These are **exploratory** and do not alter either pre-registered verdict.
+
+- **Study A.** The pre-registered reading of A3 ("specific to the tool channel") compared a significant result with a non-significant one. Tested directly and pooled, JSON-encoding lowers success by a similar proportion in both placements, and the additive difference with the rule is plausibly a floor effect. Pooled, removing line breaks lowers success by about 6 points; the per-model threshold could not detect that.
+- **Study B.** The dependence among cases (17 user contexts × 62 attacker goals × 2 wordings) was not modeled. Phi-4-mini was never shown the tool definitions, and Granite 3.3 was not shown the completed call; under the pre-registered drop rule neither was dropped, because that rule looked only at whether replies parsed. Their rows should not be read as measurements of an agent. No rendered prompt was stored for gpt-oss.
+- **Lessons carried into the next amendment:** positive controls before any attack outcome, a rendered-prompt check on every row, interaction contrasts stated in advance with their scale, cluster-aware intervals, and absence claimed only inside a stated margin.
+
+Write-up: [Research audit and next step](research-next-step.md) and its [appendix](research-audit-2026-11.md).

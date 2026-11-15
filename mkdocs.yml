@@ -17,6 +17,8 @@ nav:
   - Adaptive attacks: adaptive.md
   - Where the document sits: placement.md
   - Replication on InjecAgent: injecagent.md
+  - Research audit and next step: research-next-step.md
+  - Audit appendix: research-audit-2026-11.md
   - Pre-registration: preregistration.md
   - Start here: learn.md
   - Walkthrough: notebooks/01_walkthrough.ipynb

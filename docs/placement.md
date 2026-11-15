@@ -2,6 +2,15 @@
 
 The [adaptive study](adaptive.md) found that delivering the document as a tool result instead of inside the user message made Qwen3 much easier to inject through and gpt-oss-20b harder. That rested on three quantized models on a laptop. This page reruns the whole protocol on ten open models at full precision on a rented GPU, and finds that the gpt-oss result was about how the tool result was encoded, not about the tool role.
 
+!!! warning "Audit note, added 2026-11-14"
+    An [audit](research-next-step.md) after this page was written qualifies three statements. The text below is left as published.
+
+    - **"It is the role, not the position" claims more than the controls show.** The user-message and tool-result conditions differ in the wrapper, the delimiters, a label, the rule's wording and distance, an added assistant turn, and an offered tool. On Qwen the tool result is rendered inside a user turn, so the role token does not change. Read the result as a difference between two prompt constructions.
+    - **Two models had malformed tool turns.** Phi-4-mini's template rendered neither the tool definition nor the completed call, and Granite 3.3's dropped the completed call.
+    - **Two readings of the JSON test do not hold up** (exploratory re-analysis). Pooled over models, removing line breaks lowers success by about 6 points, so "contributed nothing measurable" is too strong. And JSON-encoding lowers success by a similar proportion in the user message and in the tool result, so "specific to the tool channel" is not supported. The pre-registered verdict, *mixed*, stands as the confirmatory result.
+
+    Details: [appendix](research-audit-2026-11.md).
+
 **Short answer.** On all ten models, on this project's synthetic documents, a document delivered as raw text in a tool result is easier to inject through than the same document in the user message under the same security rule. A pre-registered replication on the InjecAgent benchmark found the same effect only in the Qwen3 family: see [Does the placement effect replicate?](injecagent.md). Writing the same document into the tool message as a JSON string, as some chat templates do, takes much of that back. It is not a defense. With the rule in place, an adaptive strategy tuned on other documents still succeeds on 45 to 58 of 59 held-out documents, in the user message or a raw tool result, on every model. (The JSON-encoded placement was not attacked adaptively.)
 
 ![Plain override by where the document sits, ten models](assets/placement_ten_models.png)

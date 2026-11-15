@@ -2,6 +2,15 @@
 
 The [ten-model study](placement.md) found that, under the same security rule, a document delivered as a raw tool result was easier to inject through than the same document in the user message, on every model. That rested on this project's 89 short synthetic documents, with the model answering in text and offered no tools to call. Study B of the [pre-registration](preregistration.md) asked whether it holds on a public agent benchmark, [InjecAgent](https://github.com/uiuc-kang-lab/InjecAgent), where success is a harmful tool call.
 
+!!! warning "Audit note, added 2026-11-14"
+    An [audit](research-next-step.md) after this page was written found three things that change how it should be read. The text below is left as published.
+
+    - **Phi-4-mini was never shown the tools.** Its chat template rendered no tool definitions, so its zeros are a harness defect, not behavior and not "a floor of the measure". Granite 3.3's template dropped the completed tool call from the tool placements. No rendered prompt was stored for the two gpt-oss models, so what they saw cannot be checked.
+    - **The 2,108 cases are 17 user contexts crossed with 62 attacker goals and 2 wordings.** With that dependence taken into account (exploratory), three of the four Qwen3 models keep an interval above zero, two after adjustment; "significantly so on all four" does not hold for Qwen3-8B. The verdict, *does not replicate*, is unchanged.
+    - **The security rule raised attacker tool calls** on Qwen3-8B, Qwen2.5-7B and Hermes 3. The table below shows it; the text did not discuss it.
+
+    Details: [appendix](research-audit-2026-11.md).
+
 **Short answer: it does not, by the pre-registered criterion.** With the rule in place, a raw tool result raised attack success over the user message on 4 of 10 models, all four from the Qwen3 family, and significantly so on all four. The criterion asked for at least seven in that direction and five significant. On the other families the effect is absent or reversed, and on two of them the benchmark could not measure it at all.
 
 ## What was run
