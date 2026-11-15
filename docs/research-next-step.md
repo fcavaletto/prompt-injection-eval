@@ -189,7 +189,7 @@ If, after 30 minutes, the measured speed projects past the cap, the pilot drops 
 | WP3 | Analysis module: averaging over runs, two-way bootstrap, sign-flip test | Free | **Done 2026-11-15** | Recovers a planted effect and its interval on simulated data |
 | WP4 | Eight candidate attacks, tried against both formats | Free | **Done 2026-11-15** | Written and committed before any generation |
 | WP5 | Pre-registration amendment for the pilot | Free | **Done 2026-11-15** (Amendment 2) | Dated and committed before the pilot's first generation |
-| WP6 | The pilot | About $13; limit $20, enforced by pod expiry, not by client deadlines | **Needs your go-ahead.** Only a 24-episode smoke test (limit $2) is authorized | [Pilot design](pilot-design.md), section 9 |
+| WP6 | The pilot | About $14 per model at the central estimate from the smoke test (range $6 to $23); enforced by pod expiry | **Qwen3-32B smoke done 2026-11-15** ([evidence](https://github.com/fcavaletto/prompt-injection-eval/tree/research-audit-2026-11/results-published/pilot-smoke-2026-11-15/qwen3-32b)). A development-only feasibility stage (cap $3) is proposed in [Pilot design](pilot-design.md), section 9.6a. Nothing further is authorized | [Pilot design](pilot-design.md), section 9 |
 | WP7 | Audit of other public harnesses: run the census fixtures through the message-building code of AgentDojo, InjecAgent and ToolHazard for their open-model settings | Free | Proposed | A table of what each harness delivers to each model it reports, or a statement that no defect was found |
 | WP8 | Confirmatory study | About $22 for two models | Only after WP6 | Section 3.3 |
 

@@ -226,40 +226,96 @@ If the smoke fails: stop, delete the pod, and read the stored traces offline. A 
 
 ### 9.4 The pilot, per model
 
+*Revised 2026-11-15 after the Qwen3-32B smoke test. The first version gave fixed deadlines (15, 65, 15 and 85 minutes) that the smoke showed to be infeasible: the evaluation alone is projected at 1 to 4 hours. The earlier text is in commit `615778a`.*
+
+Deadlines are no longer fixed in advance. Each one is set from measurements on development data, as described in section 9.5, and written down before the phase starts.
+
 ```bash
-pie pilot run dev-controls --model Qwen/Qwen3-32B --label qwen3-32b --no-think --output-dir results/pilot/qwen3-32b/dev-controls --deadline-minutes 15
-pie pilot run select --model Qwen/Qwen3-32B --label qwen3-32b --no-think --output-dir results/pilot/qwen3-32b/select --deadline-minutes 65
+pie pilot run dev-controls --model Qwen/Qwen3-32B --label qwen3-32b --no-think --output-dir results/pilot/qwen3-32b/dev-controls --deadline-minutes <from 9.5>
+pie pilot run select --model Qwen/Qwen3-32B --label qwen3-32b --no-think --output-dir results/pilot/qwen3-32b/select --deadline-minutes <from 9.5>
 pie pilot freeze --select-dir results/pilot/qwen3-32b/select
 mkdir -p data/pilot/frozen && cp results/pilot/qwen3-32b/select/frozen_attacks.json data/pilot/frozen/qwen3-32b.json
 git add data/pilot/frozen/qwen3-32b.json && git commit -m "Freeze the pilot attacks for Qwen3-32B before its evaluation"
 ```
 
-Read the development report now. Evaluate this model only if, on development data: every episode was verified; unparsed call text is at most 5% of turns; resumed user-task success without attack is at least 50% in both formats; and at least six of the nine benign twins succeed. Then:
+Read the development report now. Evaluate this model only if, on development data:
+
+- every episode was verified;
+- unparsed call text is at most 5% of turns;
+- resumed user-task success without attack is at least 50% in both formats;
+- at least six of the nine benign twins succeed.
+
+Then:
 
 ```bash
-pie pilot run eval-controls --model Qwen/Qwen3-32B --label qwen3-32b --no-think --output-dir results/pilot/qwen3-32b/eval-controls --deadline-minutes 15
-pie pilot run evaluate --model Qwen/Qwen3-32B --label qwen3-32b --no-think --frozen data/pilot/frozen/qwen3-32b.json --output-dir results/pilot/qwen3-32b/evaluate --deadline-minutes 85
+pie pilot run eval-controls --model Qwen/Qwen3-32B --label qwen3-32b --no-think --output-dir results/pilot/qwen3-32b/eval-controls --deadline-minutes <from 9.5>
+pie pilot run evaluate --model Qwen/Qwen3-32B --label qwen3-32b --no-think --frozen data/pilot/frozen/qwen3-32b.json --output-dir results/pilot/qwen3-32b/evaluate --deadline-minutes <from 9.5>
 pie pilot report --phase-dir results/pilot/qwen3-32b/dev-controls --phase-dir results/pilot/qwen3-32b/select --phase-dir results/pilot/qwen3-32b/eval-controls --phase-dir results/pilot/qwen3-32b/evaluate --output-dir results/pilot/qwen3-32b/report
 ```
 
 For Granite 4.0 H Small the commands are the same with `--model ibm-granite/granite-4.0-h-small --label granite-4.0-h-small` and without `--no-think`.
 
-### 9.5 Cost, recalculated for the crossed evaluation
+`PIE_OPENAI_LAUNCH_ARGS` is part of the resume check. It must describe the server configuration only. The smoke's value included the pod's ID and data center; future runs leave those out, so that the same configuration on another pod is recognized as the same.
 
-| Phase, per model | Episodes | Model calls if the agent follows the reference solutions |
-| --- | ---: | ---: |
-| Smoke | 24 | about 50 |
-| Development controls | 300 | about 730 |
-| Selection: 9 attacks × 2 formats × 72 pairs | 1,296 | about 4,200 |
-| Pilot controls | 312 | about 1,500 |
-| Evaluation: 3 attacks × 2 formats × 105 pairs × 3 runs | 1,890 | about 13,100 |
-| **Total** | **3,822** | **about 19,500** |
+### 9.5 Time and cost, from the smoke test
 
-The call counts come from the scripted agents, which take the shortest correct path. A model that wanders takes more, up to 16 per episode. The estimate allows 30% more: about 25,000 calls per model.
+*Revised 2026-11-15. The first version assumed about 6 model calls per episode and 3.5 calls per second, neither of which had been measured.*
 
-Speed is not known. Study B reached 13.5 short single calls per second on the same GPU; these prompts are several times longer. At an assumed 3.5 calls per second, one model takes about 2.0 hours of inference. With about 20 minutes per model to download and load, two models take about 4.7 hours. At the $2.70 per hour inferred from Study B that is **about $13**. The first version of the pilot, without the crossed evaluation, was estimated at $11.
+**What the smoke measured** (Qwen3-32B, two banking user tasks; [evidence](https://github.com/fcavaletto/prompt-injection-eval/tree/research-audit-2026-11/results-published/pilot-smoke-2026-11-15/qwen3-32b)):
 
-If the same candidate wins for both formats, the evaluation drops to 1,260 episodes and the total falls by about a fifth.
+- Control episodes took 1 to 3 model calls, 2.6 on average.
+- Attack episodes took 4 to 6 calls on one task and 16 on the other. On that task the agent hit the round limit in all four episodes. Mean 10.5.
+- With 8 workers, 126 calls finished in 50 s: 2.5 calls per second. Median latency per request was 2.3 s.
+- Startup to a healthy server took 4.6 minutes, with the image already cached on the host.
+
+The 2.5 calls per second is the only throughput observed. It is used below as the central rate, and 2.0 as a slower case for the longer Slack contexts. Eight workers divided by the median latency would suggest about 3.4 calls per second if every worker were always busy; that was not observed and is not used.
+
+**Per phase, for one model.** Calls per episode are given as low, central and high:
+
+- **Low:** the agent ignores the attack and follows the reference solution.
+- **Central:** banking figures from the smoke. Slack controls are the banking mean scaled by the ratio of the suites' reference-solution lengths under the scripted agent (2.0). Slack attacks are built in two parts. The episodes that did not loop (mean 5 calls) are scaled by 2.2, the attack ratio, to 11. The smoke's share of episodes that reached the round limit (one half) is kept at 16 calls. That gives (11 + 16) / 2 ≈ 13.
+- **High:** every attack episode reaches the round limit.
+
+| Phase | Episodes | Calls per episode (low / central / high) | Model calls | Minutes at 2.5 calls/s | Minutes at 2.0 calls/s |
+| --- | ---: | --- | --- | --- | --- |
+| Development controls | 300 | 2.0 / 2.6 / 4.0 | 600 / 780 / 1,200 | 4 / 5 / 8 | 5 / 6 / 10 |
+| Selection | 1,296 | 3 / 10.5 / 16 | 3,900 / 13,600 / 20,700 | 26 / 91 / 138 | 32 / 113 / 173 |
+| Pilot controls (Slack) | 312 | 3.5 / 5 / 8 | 1,100 / 1,560 / 2,500 | 7 / 10 / 17 | 9 / 13 / 21 |
+| Evaluation (Slack) | 1,890 | 5 / 13 / 16 | 9,450 / 24,600 / 30,200 | 63 / 164 / 202 | 79 / 205 / 252 |
+| **Total** | **3,798** | | **15,000 / 40,500 / 54,700** | **1.7 / 4.5 / 6.1 h** | **2.1 / 5.6 / 7.6 h** |
+
+**Overheads, per pod session.** Each model needs two sessions: development (controls and selection), then evaluation (controls and evaluation), with the freeze committed in between. Each session adds:
+
+- startup: 4.6 minutes observed with a cached image; up to about 15 minutes with an uncached image or a slow download;
+- 2 minutes of idle time;
+- a 5-minute shutdown margin.
+
+Container disk (150 GB) costs under $0.02 per hour.
+
+**Cost for one model** at $2.69/h plus disk:
+
+| Case | Rate | Hours | Cost |
+| --- | --- | ---: | ---: |
+| Low | 2.5 calls/s | 2.1 | $5.6 |
+| Central | 2.5 calls/s | 5.0 | $13.6 |
+| High | 2.0 calls/s | 8.3 | $22.5 |
+
+Two models would cost about $27 in the central case, if Granite behaves like Qwen3-32B, which has not been measured. About $37 of the $50 limit remains. The central case for two models exceeds the earlier $20 planning figure; the high case exceeds the remaining budget.
+
+**Limits of this extrapolation:**
+
+- **Two tasks.** The loop that drives the attack figure came from one of only two banking user tasks. Whether it is common is unknown.
+- **Slack is longer.** Slack tasks are longer than banking: their reference solutions use up to 9 calls, their injection sometimes arrives at the second call, and their tool outputs are larger. Longer contexts mean longer requests, which is why a 2.0 calls/s case is shown. No Slack episode has been run by a model, and none will be before the freeze.
+- **Granite is unmeasured.** It is a different architecture: a hybrid model with experts, 32B parameters in total. Its startup, speed, call parser and looping behaviour are unknown.
+- **Short burst.** The 2.5 calls/s comes from a 50-second burst at 8 workers. Sustained throughput and the effect of more workers are unmeasured.
+
+**How an evaluation is made to finish within its allocated time:**
+
+1. **Its time is set from development data, not guessed.** Selection runs the same attacks, in both formats, on all 16 banking user tasks. From it come calls per episode by attack and format, and sustained throughput. The evaluation's projected time is 1,890 episodes × the selection mean × the Slack scaling factor (capped at 16), divided by the selection's measured throughput. Its deadline is 1.3 times that, and its pod expiry is the deadline plus startup and 10 minutes.
+2. **If the projected cost exceeds what remains of the budget, the evaluation does not start.** That decision is taken before any Slack episode is run.
+3. **Nothing about the agent changes to save time.** The round limit stays at 15. The agent is not stopped at the first attacker success, and loops are not suppressed. Each of these would change security and utility outcomes. Any of them would need its own amendment, applied to every condition.
+4. **Proposed, not adopted: resume on another pod.** Section 9.6 says a phase stopped by its deadline is not rerun on a new server. The runner can already resume a phase on any server with an identical configuration. Allowing this would let an evaluation span two sessions without discarding finished work. It must be registered as an amendment before any pilot phase uses it.
+5. **Proposed, not adopted: order the evaluation by run.** The evaluation plan is currently ordered by attack, then format. A deadline cut therefore drops whole conditions. Ordering it by run instead (every condition for run 1, then run 2, then run 3) would make a cut leave a complete crossed design with fewer runs. The planned set of units, and the plan hash, would not change. This also needs an amendment.
 
 ### 9.6 Spending bounds
 
@@ -281,6 +337,44 @@ For the full pilot this gives the following. The earlier figure of $20 for two m
 - When a deadline passes: no new episode starts, finished and interrupted traces are kept, and the command exits with code 3. The deadline is not extended and the phase is not rerun on a new server to finish it.
 - A selection phase that did not finish cannot be frozen: the freeze refuses unless both formats were tried on exactly the same pairs. That model stops at development data.
 - An evaluation that did not finish is reported as it is. Unfinished rows appear as `interrupted` or `not_run`, and any contrast missing more than 2% of its cases is marked not interpretable.
+
+### 9.6a Proposed next paid stage (2026-11-15, not authorized)
+
+**Purpose.** Reduce the three feasibility uncertainties that the smoke left, using development data only. Then the go or no-go for the pilot can rest on measurements rather than extrapolation:
+
+1. Does Granite 4.0 H Small serve and deliver correctly?
+2. How long are attack episodes across all 16 banking user tasks, not just two?
+3. What is sustained throughput, with 16 workers?
+
+Nothing is run on Slack, workspace or travel.
+
+**F1a: Granite 4.0 H Small smoke.** The same 24 banking episodes and the same frozen criterion, `smoke-v1`, served with the `granite4` parser. Before renting, the free template check passes, as it already does for 148 conversations. On the pod, the same one-request check compares the server's prompt with the local rendering.
+
+- **Expected:** 5 to 10 minutes of startup, 1 to 2 minutes of inference.
+- **Pod expiry:** 25 minutes after creation, at most $1.12 plus disk.
+- **Client deadline:** 10 minutes.
+- **Stop and delete if:** the server is not healthy 15 minutes after creation; the serving check differs from the local rendering; or the smoke stops at an invalid episode or fails `smoke-v1`.
+
+**F1b: Qwen3-32B development throughput and length.** Run only if F1a's outcome, pass or fail, has been reported.
+
+- **Workload:**
+  - The registered development-controls phase in full: 300 banking episodes, 3 runs.
+  - Then the registered selection phase in plan order until a 15-minute client deadline. The first 144 units of that order are the baseline attack on all 72 development pairs, text then JSON. At the central projection about 200 to 250 episodes finish, so the baseline's episode lengths are measured on every banking task in both formats.
+  - 16 workers, to measure throughput with more workers than the smoke used.
+- **Use of the data:** the selection directory is the real one. It is used for the freeze only if the resume amendment in 9.5 is adopted; otherwise it is kept as a measurement and selection is later rerun from the start.
+- **Expected:** 5 to 15 minutes of startup, 5 to 8 minutes of controls, 15 minutes of selection.
+- **Pod expiry:** 40 minutes after creation, at most $1.80 plus disk.
+- **Stop and delete if:** the server is not healthy 15 minutes after creation; any development-control episode is invalid, unverified or an infrastructure error (selection is then not started); or the controls fail the gates in 9.4.
+
+**Total cap: $3.00**, the sum of the two pod expiries plus disk. It is enforced by the in-pod expiry of each pod, as in 9.6. Expected spend is about $1.50.
+
+**What it decides.** After F1, the per-phase table in 9.5 is recomputed from:
+
+- the measured length of attack episodes across 16 banking tasks;
+- measured throughput with 16 workers;
+- Granite's startup and episode lengths.
+
+If the recomputed central cost of the two-model pilot exceeds the remaining budget, the pilot is not started as designed. The options are then one model, or a design change through an amendment.
 
 ### 9.7 Known limitations
 
