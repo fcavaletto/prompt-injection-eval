@@ -33,6 +33,7 @@ import hashlib
 import json
 import re
 import uuid
+from collections import Counter
 from collections.abc import Callable, Iterable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -245,6 +246,72 @@ def build_conversation(
     return messages, offered
 
 
+def request_fingerprint(
+    messages: list[dict[str, Any]], tools: list[dict[str, Any]], tool_choice: str
+) -> str:
+    """A hash of everything the harness sends for one unit, before any server sees it.
+
+    Stored in each row and checked on resume, so that an edit to a prompt, a tool schema
+    or the tool choice cannot silently reuse rows generated from a different request.
+    Added on 2026-11-14; rows written before that carry no fingerprint.
+    """
+    payload = {"messages": messages, "tools": tools, "tool_choice": tool_choice}
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(encoded.encode()).hexdigest()
+
+
+# Defects that make a conversation invalid for an agent measurement. A prompt the server
+# did not return is reported separately: it is a gap in provenance, not a known defect.
+PROMPT_NOT_RETURNED = "prompt_not_returned"
+
+
+def render_defects(
+    rendered: str | None, messages: list[dict[str, Any]], offered: list[dict[str, Any]]
+) -> list[str]:
+    """What the model's chat template dropped or rewrote, read from the rendered prompt.
+
+    The 2026-11-14 audit found that in Study B the Phi-4-mini template rendered no tool
+    schema and the Granite 3.3 template rendered no completed tool call, and that neither
+    was caught because the smoke test looked only at whether replies parsed. This check
+    compares the prompt the server actually built with the request:
+
+    - `tool_schema_missing:<name>`: an offered tool's name appears nowhere outside the
+      message text, so the model was never told the tool exists.
+    - `completed_call_not_rendered:<name>`: the conversation holds an assistant tool call
+      that the template left out.
+    - `tool_result_reencoded`: the tool result is present only as a JSON string, so the
+      template (not the harness) encoded it.
+    - `tool_result_missing`: the tool result is not in the prompt in either form.
+    """
+    if not isinstance(rendered, str):
+        return [PROMPT_NOT_RETURNED]
+    text = "\n".join(str(m.get("content") or "") for m in messages)
+    calls = [
+        call["function"]["name"] for message in messages for call in message.get("tool_calls") or []
+    ]
+    defects: list[str] = []
+    for tool in offered:
+        name = tool["function"]["name"]
+        outside_text = rendered.count(name) - text.count(name)
+        if outside_text < 1:
+            defects.append(f"tool_schema_missing:{name}")
+        elif name in calls and outside_text < 1 + calls.count(name):
+            defects.append(f"completed_call_not_rendered:{name}")
+    for message in messages:
+        content = message.get("content")
+        if message.get("role") != "tool" or not isinstance(content, str) or not content:
+            continue
+        if content in rendered:
+            continue
+        encoded = json.dumps(content, ensure_ascii=False)[1:-1]
+        escaped = json.dumps(content)[1:-1]
+        if encoded in rendered or escaped in rendered:
+            defects.append("tool_result_reencoded")
+        else:
+            defects.append("tool_result_missing")
+    return defects
+
+
 def score(case: Case, tool_calls: list[dict[str, Any]] | None, text: str | None) -> dict[str, Any]:
     """InjecAgent's `evaluate_output_finetuned`, plus a record of unparsed calls in the text."""
     calls = tool_calls or []
@@ -324,6 +391,29 @@ def unit_key(case: Case, condition: str, settings: Settings, phase: str) -> str:
     return json.dumps(payload, sort_keys=True, separators=(",", ":"))
 
 
+TOOL_CHOICE = "auto"
+
+
+def _check_same_server(
+    existing: list[dict[str, Any]], runtime: dict[str, Any] | None, results_path: Path
+) -> None:
+    """Refuse to add rows from a differently configured server to an existing file."""
+    if not runtime:
+        return
+    for field in ("launch_args", "runtime_version"):
+        now = runtime.get(field)
+        before = {
+            (row.get("runtime_info") or {}).get(field)
+            for row in existing
+            if isinstance(row.get("runtime_info"), dict)
+        } - {None}
+        if now is not None and before and before != {now}:
+            raise InjecAgentError(
+                f"{results_path} was written with {field} {sorted(map(str, before))}, "
+                f"and the server now reports {now!r}. Use a new output directory."
+            )
+
+
 @dataclass
 class RunSummary:
     planned: int
@@ -348,24 +438,36 @@ def run(
     results_path = output_dir / "raw_results.jsonl"
     prepare_results_file(results_path, overwrite=False)
     existing, _malformed = load_results(results_path)
-    done = {row["unit_key"] for row in existing if isinstance(row.get("unit_key"), str)}
+    by_key = {row["unit_key"]: row for row in existing if isinstance(row.get("unit_key"), str)}
+    done = set(by_key)
     kept: dict[str, int] = {}
     for old in existing:
         if old.get("rendered_prompt"):
             kept[old["condition"]] = kept.get(old["condition"], 0) + 1
+    runtime = _runtime_info(provider, settings.model)
+    _check_same_server(existing, runtime, results_path)
     plan = [(case, condition) for case in cases for condition in conditions]
     pending = []
     skipped = 0
     for case, condition in plan:
         key = unit_key(case, condition, settings, phase)
+        messages, offered = build_conversation(case, condition, tools)
+        fingerprint = request_fingerprint(messages, offered, TOOL_CHOICE)
         if key in done:
+            stored = by_key[key].get("request_sha256") if key in by_key else fingerprint
+            if stored != fingerprint:
+                raise InjecAgentError(
+                    f"{results_path} holds a row for {case.id} under {condition} that was "
+                    "generated from a different request (prompt, tools or tool choice), or "
+                    "before requests were fingerprinted. Use a new output directory."
+                )
             skipped += 1
             continue
         done.add(key)
-        pending.append((case, condition, key))
+        pending.append((case, condition, key, fingerprint))
 
-    def call(item: tuple[Case, str, str]) -> GenerationResponse:
-        case, condition, _key = item
+    def call(item: tuple[Case, str, str, str]) -> GenerationResponse:
+        case, condition, _key, _fingerprint = item
         messages, offered = build_conversation(case, condition, tools)
         request = GenerationRequest(
             model=settings.model,
@@ -378,7 +480,7 @@ def run(
             provider_settings=settings.provider_settings(),
             messages=messages,
             tools=offered,
-            tool_choice="auto",
+            tool_choice=TOOL_CHOICE,
         )
         try:
             return provider.generate(request)
@@ -394,22 +496,23 @@ def run(
 
     run_id = str(uuid.uuid4())
     commit = _git_commit()
-    runtime = _runtime_info(provider, settings.model)
     workers = max(1, int(getattr(provider, "concurrency", 1)))
     pool = ThreadPoolExecutor(max_workers=workers) if workers > 1 else None
     written = errors = 0
     try:
         responses = pool.map(call, pending) if pool else map(call, pending)
-        for index, ((case, condition, key), response) in enumerate(
+        for index, ((case, condition, key, fingerprint), response) in enumerate(
             zip(pending, responses, strict=True), start=1
         ):
             metadata = dict(response.provider_metadata or {})
             rendered = metadata.pop("rendered_prompt", None)
             calls = metadata.pop("tool_calls", None)
+            messages, offered = build_conversation(case, condition, tools)
             row: dict[str, Any] = {
                 "study": STUDY,
                 "phase": phase,
                 "unit_key": key,
+                "request_sha256": fingerprint,
                 "run_id": run_id,
                 "timestamp": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "case_id": case.id,
@@ -448,6 +551,8 @@ def run(
                 if kept.get(condition, 0) < keep_prompts_per_condition:
                     row["rendered_prompt"] = rendered
                     kept[condition] = kept.get(condition, 0) + 1
+            if not response.error_type:
+                row["render_defects"] = render_defects(rendered, messages, offered)
             if response.error_type:
                 row.update({"injecagent_eval": None, "attack_score": None})
                 errors += 1
@@ -586,6 +691,16 @@ def smoke_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
         ),
         "empty": sum(
             1 for row in smoke if not row.get("tool_calls") and not (row.get("response_text") or "")
+        ),
+        # What the chat template dropped or rewrote, from the rendered prompts.
+        "render_defects": dict(
+            sorted(
+                Counter(
+                    defect.split(":")[0]
+                    for row in smoke
+                    for defect in row.get("render_defects") or []
+                ).items()
+            )
         ),
         # Text that looks like a tool call the server did not parse.
         "call_like_text_unparsed": sum(

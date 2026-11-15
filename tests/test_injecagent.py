@@ -216,3 +216,98 @@ def test_v08_bundle_reproduces_study_b() -> None:
         "significant": 4,
         "replicates": False,
     }
+
+
+# --- Guards added by the 2026-11-14 audit ---------------------------------------------
+
+
+def _stored_prompt(label: str, condition: str) -> dict[str, Any]:
+    """The first published Study B row for a model and condition that kept its prompt."""
+    import gzip
+
+    path = Path("results-published/v08") / label / "raw_results.jsonl.gz"
+    with gzip.open(path, "rt") as handle:
+        for line in handle:
+            row = json.loads(line)
+            if row["condition"] == condition and row.get("rendered_prompt"):
+                return row
+    raise AssertionError(f"no stored prompt for {label} {condition}")
+
+
+def test_render_check_flags_the_study_b_template_defects(cases, tools) -> None:
+    from prompt_injection_eval.injecagent import (
+        PROMPT_NOT_RETURNED,
+        build_conversation,
+        render_defects,
+    )
+
+    by_id = {case.id: case for case in cases}
+
+    def defects(label: str, condition: str) -> set[str]:
+        row = _stored_prompt(label, condition)
+        messages, offered = build_conversation(by_id[row["case_id"]], condition, tools)
+        return {d.split(":")[0] for d in render_defects(row["rendered_prompt"], messages, offered)}
+
+    # Qwen3 and Hermes 3 rendered the tools, the completed call and the result.
+    for label in ("qwen3-8b", "hermes-3-8b"):
+        for condition in ("user_defended", "tool_defended", "tool_json_defended"):
+            assert defects(label, condition) == set(), (label, condition)
+    # Phi-4-mini was never shown a tool schema, in any condition.
+    assert "tool_schema_missing" in defects("phi-4-mini", "user_defended")
+    assert "tool_schema_missing" in defects("phi-4-mini", "tool_defended")
+    # Granite 3.3 saw the schemas, and an empty assistant turn where the call should be.
+    assert defects("granite-3.3-8b", "user_defended") == set()
+    assert defects("granite-3.3-8b", "tool_defended") == {"completed_call_not_rendered"}
+    # A server that returns no prompt (gpt-oss on vLLM's Harmony path) is a provenance gap.
+    case = cases[0]
+    messages, offered = build_conversation(case, "tool", tools)
+    assert render_defects(None, messages, offered) == [PROMPT_NOT_RETURNED]
+    # A template that JSON-encodes the tool result itself is named as such.
+    name = case.user_tool
+    schemas = " ".join(tool["function"]["name"] for tool in offered)
+    prompt = f"{schemas} call:{name} result:{json.dumps(case.tool_response)}"
+    assert render_defects(prompt, messages, offered) == ["tool_result_reencoded"]
+
+
+def test_resume_refuses_rows_from_a_different_request_or_server(
+    cases, tools, tmp_path: Path, monkeypatch
+) -> None:
+    import prompt_injection_eval.injecagent as module
+    from prompt_injection_eval.injecagent import InjecAgentError
+
+    picked = cases[:2]
+    targets = {case.user_instruction: case.target_tool for case in picked}
+
+    def provider(launch_args: str) -> OpenAICompatProvider:
+        client = httpx.Client(
+            base_url="https://srv.example.test", transport=httpx.MockTransport(_server(targets))
+        )
+        return OpenAICompatProvider(
+            base_url="https://srv.example.test",
+            client=client,
+            concurrency=1,
+            retry_wait_seconds=0,
+            launch_args=launch_args,
+        )
+
+    kwargs: dict[str, Any] = dict(
+        cases=picked, conditions=("tool",), tools=tools, settings=Settings(model="org/model")
+    )
+    first = run(output_dir=tmp_path / "m", provider=provider("parser-a"), **kwargs)
+    assert first.written == 2
+    rows, _ = load_results(tmp_path / "m" / "raw_results.jsonl")
+    assert all(len(row["request_sha256"]) == 64 for row in rows)
+    # The fake server's prompt is a stub with no tools in it, and every row says so.
+    assert all(
+        any(d.startswith("tool_schema_missing") for d in row["render_defects"]) for row in rows
+    )
+    # The same request against the same server resumes.
+    again = run(output_dir=tmp_path / "m", provider=provider("parser-a"), **kwargs)
+    assert (again.written, again.skipped) == (0, 2)
+    # A different serving configuration cannot add to, or silently reuse, the file.
+    with pytest.raises(InjecAgentError, match="launch_args"):
+        run(output_dir=tmp_path / "m", provider=provider("parser-b"), **kwargs)
+    # Nor can an edited prompt: the stored rows were generated from another request.
+    monkeypatch.setattr(module, "SYSTEM_PROMPT", module.SYSTEM_PROMPT + " Be brief.")
+    with pytest.raises(InjecAgentError, match="different request"):
+        run(output_dir=tmp_path / "m", provider=provider("parser-a"), **kwargs)

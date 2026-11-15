@@ -13,6 +13,7 @@ import typer
 from prompt_injection_eval.config import resolve_generation_limits
 from prompt_injection_eval.injecagent import (
     CONDITIONS,
+    PROMPT_NOT_RETURNED,
     InjecAgentError,
     Settings,
     load_cases,
@@ -112,7 +113,24 @@ def smoke_cmd(
     )
     rows, _ = load_results(output_dir / "raw_results.jsonl")
     typer.echo(f"Smoke: wrote {summary.written}, backend errors {summary.backend_errors}.")
-    typer.echo(json.dumps(smoke_summary(rows), sort_keys=True))
+    checked = smoke_summary(rows)
+    typer.echo(json.dumps(checked, sort_keys=True))
+    invalid = {k: v for k, v in checked["render_defects"].items() if k != PROMPT_NOT_RETURNED}
+    if invalid:
+        typer.echo(
+            "The chat template dropped or rewrote part of the conversation: "
+            f"{json.dumps(invalid, sort_keys=True)}. Results from this server configuration "
+            "would not measure an agent that saw its tools and its history. Fix the "
+            "template or drop the model before the main run.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+    if checked["render_defects"].get(PROMPT_NOT_RETURNED):
+        typer.echo(
+            "The server did not return the rendered prompt, so what the model saw cannot "
+            "be checked or published for this model.",
+            err=True,
+        )
 
 
 @injecagent_app.command("run")
@@ -137,15 +155,19 @@ def run_cmd(
         cases = cases[:limit]
     names = _conditions(condition)
     typer.echo(f"InjecAgent: {len(cases)} cases x {len(names)} conditions.")
-    summary = run(
-        cases=cases,
-        conditions=names,
-        tools=tools,
-        provider=_provider(provider, model),
-        settings=_settings(model, think, profile, reasoning_effort),
-        output_dir=output_dir,
-        progress=_progress,
-    )
+    try:
+        summary = run(
+            cases=cases,
+            conditions=names,
+            tools=tools,
+            provider=_provider(provider, model),
+            settings=_settings(model, think, profile, reasoning_effort),
+            output_dir=output_dir,
+            progress=_progress,
+        )
+    except InjecAgentError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
     typer.echo(
         f"Skipped: {summary.skipped}. Wrote: {summary.written}. "
         f"Backend errors: {summary.backend_errors}."
