@@ -680,3 +680,67 @@ def test_termination_is_reported_apart_from_validity_and_outcome() -> None:
     assert line["user task met"] == 2 and line["user task met, at round limit"] == 0
     assert len(limited) == 1 and limited[0]["attacker goal met"] is True
     assert limited[0]["last calls requested"] == "get_most_recent_transactions"
+
+
+def test_feasibility_order_is_balanced_and_deterministic() -> None:
+    order = runner.feasibility_order()
+    assert order == runner.feasibility_order()
+    assert len(order) == len(set(order)) == 144
+    assert {(u, g) for u, g, _ in order} == set(runner.development_pairs())
+    # Both formats of a pair are adjacent, and which comes first alternates.
+    firsts = Counter()
+    for i in range(0, 144, 2):
+        assert order[i][:2] == order[i + 1][:2] and order[i][2] != order[i + 1][2]
+        firsts[order[i][2]] += 1
+    assert firsts == {"text": 36, "json": 36}
+    pairs = [(u, g) for u, g, _ in order[::2]]
+    users, goals = runner.tasks(DEV_SUITE)
+    # Every block of 16 pairs within the first 64 covers all 16 user tasks once.
+    for start in range(0, 64, 16):
+        assert sorted(u for u, _ in pairs[start : start + 16]) == sorted(users)
+    # Goals are spread: the first 16 pairs already use all nine.
+    assert {g for _, g in pairs[:16]} == set(goals)
+    plan = runner.plan("feasibility")
+    assert [(u.user_task, u.injection_task, u.fmt) for u in plan] == order
+    assert {u.attack for u in plan} == {attacks.BASELINE} and {u.run for u in plan} == {0}
+
+
+def test_feasibility_accounting_keeps_interrupted_and_unstarted_episodes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(episode, "MIN_REQUEST_SECONDS", 0.02)
+    # Requests take longer than a third of the window, so an episode is in flight at the cut.
+    slow = _Counting(ScriptedProvider("attacker"), delay=0.25, concurrency=4)
+    summary = runner.run_phase("feasibility", slow, SETTINGS, tmp_path, deadline_minutes=0.6 / 60)
+    assert summary.stopped_by_deadline and summary.not_started > 0
+    plan = json.loads((tmp_path / "plan.json").read_text())
+    rows = runner.read_traces(tmp_path / "traces.jsonl")
+    found = analysis.feasibility(plan, rows)
+    s = found["summary"]
+    assert s["planned"] == 144 and s["started"] + s["not_started"] == 144
+    assert s["completed"] + s["interrupted"] + s["invalid"] + s["other_errors"] == s["started"]
+    assert s["interrupted"] == summary.statuses.get("interrupted", 0) >= 1
+    assert s["not_started"] == summary.not_started
+    assert len(found["interrupted_episodes"]) == s["interrupted"]
+    assert all(e["model calls when cut"] >= 0 for e in found["interrupted_episodes"])
+    for table in ("coverage_by_user_task", "coverage_by_attacker_goal", "coverage_by_format"):
+        assert sum(line["planned"] for line in found[table]) == 144
+        assert sum(line["not started"] for line in found[table]) == s["not_started"]
+        assert sum(line["interrupted"] for line in found[table]) == s["interrupted"]
+    low, high = found["started_mean_calls_bounds"]
+    assert low <= high
+    summary_report = analysis.report([tmp_path], tmp_path / "report")
+    assert "## Feasibility workload" in (tmp_path / "report" / "report.md").read_text()
+    assert summary_report["feasibility"]["summary"] == s
+
+
+def test_full_feasibility_workload_runs_offline(tmp_path: Path) -> None:
+    summary = runner.run_phase("feasibility", ScriptedProvider("attacker"), SETTINGS, tmp_path)
+    assert summary.statuses == {"completed": 144}
+    found = analysis.feasibility(
+        json.loads((tmp_path / "plan.json").read_text()),
+        runner.read_traces(tmp_path / "traces.jsonl"),
+    )
+    assert found["summary"]["completed"] == 144
+    assert all(line["pairs complete in both formats"] for line in found["coverage_by_user_task"])
+    assert found["started_mean_calls_bounds"][0] == found["started_mean_calls_bounds"][1]

@@ -186,6 +186,11 @@ def run_cmd(
     think: bool | None = _THINK,
     frozen: Path | None = typer.Option(None, "--frozen", help="frozen_attacks.json, for evaluate."),
     deadline_minutes: float | None = _DEADLINE,
+    fail_fast: bool | None = typer.Option(
+        None,
+        "--fail-fast/--no-fail-fast",
+        help="Start no episode after an invalid one. Default: on for smoke, off otherwise.",
+    ),
 ) -> None:
     """Run one phase. Exit code 3 means the deadline stopped it; rerun to resume."""
     from prompt_injection_eval.pilot import runner
@@ -204,6 +209,7 @@ def run_cmd(
             frozen=frozen_attacks,
             deadline_minutes=deadline_minutes,
             progress=_progress,
+            fail_fast=fail_fast,
         )
     except PilotError as exc:
         raise _fail(str(exc)) from exc

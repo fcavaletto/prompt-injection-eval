@@ -131,6 +131,13 @@ Registered before any model has been run on the pilot harness. The design is [Pi
 - A client deadline is checked before every episode and every model request; an episode cut off by it is `interrupted`, is never scored, and is rerun on resume.
 - The smoke test's pass criterion is fixed as `smoke-v1`, stated in [Pilot design](pilot-design.md), section 9.3. The earlier wording asked for two of four from-the-request tasks per format where the plan has two.
 
+**Addition to Amendment 2 (2026-11-16, before any F1 inference).** A development-only feasibility stage, F1, is added outside the registered phases. It changes nothing in the question, data split, attacks, analysis or stopping rules.
+
+- F1a is a Granite 4.0 H Small smoke, with the same 24 banking episodes and the same criterion, `smoke-v1`.
+- F1b is the registered development-controls phase for Qwen3-32B, followed by a dedicated phase `feasibility`. That phase runs the fixed baseline attack on the 72 banking development pairs in both formats, one run, in the order of `runner.feasibility_order()`. The order is described in [Pilot design](pilot-design.md), section 9.6a.
+- The feasibility outputs are kept apart from selection and are never used to choose an attack.
+- No Slack, workspace or travel episode is run.
+
 ## Results
 
 Appended after the runs; nothing above was changed.

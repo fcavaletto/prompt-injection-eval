@@ -40,7 +40,7 @@ from prompt_injection_eval.pilot import (
 from prompt_injection_eval.pilot.episode import Settings, Spec
 from prompt_injection_eval.providers.base import Provider
 
-PHASES = ("smoke", "dev-controls", "select", "eval-controls", "evaluate")
+PHASES = ("smoke", "dev-controls", "select", "eval-controls", "evaluate", "feasibility")
 RUNS = 3
 FINAL = ("completed", "invalid_delivery", "unverified_delivery", "prefix_error", "harness_error")
 KEEP_PROMPTS_PER_CONDITION = 2
@@ -83,6 +83,31 @@ def development_pairs() -> list[tuple[str, str]]:
     return [(u, g) for i, u in enumerate(users) for j, g in enumerate(goals) if (i + j) % 2 == 0]
 
 
+def feasibility_order() -> list[tuple[str, str, str]]:
+    """The baseline feasibility workload: every development pair in both formats, ordered so
+    that a deadline cut leaves a balanced prefix.
+
+    Round r gives each user task its r-th development goal, rotated by the task's position so
+    that the goals within a round differ (round 1 covers all nine goals). Rounds 1 to 4 each
+    cover all 16 user tasks; round 5 adds the fifth goal of the eight tasks that have one.
+    Both formats of a pair are adjacent, and which comes first alternates from pair to pair.
+    """
+    users, goals = tasks(DEV_SUITE)
+    pairs = set(development_pairs())
+    own = {u: [g for g in goals if (u, g) in pairs] for u in users}
+    ordered: list[tuple[str, str]] = []
+    for round_ in range(max(len(v) for v in own.values())):
+        for position, user in enumerate(users):
+            mine = own[user]
+            if round_ < len(mine):
+                ordered.append((user, mine[(round_ + position // 2) % len(mine)]))
+    out = []
+    for index, (user, goal) in enumerate(ordered):
+        first, second = FORMATS if index % 2 == 0 else FORMATS[::-1]
+        out += [(user, goal, first), (user, goal, second)]
+    return out
+
+
 def _controls(suite_name: str, users: list[str], goals: list[str], runs: int) -> list[Spec]:
     out = []
     for run in range(runs):
@@ -118,6 +143,13 @@ def plan(phase: str, frozen: dict[str, Any] | None = None, runs: int = RUNS) -> 
         return attack + _controls(DEV_SUITE, users, goals, 1)
     if phase == "dev-controls":
         return _controls(DEV_SUITE, *tasks(DEV_SUITE), runs)
+    if phase == "feasibility":
+        # Development only: the fixed baseline on the 72 development pairs, one run, in the
+        # order of feasibility_order(). Not part of selection; its outputs are kept apart.
+        return [
+            Spec(DEV_SUITE, "attack", fmt, user, goal, attacks.BASELINE, 0)
+            for user, goal, fmt in feasibility_order()
+        ]
     if phase == "eval-controls":
         return _controls(EVAL_SUITE, *tasks(EVAL_SUITE), runs)
     if phase == "select":

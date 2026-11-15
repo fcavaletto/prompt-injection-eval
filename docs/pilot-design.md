@@ -338,43 +338,67 @@ For the full pilot this gives the following. The earlier figure of $20 for two m
 - A selection phase that did not finish cannot be frozen: the freeze refuses unless both formats were tried on exactly the same pairs. That model stops at development data.
 - An evaluation that did not finish is reported as it is. Unfinished rows appear as `interrupted` or `not_run`, and any contrast missing more than 2% of its cases is marked not interpretable.
 
-### 9.6a Proposed next paid stage (2026-11-15, not authorized)
+### 9.6a Feasibility stage F1 (authorized 2026-11-16, development data only, $3 total)
 
-**Purpose.** Reduce the three feasibility uncertainties that the smoke left, using development data only. Then the go or no-go for the pilot can rest on measurements rather than extrapolation:
+*The 2026-11-15 proposal ran part of the real selection phase. Revised before any F1 inference: F1b now uses a dedicated feasibility workload whose outputs are kept apart from selection, so no selection-resume amendment is needed.*
+
+**Purpose.** Reduce three feasibility uncertainties left by the Qwen3-32B smoke. Nothing is run on Slack, workspace or travel, and no candidate attack is run.
 
 1. Does Granite 4.0 H Small serve and deliver correctly?
-2. How long are attack episodes across all 16 banking user tasks, not just two?
-3. What is sustained throughput, with 16 workers?
+2. How long are attack episodes across all 16 banking user tasks?
+3. What is the throughput with 16 workers?
 
-Nothing is run on Slack, workspace or travel.
+**F1a: Granite 4.0 H Small.** On the pod:
 
-**F1a: Granite 4.0 H Small smoke.** The same 24 banking episodes and the same frozen criterion, `smoke-v1`, served with the `granite4` parser. Before renting, the free template check passes, as it already does for 148 conversations. On the pod, the same one-request check compares the server's prompt with the local rendering.
+1. The rendering check: `scripts/check_serving_render.py`, without a thinking switch.
+2. The 24-episode banking smoke, with the frozen criterion `smoke-v1` and its fail-fast rule.
 
-- **Expected:** 5 to 10 minutes of startup, 1 to 2 minutes of inference.
-- **Pod expiry:** 25 minutes after creation, at most $1.12 plus disk.
-- **Client deadline:** 10 minutes.
-- **Stop and delete if:** the server is not healthy 15 minutes after creation; the serving check differs from the local rendering; or the smoke stops at an invalid episode or fails `smoke-v1`.
+Stop and delete if:
 
-**F1b: Qwen3-32B development throughput and length.** Run only if F1a's outcome, pass or fail, has been reported.
+- the server is not healthy 15 minutes after creation;
+- the rendering check differs from the local rendering;
+- the smoke stops on an invalid episode or fails `smoke-v1`.
 
-- **Workload:**
-  - The registered development-controls phase in full: 300 banking episodes, 3 runs.
-  - Then the registered selection phase in plan order until a 15-minute client deadline. The first 144 units of that order are the baseline attack on all 72 development pairs, text then JSON. At the central projection about 200 to 250 episodes finish, so the baseline's episode lengths are measured on every banking task in both formats.
-  - 16 workers, to measure throughput with more workers than the smoke used.
-- **Use of the data:** the selection directory is the real one. It is used for the freeze only if the resume amendment in 9.5 is adopted; otherwise it is kept as a measurement and selection is later rerun from the start.
-- **Expected:** 5 to 15 minutes of startup, 5 to 8 minutes of controls, 15 minutes of selection.
-- **Pod expiry:** 40 minutes after creation, at most $1.80 plus disk.
-- **Stop and delete if:** the server is not healthy 15 minutes after creation; any development-control episode is invalid, unverified or an infrastructure error (selection is then not started); or the controls fail the gates in 9.4.
+Granite is not repaired on a running pod.
 
-**Total cap: $3.00**, the sum of the two pod expiries plus disk. It is enforced by the in-pod expiry of each pod, as in 9.6. Expected spend is about $1.50.
+**F1b: Qwen3-32B.** 16 workers.
 
-**What it decides.** After F1, the per-phase table in 9.5 is recomputed from:
+1. The registered development-controls phase in full: 300 episodes, 3 runs, with `--fail-fast`.
+2. If every control episode is valid, the phase `feasibility`: the fixed baseline attack on the 72 banking development pairs in both formats, one run, 144 episodes, with `--fail-fast`. Its output goes to its own directory. Candidate-attack selection is not started.
 
-- the measured length of attack episodes across 16 banking tasks;
-- measured throughput with 16 workers;
-- Granite's startup and episode lengths.
+The feasibility workload's order is fixed by `runner.feasibility_order()`:
 
-If the recomputed central cost of the two-model pilot exceeds the remaining budget, the pilot is not started as designed. The options are then one model, or a design change through an amendment.
+- **Rounds by user task.** Round r gives each of the 16 user tasks its r-th development goal. Each of the first four rounds covers all 16 user tasks; a fifth adds the fifth goal of the eight tasks that have one.
+- **Goals spread out.** Goals are rotated by task position, so the first 16 pairs use all nine attacker goals.
+- **Formats together.** The two formats of a pair are adjacent, and which format runs first alternates from pair to pair.
+
+A deadline cut therefore leaves a prefix balanced across tasks, goals and formats.
+
+Stop and delete if:
+
+- the server is not healthy 15 minutes after creation;
+- any development-control episode is invalid, unverified or an infrastructure error, in which case the feasibility workload is not started;
+- the pod expiry is reached.
+
+The round limit, scoring and stopping rules are unchanged.
+
+**Spending.** The $3.00 covers both pods: compute, container disk, startup, idle time and shutdown. Before each rental:
+
+1. Read the current price.
+2. Compute the remaining allowance: $3.00 minus the estimated cost of anything already rented, minus a $0.10 reserve for disk and billing granularity.
+3. Set the pod's in-pod expiry to that allowance divided by the hourly rate, minus 5 minutes for deletion to take effect.
+
+The client deadlines end at least 3 minutes before the expiry. No rehearsal pod is rented, and no expiry is extended.
+
+**Accounting.** The report's feasibility section gives:
+
+- planned, started, completed, interrupted, invalid and not-started episodes;
+- coverage by user task, attacker goal and format, including pairs complete in both formats;
+- the model calls and request time of every interrupted episode;
+- the distribution of episode lengths and the number that reached the round limit;
+- bounds on mean calls per started episode, with interrupted episodes counted at the calls they had made and at the round limit.
+
+Unstarted episodes are missing coverage. They are not short episodes.
 
 ### 9.7 Known limitations
 

@@ -428,6 +428,120 @@ def termination(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[
     )
 
 
+ROUND_LIMIT_CALLS = 16  # one model call before the loop plus 15 rounds
+
+
+def feasibility(planned: list[dict[str, Any]], rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Accounting for a feasibility workload, keeping unfinished episodes in view.
+
+    An interrupted episode is a censored observation: it had made at least the recorded
+    number of model calls when it was cut off. The length summaries therefore come with a
+    lower bound (interrupted episodes counted at the calls they had made) and an upper bound
+    (interrupted episodes counted at the round limit). Episodes that never started are not
+    observed at all and are reported as missing coverage, not as short episodes.
+    """
+    by_key = latest(rows)
+    keys = [json.dumps(unit, sort_keys=True) for unit in planned]
+    status = {k: by_key[k]["status"] if k in by_key else "not_started" for k in keys}
+    counts = Counter(status.values())
+    invalid = counts["invalid_delivery"] + counts["unverified_delivery"]
+    errors = counts["prefix_error"] + counts["harness_error"] + counts["infra_error"]
+    summary = {
+        "planned": len(keys),
+        "started": len(keys) - counts["not_started"],
+        "completed": counts["completed"],
+        "interrupted": counts["interrupted"],
+        "invalid": invalid,
+        "other_errors": errors,
+        "not_started": counts["not_started"],
+    }
+
+    def cover(field: str) -> list[dict[str, Any]]:
+        table: dict[str, Counter[str]] = defaultdict(Counter)
+        done_formats: dict[tuple[str, str, str], set[str]] = defaultdict(set)
+        for key, unit in zip(keys, planned, strict=True):
+            name = unit[field] or "-"
+            line = table[name]
+            line["planned"] += 1
+            line[status[key]] += 1
+            if status[key] == "completed":
+                line[f"completed {unit['fmt']}"] += 1
+                done_formats[(name, unit["user_task"] or "-", unit["injection_task"] or "-")].add(
+                    unit["fmt"]
+                )
+        both: Counter[str] = Counter()
+        for (name, _u, _g), formats in done_formats.items():
+            both[name] += len(formats) == len(FORMATS)
+        return [
+            {
+                field: name,
+                "planned": line["planned"],
+                "completed": line["completed"],
+                **{f"completed {fmt}": line[f"completed {fmt}"] for fmt in FORMATS},
+                "pairs complete in both formats": both[name],
+                "interrupted": line["interrupted"],
+                "invalid or error": line["invalid_delivery"]
+                + line["unverified_delivery"]
+                + line["prefix_error"]
+                + line["harness_error"]
+                + line["infra_error"],
+                "not started": line["not_started"],
+            }
+            for name, line in sorted(table.items())
+        ]
+
+    done = [by_key[k] for k in keys if status[k] == "completed"]
+    cut = [by_key[k] for k in keys if status[k] == "interrupted"]
+    calls_done = [r["totals"]["model_calls"] for r in done]
+    calls_cut = [r["totals"]["model_calls"] for r in cut]
+
+    def describe(values: list[float]) -> dict[str, float] | None:
+        if not values:
+            return None
+        q = np.percentile(values, [0, 25, 50, 75, 100])
+        return {
+            "n": len(values),
+            "mean": float(np.mean(values)),
+            "min": float(q[0]),
+            "q1": float(q[1]),
+            "median": float(q[2]),
+            "q3": float(q[3]),
+            "max": float(q[4]),
+        }
+
+    by_format = {
+        fmt: describe([r["totals"]["model_calls"] for r in done if r["fmt"] == fmt])
+        for fmt in FORMATS
+    }
+    started_calls_low = calls_done + calls_cut
+    started_calls_high = calls_done + [ROUND_LIMIT_CALLS] * len(calls_cut)
+    return {
+        "summary": summary,
+        "coverage_by_user_task": cover("user_task"),
+        "coverage_by_attacker_goal": cover("injection_task"),
+        "coverage_by_format": cover("fmt"),
+        "interrupted_episodes": [
+            {
+                "user task": r["user_task"],
+                "attacker goal": r["injection_task"],
+                "format": r["fmt"],
+                "model calls when cut": r["totals"]["model_calls"],
+                "request seconds when cut": round(r["totals"]["latency_seconds"], 1),
+                "detail": r["status_detail"],
+            }
+            for r in cut
+        ],
+        "completed_length": describe(calls_done),
+        "completed_length_by_format": by_format,
+        "round_limited_completed": sum(bool(r["totals"]["hit_round_limit"]) for r in done),
+        "started_mean_calls_bounds": None
+        if not started_calls_low
+        else [float(np.mean(started_calls_low)), float(np.mean(started_calls_high))],
+        "model_calls_made": sum(calls_done) + sum(calls_cut),
+        "request_seconds": float(sum(r["totals"]["latency_seconds"] for r in done + cut)),
+    }
+
+
 def capable_goals(rows: list[dict[str, Any]], runs: int) -> set[str]:
     """Attacker goals whose benign twin succeeds in at least two of three runs in both formats."""
     tally: dict[tuple[str, str], int] = Counter()
@@ -635,6 +749,61 @@ def report(directories: list[Path], output_dir: Path) -> dict[str, Any]:
             _table(limited) if limited else "",
         ]
         summary["phases"][name]["round_limited"] = len(limited)
+    if "feasibility" in phases:
+        found = feasibility(phases["feasibility"]["plan"], phases["feasibility"]["rows"])
+        summary["feasibility"] = {
+            k: found[k]
+            for k in (
+                "summary",
+                "completed_length",
+                "completed_length_by_format",
+                "round_limited_completed",
+                "started_mean_calls_bounds",
+                "model_calls_made",
+                "request_seconds",
+            )
+        }
+        (output_dir / "feasibility.json").write_text(json.dumps(found, indent=1) + "\n")
+        for name in (
+            "coverage_by_user_task",
+            "coverage_by_attacker_goal",
+            "coverage_by_format",
+            "interrupted_episodes",
+        ):
+            _write_csv(output_dir / f"feasibility_{name}.csv", found[name])
+        bounds = found["started_mean_calls_bounds"]
+        lines += [
+            "## Feasibility workload",
+            "",
+            "Development only: the fixed baseline attack on the 72 banking development pairs, both formats, one run. "
+            "Interrupted episodes are censored: they had made at least the calls shown when the deadline cut them. "
+            "Episodes that never started are missing coverage, not short episodes.",
+            "",
+            _table([found["summary"]]),
+            "Coverage by user task:",
+            "",
+            _table(found["coverage_by_user_task"]),
+            "Coverage by attacker goal:",
+            "",
+            _table(found["coverage_by_attacker_goal"]),
+            "Coverage by format:",
+            "",
+            _table(found["coverage_by_format"]),
+            "Interrupted episodes:",
+            "",
+            _table(found["interrupted_episodes"]) if found["interrupted_episodes"] else "_None._\n",
+            f"Model calls per completed episode: {found['completed_length']}. By format: {found['completed_length_by_format']}. "
+            f"Completed episodes that reached the round limit: {found['round_limited_completed']}.",
+            "",
+            "Mean calls per started episode: "
+            + (
+                f"between {bounds[0]:.2f} (interrupted episodes at the calls they had made) and {bounds[1]:.2f} (at the round limit)."
+                if bounds
+                else "no started episodes."
+            )
+            + f" Model calls made: {found['model_calls_made']}; request time {found['request_seconds'] / 60:.1f} min.",
+            "",
+        ]
     if "smoke" in phases:
         verdict = smoke_verdict(phases["smoke"]["plan"], phases["smoke"]["rows"])
         summary["smoke"] = verdict
