@@ -1,0 +1,18 @@
+{
+  "status": "exploratory, written after outcomes were known; 2026-11-14",
+  "bootstrap_replicates": 10000,
+  "rng_seed": 20261114,
+  "injecagent_structure": {
+    "cases": 2108,
+    "distinct_user_instructions": 17,
+    "distinct_user_tools": 17,
+    "distinct_user_tool_argument_sets": 17,
+    "distinct_tool_response_templates": 17,
+    "distinct_attacker_instructions": 62,
+    "distinct_attacker_goals_direct_harm": 30,
+    "distinct_attacker_goals_data_stealing": 32,
+    "settings": 2,
+    "design": "17 user contexts x 62 attacker goals x 2 settings, fully crossed",
+    "enhanced_is_base_plus_fixed_prefix": true
+  }
+}

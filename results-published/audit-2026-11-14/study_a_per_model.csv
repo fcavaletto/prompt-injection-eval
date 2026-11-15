@@ -1,0 +1,111 @@
+model,contrast,difference_seeds_of_59,difference_pp,ci95_seed_bootstrap,signflip_p_over_seeds
+qwen3-4b,"A1 flatten, tool, rule (tool_flat_defended - tool_defended)",-1,-1.7,"(-5.1, 0.0)",1.0
+qwen3-8b,"A1 flatten, tool, rule (tool_flat_defended - tool_defended)",-7,-11.9,"(-22.0, -3.4)",0.0390625
+qwen3-14b,"A1 flatten, tool, rule (tool_flat_defended - tool_defended)",-4,-6.8,"(-13.6, -1.7)",0.125
+qwen3-32b,"A1 flatten, tool, rule (tool_flat_defended - tool_defended)",-7,-11.9,"(-22.0, -3.4)",0.0390625
+qwen2.5-7b,"A1 flatten, tool, rule (tool_flat_defended - tool_defended)",0,0.0,"(0.0, 0.0)",1.0
+hermes-3-8b,"A1 flatten, tool, rule (tool_flat_defended - tool_defended)",-5,-8.5,"(-18.6, 1.7)",0.2265625
+granite-3.3-8b,"A1 flatten, tool, rule (tool_flat_defended - tool_defended)",-1,-1.7,"(-13.6, 8.5)",1.0
+phi-4-mini,"A1 flatten, tool, rule (tool_flat_defended - tool_defended)",-7,-11.9,"(-23.7, -1.7)",0.0654296875
+gpt-oss-20b,"A1 flatten, tool, rule (tool_flat_defended - tool_defended)",-2,-3.4,"(-13.6, 6.8)",0.75390625
+gpt-oss-120b,"A1 flatten, tool, rule (tool_flat_defended - tool_defended)",-2,-3.4,"(-11.9, 5.1)",0.6875
+qwen3-4b,"A2 JSON after flatten, tool, rule",-7,-11.9,"(-20.3, -3.4)",0.015625
+qwen3-8b,"A2 JSON after flatten, tool, rule",-11,-18.6,"(-30.5, -8.5)",0.00341796875
+qwen3-14b,"A2 JSON after flatten, tool, rule",-16,-27.1,"(-39.0, -16.9)",3.0517578125e-05
+qwen3-32b,"A2 JSON after flatten, tool, rule",-9,-15.3,"(-25.4, -5.1)",0.01171875
+qwen2.5-7b,"A2 JSON after flatten, tool, rule",-14,-23.7,"(-35.6, -13.6)",0.0001220703125
+hermes-3-8b,"A2 JSON after flatten, tool, rule",-7,-11.9,"(-22.0, -3.4)",0.0390625
+granite-3.3-8b,"A2 JSON after flatten, tool, rule",-15,-25.4,"(-37.3, -15.3)",6.103515625e-05
+phi-4-mini,"A2 JSON after flatten, tool, rule",-17,-28.8,"(-40.7, -16.9)",1.52587890625e-05
+gpt-oss-20b,"A2 JSON after flatten, tool, rule",-10,-16.9,"(-27.1, -8.5)",0.001953125
+gpt-oss-120b,"A2 JSON after flatten, tool, rule",-4,-6.8,"(-13.6, -1.7)",0.125
+qwen3-4b,"JSON vs raw, tool, rule",-8,-13.6,"(-23.7, -5.1)",0.0078125
+qwen3-8b,"JSON vs raw, tool, rule",-18,-30.5,"(-44.1, -18.6)",4.00543212890625e-05
+qwen3-14b,"JSON vs raw, tool, rule",-20,-33.9,"(-45.8, -22.0)",1.9073486328125e-06
+qwen3-32b,"JSON vs raw, tool, rule",-16,-27.1,"(-39.0, -16.9)",3.0517578125e-05
+qwen2.5-7b,"JSON vs raw, tool, rule",-14,-23.7,"(-35.6, -13.6)",0.0001220703125
+hermes-3-8b,"JSON vs raw, tool, rule",-12,-20.3,"(-32.2, -8.5)",0.0018310546875
+granite-3.3-8b,"JSON vs raw, tool, rule",-16,-27.1,"(-39.0, -15.3)",0.00014495849609375
+phi-4-mini,"JSON vs raw, tool, rule",-24,-40.7,"(-54.2, -28.8)",4.9999750001249995e-06
+gpt-oss-20b,"JSON vs raw, tool, rule",-12,-20.3,"(-30.5, -10.2)",0.00048828125
+gpt-oss-120b,"JSON vs raw, tool, rule",-6,-10.2,"(-18.6, -3.4)",0.03125
+qwen3-4b,"A3 JSON vs raw, user message, rule",-7,-11.9,"(-20.3, -3.4)",0.015625
+qwen3-8b,"A3 JSON vs raw, user message, rule",2,3.4,"(-5.1, 11.9)",0.6875
+qwen3-14b,"A3 JSON vs raw, user message, rule",-6,-10.2,"(-18.6, -3.4)",0.03125
+qwen3-32b,"A3 JSON vs raw, user message, rule",-4,-6.8,"(-13.6, -1.7)",0.125
+qwen2.5-7b,"A3 JSON vs raw, user message, rule",-4,-6.8,"(-16.9, 1.7)",0.2890625
+hermes-3-8b,"A3 JSON vs raw, user message, rule",1,1.7,"(-5.1, 8.5)",1.0
+granite-3.3-8b,"A3 JSON vs raw, user message, rule",-6,-10.2,"(-18.6, -3.4)",0.03125
+phi-4-mini,"A3 JSON vs raw, user message, rule",-5,-8.5,"(-16.9, -1.7)",0.0625
+gpt-oss-20b,"A3 JSON vs raw, user message, rule",0,0.0,"(0.0, 0.0)",1.0
+gpt-oss-120b,"A3 JSON vs raw, user message, rule",0,0.0,"(0.0, 0.0)",1.0
+qwen3-4b,"INTERACTION JSON x placement, rule (tool effect - user effect)",-1,-1.7,"(-15.3, 11.9)",1.0
+qwen3-8b,"INTERACTION JSON x placement, rule (tool effect - user effect)",-20,-33.9,"(-49.2, -18.6)",9.999950000249999e-05
+qwen3-14b,"INTERACTION JSON x placement, rule (tool effect - user effect)",-14,-23.7,"(-39.0, -6.8)",0.009434952825235874
+qwen3-32b,"INTERACTION JSON x placement, rule (tool effect - user effect)",-12,-20.3,"(-33.9, -6.8)",0.007537841796875
+qwen2.5-7b,"INTERACTION JSON x placement, rule (tool effect - user effect)",-10,-16.9,"(-32.2, -1.7)",0.0518951416015625
+hermes-3-8b,"INTERACTION JSON x placement, rule (tool effect - user effect)",-13,-22.0,"(-37.3, -8.5)",0.00927734375
+granite-3.3-8b,"INTERACTION JSON x placement, rule (tool effect - user effect)",-10,-16.9,"(-32.2, -1.7)",0.06310968445157775
+phi-4-mini,"INTERACTION JSON x placement, rule (tool effect - user effect)",-19,-32.2,"(-45.8, -20.3)",1.4999925000374999e-05
+gpt-oss-20b,"INTERACTION JSON x placement, rule (tool effect - user effect)",-12,-20.3,"(-30.5, -10.2)",0.00048828125
+gpt-oss-120b,"INTERACTION JSON x placement, rule (tool effect - user effect)",-6,-10.2,"(-18.6, -3.4)",0.03125
+qwen3-4b,"JSON vs raw, tool, no rule",-7,-11.9,"(-20.3, -5.1)",0.015625
+qwen3-8b,"JSON vs raw, tool, no rule",-10,-16.9,"(-27.1, -8.5)",0.001953125
+qwen3-14b,"JSON vs raw, tool, no rule",-6,-10.2,"(-18.6, -3.4)",0.03125
+qwen3-32b,"JSON vs raw, tool, no rule",-1,-1.7,"(-5.1, 0.0)",1.0
+qwen2.5-7b,"JSON vs raw, tool, no rule",-8,-13.6,"(-23.7, -5.1)",0.0078125
+hermes-3-8b,"JSON vs raw, tool, no rule",-17,-28.8,"(-40.7, -16.9)",7.62939453125e-05
+granite-3.3-8b,"JSON vs raw, tool, no rule",-26,-44.1,"(-57.6, -32.2)",4.9999750001249995e-06
+phi-4-mini,"JSON vs raw, tool, no rule",-18,-30.5,"(-44.1, -18.6)",4.00543212890625e-05
+gpt-oss-20b,"JSON vs raw, tool, no rule",-26,-44.1,"(-57.6, -30.5)",4.9999750001249995e-06
+gpt-oss-120b,"JSON vs raw, tool, no rule",-21,-35.6,"(-49.2, -22.0)",4.9999750001249995e-06
+qwen3-4b,"JSON vs raw, user message, no rule",-14,-23.7,"(-33.9, -13.6)",0.0001220703125
+qwen3-8b,"JSON vs raw, user message, no rule",-13,-22.0,"(-33.9, -10.2)",0.0009765625
+qwen3-14b,"JSON vs raw, user message, no rule",-10,-16.9,"(-27.1, -8.5)",0.001953125
+qwen3-32b,"JSON vs raw, user message, no rule",-19,-32.2,"(-44.1, -20.3)",3.814697265625e-06
+qwen2.5-7b,"JSON vs raw, user message, no rule",-7,-11.9,"(-20.3, -5.1)",0.015625
+hermes-3-8b,"JSON vs raw, user message, no rule",-3,-5.1,"(-15.3, 6.8)",0.548828125
+granite-3.3-8b,"JSON vs raw, user message, no rule",-10,-16.9,"(-27.1, -8.5)",0.001953125
+phi-4-mini,"JSON vs raw, user message, no rule",-14,-23.7,"(-35.6, -11.9)",0.000518798828125
+gpt-oss-20b,"JSON vs raw, user message, no rule",-14,-23.7,"(-37.3, -10.2)",0.0044999775001125
+gpt-oss-120b,"JSON vs raw, user message, no rule",-30,-50.8,"(-62.7, -37.3)",4.9999750001249995e-06
+qwen3-4b,"INTERACTION JSON x placement, no rule",7,11.9,"(1.7, 22.0)",0.0654296875
+qwen3-8b,"INTERACTION JSON x placement, no rule",3,5.1,"(-10.2, 20.3)",0.6648866755666222
+qwen3-14b,"INTERACTION JSON x placement, no rule",4,6.8,"(-3.4, 16.9)",0.34375
+qwen3-32b,"INTERACTION JSON x placement, no rule",18,30.5,"(18.6, 42.4)",7.62939453125e-06
+qwen2.5-7b,"INTERACTION JSON x placement, no rule",-1,-1.7,"(-11.9, 8.5)",1.0
+hermes-3-8b,"INTERACTION JSON x placement, no rule",-14,-23.7,"(-39.0, -8.5)",0.006594967025164874
+granite-3.3-8b,"INTERACTION JSON x placement, no rule",-16,-27.1,"(-44.1, -10.2)",0.005074974625126874
+phi-4-mini,"INTERACTION JSON x placement, no rule",-4,-6.8,"(-23.7, 11.9)",0.5846320768396158
+gpt-oss-20b,"INTERACTION JSON x placement, no rule",-12,-20.3,"(-39.0, 0.0)",0.07281463592682036
+gpt-oss-120b,"INTERACTION JSON x placement, no rule",9,15.3,"(-6.8, 35.6)",0.21055394723026385
+qwen3-4b,"placement, rule (tool_defended - defended)",45,76.3,"(66.1, 86.4)",4.9999750001249995e-06
+qwen3-8b,"placement, rule (tool_defended - defended)",26,44.1,"(32.2, 57.6)",4.9999750001249995e-06
+qwen3-14b,"placement, rule (tool_defended - defended)",41,69.5,"(57.6, 81.4)",4.9999750001249995e-06
+qwen3-32b,"placement, rule (tool_defended - defended)",39,66.1,"(54.2, 78.0)",4.9999750001249995e-06
+qwen2.5-7b,"placement, rule (tool_defended - defended)",22,37.3,"(23.7, 50.8)",4.9999750001249995e-06
+hermes-3-8b,"placement, rule (tool_defended - defended)",28,47.5,"(33.9, 61.0)",9.999950000249999e-06
+granite-3.3-8b,"placement, rule (tool_defended - defended)",19,32.2,"(20.3, 45.8)",1.9999900000499998e-05
+phi-4-mini,"placement, rule (tool_defended - defended)",19,32.2,"(20.3, 45.8)",2.9999850000749997e-05
+gpt-oss-20b,"placement, rule (tool_defended - defended)",12,20.3,"(10.2, 30.5)",0.00048828125
+gpt-oss-120b,"placement, rule (tool_defended - defended)",6,10.2,"(3.4, 18.6)",0.03125
+qwen3-4b,"placement, no rule (tool - baseline)",4,6.8,"(1.7, 13.6)",0.125
+qwen3-8b,"placement, no rule (tool - baseline)",11,18.6,"(8.5, 30.5)",0.00341796875
+qwen3-14b,"placement, no rule (tool - baseline)",5,8.5,"(1.7, 16.9)",0.0625
+qwen3-32b,"placement, no rule (tool - baseline)",22,37.3,"(25.4, 49.2)",4.9999750001249995e-06
+qwen2.5-7b,"placement, no rule (tool - baseline)",-3,-5.1,"(-13.6, 3.4)",0.453125
+hermes-3-8b,"placement, no rule (tool - baseline)",24,40.7,"(27.1, 54.2)",4.9999750001249995e-06
+granite-3.3-8b,"placement, no rule (tool - baseline)",24,40.7,"(25.4, 55.9)",4.9999750001249995e-06
+phi-4-mini,"placement, no rule (tool - baseline)",31,52.5,"(39.0, 64.4)",4.9999750001249995e-06
+gpt-oss-20b,"placement, no rule (tool - baseline)",28,47.5,"(33.9, 59.3)",4.9999750001249995e-06
+gpt-oss-120b,"placement, no rule (tool - baseline)",16,27.1,"(13.6, 40.7)",0.0004024505615234375
+qwen3-4b,INTERACTION placement x rule,41,69.5,"(57.6, 81.4)",4.9999750001249995e-06
+qwen3-8b,INTERACTION placement x rule,15,25.4,"(8.5, 42.4)",0.007954960225198874
+qwen3-14b,INTERACTION placement x rule,36,61.0,"(45.8, 74.6)",4.9999750001249995e-06
+qwen3-32b,INTERACTION placement x rule,17,28.8,"(10.2, 45.8)",0.005994970025149874
+qwen2.5-7b,INTERACTION placement x rule,25,42.4,"(27.1, 57.6)",1.9999900000499998e-05
+hermes-3-8b,INTERACTION placement x rule,4,6.8,"(-10.2, 25.4)",0.5743621281893591
+granite-3.3-8b,INTERACTION placement x rule,-5,-8.5,"(-23.7, 6.8)",0.38334308328458355
+phi-4-mini,INTERACTION placement x rule,-12,-20.3,"(-37.3, -3.4)",0.03635481822590887
+gpt-oss-20b,INTERACTION placement x rule,-16,-27.1,"(-45.8, -8.5)",0.010904945475272624
+gpt-oss-120b,INTERACTION placement x rule,-10,-16.9,"(-32.2, -1.7)",0.05237973810130949

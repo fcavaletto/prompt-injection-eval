@@ -1,0 +1,12 @@
+contrast,pooled_difference_pp,ci95_cluster_seed_59,ci95_two_way_models_x_seeds,signflip_p_over_59_seeds,models_negative_of_10,models_positive_of_10,signflip_p_over_10_models,families_negative_of_6,families_positive_of_6,signflip_p_over_6_families,categories_negative_of_10,categories_positive_of_10
+"A1 flatten, tool, rule (tool_flat_defended - tool_defended)",-6.1,"(-9.2, -3.1)","(-11.4, -1.5)",0.00016499917500412497,9,0,0.00390625,5,0,0.0625,9,0
+"A2 JSON after flatten, tool, rule",-18.6,"(-21.7, -15.8)","(-25.1, -12.9)",4.9999750001249995e-06,10,0,0.001953125,6,0,0.03125,10,0
+"JSON vs raw, tool, rule",-24.7,"(-28.1, -21.4)","(-32.2, -17.8)",4.9999750001249995e-06,10,0,0.001953125,6,0,0.03125,10,0
+"A3 JSON vs raw, user message, rule",-4.9,"(-8.3, -1.9)","(-10.2, -0.2)",0.004469977650111749,6,2,0.03125,4,1,0.125,5,1
+"INTERACTION JSON x placement, rule (tool effect - user effect)",-19.8,"(-24.6, -14.7)","(-28.5, -11.2)",4.9999750001249995e-06,10,0,0.001953125,6,0,0.03125,10,0
+"JSON vs raw, tool, no rule",-23.7,"(-28.5, -19.3)","(-34.4, -13.7)",4.9999750001249995e-06,10,0,0.001953125,6,0,0.03125,10,0
+"JSON vs raw, user message, no rule",-22.7,"(-26.8, -18.8)","(-32.5, -14.2)",4.9999750001249995e-06,10,0,0.001953125,6,0,0.03125,10,0
+"INTERACTION JSON x placement, no rule",-1.0,"(-6.4, 4.2)","(-14.2, 11.9)",0.762081189594052,5,5,0.8828125,5,1,0.28125,5,3
+"placement, rule (tool_defended - defended)",43.6,"(39.3, 47.6)","(30.2, 57.8)",4.9999750001249995e-06,0,10,0.001953125,0,6,0.03125,0,10
+"placement, no rule (tool - baseline)",27.5,"(22.2, 32.7)","(14.7, 40.7)",4.9999750001249995e-06,1,9,0.00390625,1,5,0.0625,0,10
+INTERACTION placement x rule,16.1,"(10.7, 21.7)","(-4.9, 38.0)",9.999950000249999e-06,4,6,0.181640625,3,3,0.59375,0,10
