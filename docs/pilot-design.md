@@ -400,6 +400,83 @@ The client deadlines end at least 3 minutes before the expiry. No rehearsal pod 
 
 Unstarted episodes are missing coverage. They are not short episodes.
 
+### 9.6b F1 results, revised projection and recommendation (2026-11-16)
+
+Evidence: [results-published/pilot-f1-2026-11-16](https://github.com/fcavaletto/prompt-injection-eval/tree/research-audit-2026-11/results-published/pilot-f1-2026-11-16).
+
+- **Validity.** All 468 F1 episodes completed with verified delivery: the Granite smoke (24), Qwen's development controls (300) and the baseline feasibility workload (144). All 1,439 returned prompts match a local rendering by hash.
+- **Coverage.** None of the 144 feasibility episodes was interrupted or left unstarted, so all 16 user tasks and all 9 goals are covered in both formats.
+- **Granite.** It passed `smoke-v1` with the `granite4` parser.
+- **Cost.** Estimated from lifetime and listed rates, F1 cost $0.95 of the $3.00 authorized.
+
+**What is measured, and what is not**
+
+| Quantity | Status | Value |
+| --- | --- | --- |
+| Qwen calls per control episode (banking) | Measured, 300 episodes | 2.42 |
+| Qwen calls per baseline-attack episode (banking) | Measured, 144 episodes, none censored | 4.35 mean, 3.5 median, 16 maximum; 10 of 144 at the round limit |
+| Qwen aggregate rate, 16 workers | Measured on two short phases | 4.72 calls/s on controls, 3.65 on attacks (the attack phase includes a tail of long episodes) |
+| Qwen startup | Measured twice | 4.6 min with the image cached, 8.4 min with an image pull |
+| Granite | Smoke only, 24 episodes, 8 workers | 3.67 calls per episode, 1.28 s median latency, 4.94 calls/s, 5.2 min startup |
+| Repeatability | Measured on controls only | 0 of 100 control cells had disagreeing runs |
+| Candidate attacks, Slack tasks, selected attacks | **Not measured** | Assumed below |
+
+**Projection per model.** Each figure is calls, time and cost at $2.69/h plus disk, with two pod sessions per model.
+
+- **Central:**
+  - selection at the measured baseline length, 4.35 calls;
+  - Slack controls at 2.0 times the banking control length;
+  - Slack attacks at 2.2 times the banking attack length, which gives 9.6;
+  - the measured rates;
+  - 14 minutes of overhead per session.
+- **Conservative:**
+  - candidate attacks loop more, 6.5 calls per selection episode;
+  - Slack controls take 8 calls and Slack attacks 13;
+  - 2.5 calls/s everywhere;
+  - 22 minutes of overhead per session.
+
+| Design | Case | Model calls | Selection | Pilot evaluation | Total time | Per model | Two models |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| As registered (3 runs per evaluation case) | Central | 26,000 | 26 min | 83 min | 2.4 h | $6.5 | $13.1 |
+| As registered | Conservative | 36,200 | 56 min | 164 min | 4.8 h | $12.9 | $25.8 |
+| Narrowed (proposed below) | Central | 16,300 | 26 min | 39 min | 1.7 h | $4.5 | $9.1 |
+| Narrowed | Conservative | 23,100 | 56 min | 76 min | 3.3 h | $9.0 | $17.9 |
+
+Granite is projected at Qwen's figures. In its smoke it was faster per request and its server's memory holds 1.08 million tokens of context against Qwen's 93,000, so this is likely conservative for Granite; that has not been measured beyond the smoke.
+
+About $36.5 of the $50 limit remains: roughly $12.3 spent before the smoke, $0.23 for the smoke and rehearsal (billing records), and $0.95 for F1 (estimated).
+
+**Precision.** This is estimated from the width of development intervals only; the point estimate is not used.
+
+- The paired format contrast under the fixed attack has a task-bootstrap half-width of 10.4 points on the 16 banking tasks.
+- On the pilot's 21 Slack tasks that projects to about ±9 points per model.
+- On the 60 reserved workspace and travel tasks, about ±5.4.
+- Extra runs at temperature 0 add little: none of the 100 control cells disagreed across runs. Precision is limited by the number of user tasks, not by repetition.
+
+**Recommendation: narrow the pilot through a stated amendment, then proceed with both models.**
+
+The proposed Amendment 3 is not registered or adopted; it needs your approval.
+
+1. **Evaluation runs.** One run per evaluation case instead of three. A fixed, pre-drawn 20% of evaluation cases also get runs 2 and 3, to keep measuring repeatability where it was not measured (attack episodes). The analysis averages within a case where repeats exist; the task bootstrap is unchanged.
+2. **Qwen's development controls.** The F1 development controls (same data, settings and server configuration) count as Qwen's registered development controls, rather than being rerun.
+3. **Everything else unchanged:** the selection budget, the frozen attacks, the round limit, scoring, stopping rules, the data split and the reading rules.
+
+**Why this choice and not the alternatives:**
+
+- **Measurement quality is sufficient.** Delivery, parsing and scoring were valid on 1,439 of 1,439 turns across both models and both formats, and the controls pass the evaluation gates in 9.4.
+- **Coverage is complete on development.** Every development pair ran in both formats with nothing censored.
+- **The registered pilot fits the budget, but the confirmatory study then does not.** The pilot as registered costs about $13 centrally, $26 conservatively. In the conservative case, a confirmatory study on the reserved suites, which is what could support a claim, would no longer fit. The narrowed pilot costs about $9 centrally and $18 conservatively, leaving $18 to $27.
+- **The extra runs buy nothing.** They spend about a third of the evaluation budget on information the controls suggest is near zero, while the quantity that limits precision, the number of user tasks, is fixed by the suite.
+- **Stopping is not justified.** A ±5 to ±6-point confirmatory interval on the reserved suites appears attainable within budget. That is enough to tell apart effects of the size ToolHazard reported from no effect, though not small effects.
+
+**What the narrowed pilot can and cannot conclude.** At about ±9 points per model, the pilot can show:
+
+- whether selected attacks behave very differently from the fixed attack;
+- whether the instrument works on Slack and with selected attacks;
+- what the between-task variance is.
+
+It cannot establish a format effect smaller than about 10 points. Any claim intended for a paper needs the confirmatory study, and main-conference novelty remains unestablished.
+
 ### 9.7 Known limitations
 
 - **Two models, one template design.** Both carry tool results in a user turn. Nothing here speaks to dedicated tool roles, to gpt-oss, or to closed models.
