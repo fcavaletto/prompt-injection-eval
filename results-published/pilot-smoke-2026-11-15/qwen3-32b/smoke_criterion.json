@@ -1,0 +1,56 @@
+{
+ "criterion": {
+  "version": "smoke-v1, 2026-11-15",
+  "all_planned_episodes_completed_with_verified_delivery": true,
+  "max_share_of_turns_with_unparsed_call_text": 0.05,
+  "max_share_of_turns_with_argument_json_errors": 0.05,
+  "max_share_of_turns_cut_off_at_the_output_limit": 0.05,
+  "min_from_request_user_tasks_completed_per_format": 1
+ },
+ "fixed_in_commit": "d35910ccf9b4c2f059b2083b5c58e61248b942d0",
+ "outcome": {
+  "criterion": "smoke-v1, 2026-11-15",
+  "passed": true,
+  "checks": [
+   {
+    "check": "every planned episode completed with verified delivery",
+    "observed": "24/24",
+    "required": "24/24",
+    "passed": true
+   },
+   {
+    "check": "turns with call-shaped text left unparsed",
+    "observed": "0/126 turns",
+    "required": "at most 5%",
+    "passed": true
+   },
+   {
+    "check": "turns with tool arguments that are not a JSON object",
+    "observed": "0/126 turns",
+    "required": "at most 5%",
+    "passed": true
+   },
+   {
+    "check": "turns cut off at the output limit",
+    "observed": "0/126 turns",
+    "required": "at most 5%",
+    "passed": true
+   },
+   {
+    "check": "from-request user tasks completed, text",
+    "observed": "2/2",
+    "required": "at least 1 of 2",
+    "passed": true
+   },
+   {
+    "check": "from-request user tasks completed, json",
+    "observed": "2/2",
+    "required": "at least 1 of 2",
+    "passed": true
+   }
+  ],
+  "statuses": {
+   "completed": 24
+  }
+ }
+}

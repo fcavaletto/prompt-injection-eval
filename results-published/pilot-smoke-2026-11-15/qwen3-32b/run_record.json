@@ -1,0 +1,81 @@
+{
+ "times_utc": {
+  "gpu_pod_created": "2026-11-15T19:26:18Z",
+  "image_present": "2026-11-15T19:26:19Z (cached on host, no pull)",
+  "weights_downloaded": "2026-11-15T19:28:19Z (89.6 s, 61.0 GiB)",
+  "weights_loaded": "2026-11-15T19:28:24Z (5.4 s)",
+  "compile_and_cuda_graphs_done": "2026-11-15T19:29:50Z",
+  "server_healthy_first_seen": "2026-11-15T19:30:54Z",
+  "serving_check_request": "2026-11-15T19:31 (one request)",
+  "smoke_start": "2026-11-15T19:31:15Z",
+  "smoke_end": "2026-11-15T19:32:08Z",
+  "delete_requested": "2026-11-15T19:32:2x (API returned 204)",
+  "list_pods_empty": "2026-11-15T19:32:26Z",
+  "in_pod_expiry_was_set_for": "2026-11-15T20:02:57Z (EXPIRES_AT 1794772977), never reached"
+ },
+ "durations_seconds": {
+  "created_to_healthy": 276,
+  "healthy_to_smoke_start": 21,
+  "smoke_wall_clock": 50.1,
+  "smoke_end_to_list_empty": 18,
+  "pod_lifetime_created_to_deleted": 368,
+  "lifetime_uncertainty": "about 5 s: deletion time recorded to the second after the API call returned"
+ },
+ "resource": {
+  "pod": "s2nmfm4nus2go4",
+  "gpu": "NVIDIA RTX PRO 6000 Blackwell Server Edition, 96 GB",
+  "cloud": "SECURE",
+  "data_center": "US-PA-1",
+  "listed_gpu_price_per_hour": 2.69,
+  "container_disk_gb": 150,
+  "listed_container_disk_price": "0.10 USD per GB-month while running",
+  "volume": null,
+  "network_volume": null
+ },
+ "throughput": {
+  "workers": 8,
+  "model_calls": 126,
+  "aggregate_calls_per_second_observed": 2.51,
+  "aggregate_note": "126 calls over the 50 s smoke burst with 8 workers. The last 15 s were dominated by four 16-call episodes, so workers were idle at the end. This is the only throughput observed.",
+  "per_request_latency_seconds": {
+   "median": 2.33,
+   "mean": 2.99,
+   "p95": 5.92,
+   "max": 8.42
+  },
+  "prompt_tokens_total": 557706,
+  "completion_tokens_total": 5020,
+  "not_measured": "Sustained throughput, throughput at other concurrency, and throughput on longer (Slack) contexts. 8 workers / median latency would give about 3.4 calls/s if all workers were always busy; that was not observed."
+ },
+ "cost": {
+  "estimated_from_lifetime_and_listed_rates_usd": {
+   "gpu": 0.275,
+   "container_disk": 0.0021,
+   "total": 0.2771
+  },
+  "runpod_billing_api_record_usd": {
+   "gpu_pod": 0.2241666615009308,
+   "read_at": "2026-11-15T22:17Z",
+   "bucket": "2026-11-15T19:00Z to 20:00Z",
+   "note": "list-pod-billing record, not an invoice. It equals about 300 s at 2.69 USD/h, about 68 s less than the lifetime measured from creation to deletion; the difference is not explained here. It may still be revised."
+  }
+ },
+ "rehearsal_cpu_pod": {
+  "purpose": "Test that a pod can delete itself with scripts/pod_expiry.py before relying on it for the GPU pod. Separate from the smoke; no model ran.",
+  "pod": "91iemjqlup83kd",
+  "type": "cpu3c, 2 vCPU, SECURE, US-NC-1, listed 0.06 USD/h, 10 GB container disk",
+  "image": "python:3.12-slim",
+  "created": "2026-11-15T19:22:13Z",
+  "expiry_set_for": "2026-11-15T19:24:55Z (EXPIRES_AT 1794770695)",
+  "observed_in_log": [
+   "pod id present: True; key present: True",
+   "probe GET rest.runpod.io: 403",
+   "probe GET api.runpod.io: 200",
+   "2.6 min left"
+  ],
+  "deletion_evidence": "At 19:25:12Z list-pods returned no pods and the log API returned 404 'pod not found'. Deletion was not requested by the client.",
+  "uncertainty": "The log was deleted with the pod, so which of the script's calls was accepted (REST v1 DELETE, REST v2 DELETE, GraphQL podTerminate, or REST v1 stop) is not known. REST v1 refused the probe with 403, so it was probably REST v2 or GraphQL. A stop would leave a stopped pod listed; none was.",
+  "estimated_from_lifetime_and_listed_rates_usd": 0.003,
+  "runpod_billing_api_record_usd": 0.002698299940675497
+ }
+}

@@ -1,0 +1,52 @@
+{
+  "study": "pilot-serialization-v1",
+  "phase": "smoke",
+  "agentdojo": "0.1.35",
+  "benchmark": "v1.2.2",
+  "suite_sha256": {
+    "banking": "dd40d8e04b483dd8a674a181cd94c47ed0edd2aab96df2bf283375d94230e244"
+  },
+  "attack_library_sha256": "bfb5fea427caa36ccc7bfcd18c47acfa7726782d93b8bfeab86eda621a7b94a8",
+  "frozen_sha256": null,
+  "frozen": null,
+  "settings": {
+    "model": "Qwen/Qwen3-32B",
+    "label": "qwen3-32b",
+    "temperature": 0.0,
+    "seed": 20261115,
+    "max_output_tokens": 2048,
+    "think": false,
+    "max_rounds": 15,
+    "timeout_seconds": 300.0
+  },
+  "package_version": "0.6.0",
+  "git_commit": "d35910ccf9b4c2f059b2083b5c58e61248b942d0",
+  "git_dirty": true,
+  "plan_sha256": "abbe809821f5d4da83ce67587914fed7d1b02b0b5dc7fe4a2bb436b53ee07679",
+  "planned": {
+    "total": 24,
+    "by_condition": {
+      "attack/baseline/text": 4,
+      "attack/baseline/json": 4,
+      "clean/-/text": 2,
+      "scratch/-/text": 2,
+      "direct/-/text": 2,
+      "twin/-/text": 2,
+      "clean/-/json": 2,
+      "scratch/-/json": 2,
+      "direct/-/json": 2,
+      "twin/-/json": 2
+    }
+  },
+  "provider": "openai",
+  "result_origin": "empirical_model_run",
+  "server": {
+    "runtime": "vllm",
+    "runtime_version": "0.33.0",
+    "served_model": "Qwen/Qwen3-32B",
+    "max_model_len": 32768,
+    "launch_args": "vllm/vllm-openai:v0.33.0 (sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e) Qwen/Qwen3-32B --revision 9216db5781bf21249d130ec9da846c4624c16137 --dtype bfloat16 --max-model-len 32768 --generation-config vllm --enable-auto-tool-choice --tool-call-parser hermes; RTX PRO 6000 Blackwell 96GB; RunPod US-PA-1 pod s2nmfm4nus2go4",
+    "model_root": "Qwen/Qwen3-32B"
+  },
+  "created": "2026-11-15T19:31:18+00:00"
+}

@@ -1,0 +1,18 @@
+Excerpt of the pod's log, read through RunPod's log API before deletion. The full log was
+cut at the API's size limit after CUDA graph capture; request-phase lines were not copied.
+2026-11-15T19:26:18Z system  create container vllm/vllm-openai:v0.33.0
+2026-11-15T19:26:19Z system  Digest: sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e
+2026-11-15T19:26:19Z system  Status: Image is up to date for vllm/vllm-openai:v0.33.0
+2026-11-15T19:26:19Z [pod-expiry] pod id present: True; key present: True; expires at 1794772977
+2026-11-15T19:26:19Z [pod-expiry] probe GET rest.runpod.io: 403
+2026-11-15T19:26:20Z [pod-expiry] probe GET api.runpod.io: 200
+2026-11-15T19:26:20Z [pod-expiry] 36.6 min left
+2026-11-15T19:26:27Z vLLM version 0.33.0, model Qwen/Qwen3-32B
+2026-11-15T19:26:27Z non-default args: {'model_tag': 'Qwen/Qwen3-32B', 'enable_auto_tool_choice': True, 'tool_call_parser': 'hermes', 'host': '0.0.0.0', 'model': 'Qwen/Qwen3-32B', 'dtype': 'bfloat16', 'revision': '9216db5781bf21249d130ec9da846c4624c16137', 'max_model_len': 32768, 'generation_config': 'vllm'}
+2026-11-15T19:26:45Z engine config: revision=9216db5781bf21249d130ec9da846c4624c16137, tokenizer_revision=9216db5781bf21249d130ec9da846c4624c16137, dtype=torch.bfloat16, max_seq_len=32768, enable_prefix_caching=True, seed=0
+2026-11-15T19:28:19Z Time spent downloading weights for Qwen/Qwen3-32B: 89.645386 seconds (checkpoint 61.02 GiB)
+2026-11-15T19:28:24Z Loading weights took 5.43 seconds
+2026-11-15T19:28:49Z torch.compile took 21.95 s in total
+2026-11-15T19:29:23Z Graph capturing finished in 29 secs
+2026-11-15T19:29:24Z GPU KV cache size: 93,040 tokens, Maximum concurrency for 32,768 tokens per request: 2.84x
+2026-11-15T19:29:50Z FlashInfer autotuning ends; a second CUDA graph capture followed

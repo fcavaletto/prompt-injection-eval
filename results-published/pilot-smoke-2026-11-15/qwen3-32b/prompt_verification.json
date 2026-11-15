@@ -1,0 +1,14 @@
+{
+  "phase_dir": "results/pilot/qwen3-32b/smoke",
+  "tokenizer": "Qwen/Qwen3-32B@9216db5781bf21249d130ec9da846c4624c16137",
+  "transformers": "5.22.1",
+  "template_kwargs": {
+    "enable_thinking": false
+  },
+  "episodes": 24,
+  "turns_checked": 126,
+  "hashes_matching_local_rendering": 126,
+  "full_prompts_kept_and_compared": 62,
+  "full_prompts_identical": 62,
+  "mismatches": []
+}
