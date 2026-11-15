@@ -69,6 +69,8 @@ where = ["src"]
 target-version = "py311"
 line-length = 100
 src = ["src", "tests"]
+# Archived scripts are kept exactly as they were run.
+extend-exclude = ["results-published"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]

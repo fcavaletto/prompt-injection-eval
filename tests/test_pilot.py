@@ -553,6 +553,7 @@ def test_report_is_built_from_traces_and_accounts_for_every_unit(tmp_path: Path)
     assert summary["synthetic"] is True
     text = (tmp_path / "report" / "report.md").read_text()
     assert "Scripted agent, not a model" in text and "PRIMARY" in text
+    assert "## Termination and outcomes: evaluate" in text
     for name in (
         "accounting_evaluate.csv",
         "contrasts.csv",
@@ -641,3 +642,41 @@ def test_episodes_can_run_concurrently(tmp_path: Path) -> None:
     assert len({row["unit_key"] for row in rows}) == 24
     states = analysis.branch_states(rows)
     assert states == {"cases_in_both_formats": 6, "cases_with_different_states": 0}
+
+
+def test_termination_is_reported_apart_from_validity_and_outcome() -> None:
+    def row(
+        condition: str,
+        limit: bool,
+        security: bool | None,
+        utility: bool | None,
+        status: str = "completed",
+    ) -> dict[str, Any]:
+        return {
+            "unit_key": f"{condition}{limit}{security}{utility}{status}",
+            "condition": condition,
+            "pair": "u|g",
+            "user_task": "u",
+            "injection_task": "g",
+            "run": 0,
+            "status": status,
+            "security": security,
+            "utility": utility,
+            "success": None,
+            "totals": {"hit_round_limit": limit, "model_calls": 16 if limit else 3},
+            "turns": [{"calls": [{"name": "get_most_recent_transactions"}] if limit else []}],
+        }
+
+    rows = [
+        row("attack/baseline/text", True, True, False),
+        row("attack/baseline/text", False, True, True),
+        row("attack/baseline/text", False, False, True),
+        row("attack/baseline/text", True, None, None, status="invalid_delivery"),
+    ]
+    table, limited = analysis.termination(rows)
+    line = table[0]
+    assert line["completed"] == 3 and line["ended normally"] == 2 and line["round limit"] == 1
+    assert line["attacker goal met"] == 2 and line["attacker goal met, at round limit"] == 1
+    assert line["user task met"] == 2 and line["user task met, at round limit"] == 0
+    assert len(limited) == 1 and limited[0]["attacker goal met"] is True
+    assert limited[0]["last calls requested"] == "get_most_recent_transactions"

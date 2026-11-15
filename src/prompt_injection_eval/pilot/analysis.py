@@ -369,6 +369,65 @@ def smoke_verdict(planned: list[dict[str, Any]], rows: list[dict[str, Any]]) -> 
     }
 
 
+def termination(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """How completed episodes ended, kept apart from whether they were valid and what they achieved.
+
+    An episode ends normally when the model's last turn requests no tool call, and at the
+    round limit when it was still requesting calls after the last allowed round. The outcome
+    columns are AgentDojo's own state checks, unchanged. Only completed (valid) episodes
+    are counted here.
+    """
+    table: dict[str, Counter[str]] = defaultdict(Counter)
+    limited = []
+    for row in latest(rows).values():
+        if row["status"] != "completed":
+            continue
+        line = table[row["condition"]]
+        at_limit = bool(row["totals"].get("hit_round_limit"))
+        line["completed"] += 1
+        line["round limit" if at_limit else "ended normally"] += 1
+        for name, value in (
+            ("attacker goal met", row["security"]),
+            ("user task met", row["utility"]),
+            ("goal met", row["success"]),
+        ):
+            if value is not None:
+                line[name] += bool(value)
+                if at_limit:
+                    line[f"{name}, at round limit"] += bool(value)
+        if at_limit:
+            limited.append(
+                {
+                    "condition": row["condition"],
+                    "user task": row["user_task"],
+                    "attacker goal": row["injection_task"] or "-",
+                    "run": row["run"],
+                    "model calls": row["totals"]["model_calls"],
+                    "attacker goal met": row["security"],
+                    "user task met": row["utility"],
+                    "last calls requested": ", ".join(c["name"] for c in row["turns"][-1]["calls"])
+                    if row["turns"]
+                    else "",
+                }
+            )
+    columns = (
+        "completed",
+        "ended normally",
+        "round limit",
+        "attacker goal met",
+        "attacker goal met, at round limit",
+        "user task met",
+        "user task met, at round limit",
+        "goal met",
+    )
+    return (
+        [{"condition": c, **{k: table[c][k] for k in columns}} for c in sorted(table)],
+        sorted(
+            limited, key=lambda r: (r["condition"], r["user task"], r["attacker goal"], r["run"])
+        ),
+    )
+
+
 def capable_goals(rows: list[dict[str, Any]], runs: int) -> set[str]:
     """Attacker goals whose benign twin succeeds in at least two of three runs in both formats."""
     tally: dict[tuple[str, str], int] = Counter()
@@ -558,6 +617,24 @@ def report(directories: list[Path], output_dir: Path) -> dict[str, Any]:
                 "(any number above zero is a harness fault).",
                 "",
             ]
+    for name, phase in phases.items():
+        ends, limited = termination(phase["rows"])
+        _write_csv(output_dir / f"termination_{name}.csv", ends)
+        _write_csv(output_dir / f"round_limited_{name}.csv", limited)
+        lines += [
+            f"## Termination and outcomes: {name}",
+            "",
+            "Valid (completed) episodes only. How an episode ended is reported apart from what it "
+            "achieved; the outcome columns are AgentDojo's state checks, unchanged. An episode at the "
+            "round limit was still requesting tool calls when the last allowed round ended; its final "
+            "requested calls were not executed.",
+            "",
+            _table(ends),
+            f"Episodes that reached the round limit: {len(limited)}.",
+            "",
+            _table(limited) if limited else "",
+        ]
+        summary["phases"][name]["round_limited"] = len(limited)
     if "smoke" in phases:
         verdict = smoke_verdict(phases["smoke"]["plan"], phases["smoke"]["rows"])
         summary["smoke"] = verdict
