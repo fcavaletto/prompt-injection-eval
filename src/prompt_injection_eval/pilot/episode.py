@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import time
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from typing import Any
@@ -27,6 +28,10 @@ from prompt_injection_eval.pilot import (
 from prompt_injection_eval.providers.base import GenerationRequest, Provider
 
 MODES = ("attack", "clean", "scratch", "direct", "twin")
+# A request is not started with less time than this left before the deadline.
+MIN_REQUEST_SECONDS = 2.0
+# The provider makes up to this many attempts per request; each gets a share of the time left.
+PROVIDER_ATTEMPTS = 3
 RESUMED = ("attack", "clean")
 
 
@@ -198,9 +203,22 @@ def to_wire(
 
 
 def run(
-    spec: Spec, provider: Provider, settings: Settings, keep_prompts: bool = False
+    spec: Spec,
+    provider: Provider,
+    settings: Settings,
+    keep_prompts: bool = False,
+    deadline: float | None = None,
 ) -> dict[str, Any]:
-    """Run one episode and return its trace. Provider and harness failures become statuses."""
+    """Run one episode and return its trace. Provider and harness failures become statuses.
+
+    ``deadline`` is a ``time.monotonic()`` value. No model request starts after it, and each
+    request's timeout is bounded by the time left, so an episode overruns it by at most the
+    provider's retry waits. An episode stopped this way is ``interrupted``.
+
+    The episode stops at the first model turn whose returned prompt fails the delivery check:
+    that turn's tool calls are not executed and no further response is requested. The request,
+    the returned prompt, the response and the defects are kept in ``failed_turn``.
+    """
     from agentdojo.agent_pipeline.base_pipeline_element import BasePipelineElement
     from agentdojo.agent_pipeline.tool_execution import (
         EMPTY_FUNCTION_NAME,
@@ -253,10 +271,18 @@ def run(
                 records[index] = record
             return query, runtime, env, messages, extra_args
 
+    failed: dict[str, Any] = {}
+
     class Model(BasePipelineElement):
         def query(self, query, runtime, env, messages=(), extra_args=None):  # type: ignore[no-untyped-def]
             step = len(turns)
             wire = to_wire(list(messages), records, spec.fmt)
+            timeout = settings.timeout_seconds
+            if deadline is not None:
+                left = deadline - time.monotonic()
+                if left < MIN_REQUEST_SECONDS:
+                    raise _Abort("interrupted", f"deadline reached before model request {step}")
+                timeout = min(timeout, max(1.0, left / PROVIDER_ATTEMPTS))
             request = GenerationRequest(
                 model=settings.model,
                 system_message="",
@@ -264,7 +290,7 @@ def run(
                 temperature=settings.temperature,
                 seed=settings.seed + spec.run,
                 max_output_tokens=settings.max_output_tokens,
-                timeout_seconds=settings.timeout_seconds,
+                timeout_seconds=timeout,
                 provider_settings={} if settings.think is None else {"think": settings.think},
                 messages=wire,
                 tools=tools,
@@ -273,7 +299,11 @@ def run(
             )
             response = provider.generate(request)
             if response.error_type is not None:
-                raise _Abort("infra_error", f"{response.error_type}: {response.error_message}")
+                late = deadline is not None and time.monotonic() >= deadline - MIN_REQUEST_SECONDS
+                raise _Abort(
+                    "interrupted" if late else "infra_error",
+                    f"model request {step}: {response.error_type}: {response.error_message}",
+                )
             meta = dict(response.provider_metadata or {})
             rendered = meta.get("rendered_prompt")
             rendered = rendered if isinstance(rendered, str) else None
@@ -316,6 +346,32 @@ def run(
                 }
             )
             prompts.append(rendered)
+            if defects:
+                # Stop here: do not execute these calls or ask for another response.
+                failed.update(
+                    {
+                        "step": step,
+                        "request": {
+                            "messages": wire,
+                            "tool_names": tool_names,
+                            "tools_sha256": hashlib.sha256(
+                                json.dumps(tools, sort_keys=True).encode()
+                            ).hexdigest(),
+                            "tool_choice": "auto",
+                            "timeout_seconds": timeout,
+                        },
+                        "rendered_prompt": rendered,
+                        "response_text": text,
+                        "response_raw_calls": meta.get("tool_calls"),
+                        "finish_reason": meta.get("finish_reason"),
+                        "defects": defects,
+                    }
+                )
+                unverified = defects == [delivery.PROMPT_NOT_RETURNED]
+                raise _Abort(
+                    "unverified_delivery" if unverified else "invalid_delivery",
+                    f"model request {step}: " + "; ".join(defects),
+                )
             message = ChatAssistantMessage(
                 role="assistant",
                 content=[text_content_block_from_string(text)],
@@ -387,12 +443,11 @@ def run(
         trace["status"], trace["status_detail"] = "harness_error", str(error)
 
     defects = sorted({d for turn in turns for d in turn["delivery_defects"]})
-    if trace["status"] == "completed" and defects:
-        unverified = defects == [delivery.PROMPT_NOT_RETURNED]
-        trace["status"] = "unverified_delivery" if unverified else "invalid_delivery"
-        trace["status_detail"] = "; ".join(defects)
-    if trace["status"] in ("completed", "invalid_delivery", "unverified_delivery") and turns:
-        # Scores are stored for every finished episode; only completed ones are analysed.
+    if trace["status"] == "completed" and defects:  # unreachable: a defect stops the episode
+        trace["status"], trace["status_detail"] = "invalid_delivery", "; ".join(defects)
+    trace["failed_turn"] = failed or None
+    if trace["status"] == "completed" and turns:
+        # Only a verified, finished episode is scored. Anything else is not a measurement.
         if setup.scored_user_task is not None:
             trace["utility"] = adapter.score(spec.suite, setup.scored_user_task, messages, pre, env)
         if setup.scored_goal is not None:

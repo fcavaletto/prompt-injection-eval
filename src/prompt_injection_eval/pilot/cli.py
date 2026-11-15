@@ -211,15 +211,29 @@ def run_cmd(
     per_episode = summary.model_calls / summary.written if summary.written else 0.0
     typer.echo(
         f"{phase}: planned {summary.planned}, already done {summary.already_done}, written {summary.written}, "
-        f"remaining {summary.remaining}. Statuses: {summary.statuses}. "
-        f"{summary.model_calls} model calls in {summary.seconds / 60:.1f} min "
-        f"({rate:.2f} calls/s, {per_episode:.1f} calls per episode)."
+        f"not started {summary.not_started}, remaining {summary.remaining}. Statuses: {summary.statuses}. "
+        f"{summary.model_calls} model calls in {summary.seconds / 60:.1f} min wall clock "
+        f"(aggregate {rate:.2f} calls/s, {per_episode:.1f} calls per written episode)."
     )
-    not_valid = sum(n for status, n in summary.statuses.items() if status != "completed")
-    if phase == "smoke" and not_valid:
-        raise _fail(
-            "Smoke test failed: some episodes are not valid measurements. Read the traces before spending more."
+    if summary.stopped_after_failure:
+        typer.echo(f"Stopped starting episodes after: {summary.stopped_after_failure}", err=True)
+    if phase == "smoke":
+        from prompt_injection_eval.pilot import analysis
+
+        verdict = analysis.smoke_verdict(
+            json.loads((output_dir / "plan.json").read_text()),
+            runner.read_traces(output_dir / "traces.jsonl"),
         )
+        for check in verdict["checks"]:
+            mark = "pass" if check["passed"] else "FAIL"
+            typer.echo(
+                f"  [{mark}] {check['check']}: {check['observed']} (required {check['required']})"
+            )
+        if not verdict["passed"]:
+            raise _fail(
+                f"Smoke criterion {verdict['criterion']} failed. Read the traces before spending more."
+            )
+        typer.echo(f"Smoke criterion {verdict['criterion']} passed.")
     if summary.stopped_by_deadline:
         typer.echo(
             "Stopped by the deadline. Rerun the same command to resume, or stop here.", err=True

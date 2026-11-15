@@ -194,23 +194,31 @@ export PIE_OPENAI_LAUNCH_ARGS="vllm/vllm-openai:v0.33.0 Qwen/Qwen3-32B --revisio
 
 ### 9.3 Live smoke test: development data only, 24 episodes
 
+*Revised 2026-11-15, before any live inference.* The first version of this section asked for "two of the four from-the-request user tasks in each format", but the smoke plan has two per format. The criterion below replaces it. It is `SMOKE_CRITERION` (version `smoke-v1`) in `src/prompt_injection_eval/pilot/analysis.py`; the command's exit status and the report both apply that one function, and its denominators are read from the stored plan.
+
 ```bash
-pie pilot run smoke --model Qwen/Qwen3-32B --label qwen3-32b --no-think --output-dir results/pilot/qwen3-32b/smoke --deadline-minutes 10
+pie pilot run smoke --model Qwen/Qwen3-32B --label qwen3-32b --no-think --output-dir results/pilot/qwen3-32b/smoke --deadline-minutes <set from the pod's remaining lifetime>
 pie pilot report --phase-dir results/pilot/qwen3-32b/smoke --output-dir results/pilot/qwen3-32b/smoke-report
 ```
 
-Two banking user tasks crossed with two attacker goals, both formats, the baseline attack, plus the four controls for those tasks: 24 episodes, roughly 100 to 150 model calls, a minute or two of inference. The command exits with an error if any episode is not a verified measurement. Go on only if all of these hold:
+The plan is 2 banking user tasks × 2 attacker goals × 2 formats under the baseline attack (8 episodes), plus, for each format, the 2 resumed clean tasks, the 2 from-the-request tasks, the 2 direct requests and the 2 benign twins (16 episodes): 24 in all.
 
-1. All 24 episodes are `completed`: the server returned a prompt for every call and every prompt passed the delivery check.
-2. No turn has call-shaped text the server failed to parse.
-3. The model completed at least two of the four from-the-request user tasks in each format. Otherwise it is not usable as an agent here.
-4. The projection below fits the per-model cap.
+The smoke passes only if every check holds:
 
-```bash
-pie pilot plan --calls-per-second <printed by the smoke run> --calls-per-episode <printed by the smoke run>
-```
+| Check | Denominator | Required |
+| --- | --- | --- |
+| Every planned episode completed with verified delivery | 24 planned episodes | 24 |
+| Turns with call-shaped text the server left unparsed | model turns in completed episodes | at most 5% |
+| Turns whose tool arguments are not a JSON object | model turns in completed episodes | at most 5% |
+| Turns cut off at the output limit | model turns in completed episodes | at most 5% |
+| From-the-request user tasks completed, text | 2 | at least 1 |
+| From-the-request user tasks completed, JSON | 2 | at least 1 |
 
-If any fails: stop, delete the pod, and read the stored traces offline. A model that fails is not run.
+The last two only check that the model acts as an agent at all; with two tasks they estimate nothing. The capability gate that matters comes later, in the development controls (section 9.4).
+
+The smoke phase stops starting episodes at the first invalid, unverified, prefix, harness or infrastructure failure. Episodes already running finish and are written; the rest are `not_run`. Within an episode, the first returned prompt that fails the delivery check ends it: that turn's tool calls are not executed, no further response is requested, and the request, the returned prompt, the response and the defects are stored in the trace's `failed_turn`.
+
+If the smoke fails: stop, delete the pod, and read the stored traces offline. A model that fails is not run, and a failed delivery check is not relaxed to let it pass.
 
 ### 9.4 The pilot, per model
 
@@ -249,19 +257,26 @@ Speed is not known. Study B reached 13.5 short single calls per second on the sa
 
 If the same candidate wins for both formats, the evaluation drops to 1,260 episodes and the total falls by about a fifth.
 
-### 9.6 Hard cap
+### 9.6 Spending bounds
 
-**$20 for the whole pilot**, which is 7.4 GPU-hours at $2.70. About $37 of the $50 limit remains.
+*Revised 2026-11-15.* The first version of this section called the per-phase deadlines a hard cap in dollars. They are not. They bound how long the client sends requests; they do not stop a rented machine from billing, and nothing in the client can.
 
-The cap is enforced by the `--deadline-minutes` values above: 190 minutes of inference per model (10 + 15 + 65 + 15 + 85), 380 for two, plus about 40 minutes of loading: 7.0 hours, $18.90. When a deadline passes:
+What bounds time, and how:
 
-- The command starts no new episode, keeps every finished trace, and exits with code 3.
-- The deadline is not extended and the phase is not rerun on a new server to finish it. More spending is a new decision, taken with the numbers in hand.
+- **The client deadline.** Each worker checks it immediately before starting an episode, and each episode checks it before every model request. A request's timeout is the smaller of its normal timeout and a third of the time left, so with the provider's three attempts it ends near the deadline. An episode stopped this way is written as `interrupted` and is rerun on resume; one that never started is `not_run`. The overrun is at most one request in flight plus the provider's retry waits, a few seconds.
+- **The pod's lifetime.** A pod's cost is its hourly price times its lifetime from creation, including image pull, model download and loading, inference and idle time, plus container disk at $0.10 per GB-month (under $0.02 an hour for 120 GB). The lifetime is bounded by `scripts/pod_expiry.py`, started in the background by the pod's own start command. At an absolute time fixed when the pod is created, it deletes the pod through RunPod's API with the pod-scoped key RunPod places in the pod, falling back to stopping it. It does not depend on the machine that rented the pod, on the agent, or on the experiment process, and a container restart does not reset it. RunPod's own `--terminate-after` flag was never enforced by the platform and cannot be used.
+- **Deletion after use.** The pod is deleted as soon as the phase ends, including on failure, and the deletion is confirmed by listing pods.
+
+Traces are written on the client, not on the pod, so they survive deletion. The server log is copied from the pod before it is deleted.
+
+**For a spending limit of B dollars at hourly price P:** set the pod's expiry at (B − 0.10) / P hours after creation, minus 5 minutes for deletion to take effect, and set each phase's client deadline to end at least 3 minutes before that expiry. The 10 cents covers disk and any rehearsal of the expiry mechanism.
+
+For the full pilot this gives the following. The earlier figure of $20 for two models still holds as a planning number, but it is enforced by the pod expiry, not by the deadlines.
+
+- The phase deadlines are 10 + 15 + 65 + 15 + 85 = 190 minutes of inference per model. With about 20 minutes of loading, one model needs a pod lifetime of about 3.5 hours.
+- When a deadline passes: no new episode starts, finished and interrupted traces are kept, and the command exits with code 3. The deadline is not extended and the phase is not rerun on a new server to finish it.
 - A selection phase that did not finish cannot be frozen: the freeze refuses unless both formats were tried on exactly the same pairs. That model stops at development data.
-- An evaluation that did not finish is reported as it is. Its unfinished rows appear as `not_run`, and any contrast missing more than 2% of its cases is marked not interpretable.
-- If the smoke projection for one model exceeds 3.2 hours, that model is not started.
-
-The pod is deleted after each model and its deletion confirmed.
+- An evaluation that did not finish is reported as it is. Unfinished rows appear as `interrupted` or `not_run`, and any contrast missing more than 2% of its cases is marked not interpretable.
 
 ### 9.7 Known limitations
 

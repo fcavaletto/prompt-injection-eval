@@ -125,6 +125,12 @@ Registered before any model has been run on the pilot harness. The design is [Pi
 
 **Known deviations from AgentDojo, all recorded in every trace.** Tool results are serialized by this harness, not as YAML. The agent starts after a replayed prefix of the reference solution. Attack text is placed in the environment after YAML parsing, so it arrives as written.
 
+**Addition to Amendment 2 (2026-11-15, before any live inference).** Three changes to the instrument, none to the question, data, attacks or analysis:
+
+- An episode now ends at the first model turn whose returned prompt fails the delivery check. The returned tool calls are not executed, no further response is requested, and the row is invalid. Before this change the episode continued and the row was marked invalid at the end.
+- A client deadline is checked before every episode and every model request; an episode cut off by it is `interrupted`, is never scored, and is rerun on resume.
+- The smoke test's pass criterion is fixed as `smoke-v1`, stated in [Pilot design](pilot-design.md), section 9.3. The earlier wording asked for two of four from-the-request tasks per format where the plan has two.
+
 ## Results
 
 Appended after the runs; nothing above was changed.

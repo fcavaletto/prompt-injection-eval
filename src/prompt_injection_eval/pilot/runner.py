@@ -14,10 +14,11 @@ from __future__ import annotations
 import hashlib
 import json
 import subprocess
+import threading
 import time
 from collections import Counter
 from collections.abc import Callable
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -201,16 +202,49 @@ def read_traces(path: Path) -> list[dict[str, Any]]:
     return rows
 
 
+# Statuses after which a smoke phase starts no further episode.
+INVALIDATING = (
+    "invalid_delivery",
+    "unverified_delivery",
+    "prefix_error",
+    "harness_error",
+    "infra_error",
+)
+
+
 @dataclass
 class RunSummary:
     planned: int
     already_done: int
     written: int
     statuses: dict[str, int]
+    not_started: int
     stopped_by_deadline: bool
+    stopped_after_failure: str | None
     remaining: int
     seconds: float
     model_calls: int
+    deadline_at: float | None = None  # time.monotonic() value
+
+
+def _unrun_trace(unit: Spec, settings: Settings, status: str, detail: str) -> dict[str, Any]:
+    return {
+        "study": STUDY,
+        "unit_key": unit.key(),
+        **asdict(unit),
+        "condition": unit.condition(),
+        "pair": unit.pair(),
+        "label": settings.label,
+        "model": settings.model,
+        "request_sha256": None,
+        "status": status,
+        "status_detail": detail,
+        "utility": None,
+        "security": None,
+        "success": None,
+        "turns": [],
+        "totals": {"model_calls": 0},
+    }
 
 
 def run_phase(
@@ -222,13 +256,21 @@ def run_phase(
     runs: int = RUNS,
     deadline_minutes: float | None = None,
     progress: Callable[[int, int], None] | None = None,
+    fail_fast: bool | None = None,
 ) -> RunSummary:
     """Run every planned unit that has no final trace yet.
 
-    When ``deadline_minutes`` passes, no further unit is started; finished ones are kept
-    and the directory can be resumed.
+    Each worker checks the deadline and the stop flag immediately before it starts an
+    episode, and the episode checks the deadline before every model request. An episode
+    cut off by the deadline is written as ``interrupted`` and will be rerun on resume; one
+    that never started is not written and shows as ``not_run``.
+
+    With ``fail_fast`` (the default for the smoke phase), the first trace with an
+    invalidating status stops all further starts. Episodes already running finish and are
+    written. The deadline bounds inference time; it is not a bound on money.
     """
     adapter.require_agentdojo()
+    fail_fast = phase == "smoke" if fail_fast is None else fail_fast
     units = plan(phase, frozen, runs)
     manifest = build_manifest(phase, settings, units, provider, frozen)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -263,62 +305,81 @@ def run_phase(
             )
     already = len(units) - len(pending)
 
-    def one(unit: Spec) -> dict[str, Any]:
-        keep = kept[unit.condition()] < KEEP_PROMPTS_PER_CONDITION
-        if keep:
-            kept[unit.condition()] += 1
+    started = time.monotonic()
+    deadline = None if deadline_minutes is None else started + deadline_minutes * 60
+    stop = threading.Event()
+    stop_reason: list[str] = []
+    lock = threading.Lock()
+
+    def one(unit: Spec) -> dict[str, Any] | None:
+        # Checked when this worker is about to start, not when the unit was queued.
+        if stop.is_set() or (deadline is not None and time.monotonic() >= deadline):
+            return None
+        with lock:
+            keep = kept[unit.condition()] < KEEP_PROMPTS_PER_CONDITION
+            if keep:
+                kept[unit.condition()] += 1
         try:
-            trace = episode.run(unit, provider, settings, keep_prompts=keep)
+            trace = episode.run(unit, provider, settings, keep_prompts=keep, deadline=deadline)
         except Exception as error:  # noqa: BLE001 - one unit must not end the phase
-            trace = {
-                "study": STUDY,
-                "unit_key": unit.key(),
-                **asdict(unit),
-                "condition": unit.condition(),
-                "pair": unit.pair(),
-                "label": settings.label,
-                "model": settings.model,
-                "request_sha256": None,
-                "status": "harness_error",
-                "status_detail": f"{type(error).__name__}: {error}",
-                "utility": None,
-                "security": None,
-                "success": None,
-                "turns": [],
-                "totals": {"model_calls": 0},
-            }
+            trace = _unrun_trace(
+                unit, settings, "harness_error", f"{type(error).__name__}: {error}"
+            )
         trace["manifest_sha256"] = manifest_sha
         trace["result_origin"] = provider.result_origin
+        if fail_fast and trace["status"] in INVALIDATING and not stop.is_set():
+            stop_reason.append(f"{trace['status']} in {unit.condition()} {unit.pair()}")
+            stop.set()
         return trace
 
     workers = max(1, int(getattr(provider, "concurrency", 1)))
-    started = time.monotonic()
     statuses: Counter[str] = Counter()
-    written = calls = 0
-    stopped = False
+    written = calls = skipped = 0
     with traces_path.open("a") as handle, ThreadPoolExecutor(max_workers=workers) as pool:
-        for offset in range(0, len(pending), workers * 2):
-            if deadline_minutes is not None and time.monotonic() - started > deadline_minutes * 60:
-                stopped = True
-                break
-            for trace in pool.map(one, pending[offset : offset + workers * 2]):
-                handle.write(json.dumps(trace, ensure_ascii=False, default=str) + "\n")
-                handle.flush()
-                statuses[trace["status"]] += 1
-                calls += trace["totals"].get("model_calls", 0)
-                written += 1
-                if progress:
-                    progress(written, len(pending))
-    return RunSummary(
+        futures = [pool.submit(one, unit) for unit in pending]
+        for future in as_completed(futures):
+            trace = future.result()
+            if trace is None:
+                skipped += 1
+                continue
+            handle.write(json.dumps(trace, ensure_ascii=False, default=str) + "\n")
+            handle.flush()
+            statuses[trace["status"]] += 1
+            calls += trace["totals"].get("model_calls", 0)
+            written += 1
+            if progress:
+                progress(written, len(pending))
+    seconds = time.monotonic() - started
+    final_written = sum(n for status, n in statuses.items() if status in FINAL)
+    summary = RunSummary(
         planned=len(units),
         already_done=already,
         written=written,
         statuses=dict(statuses),
-        stopped_by_deadline=stopped,
-        remaining=len(pending) - written,
-        seconds=time.monotonic() - started,
+        not_started=skipped,
+        stopped_by_deadline=deadline is not None
+        and (skipped > 0 or statuses.get("interrupted", 0) > 0)
+        and not stop_reason,
+        stopped_after_failure=stop_reason[0] if stop_reason else None,
+        remaining=len(pending) - final_written,
+        seconds=seconds,
         model_calls=calls,
+        deadline_at=deadline,
     )
+    with (output_dir / "runs.jsonl").open("a") as log:
+        log.write(
+            json.dumps(
+                {
+                    "finished": datetime.now(UTC).isoformat(timespec="seconds"),
+                    "deadline_minutes": deadline_minutes,
+                    "fail_fast": fail_fast,
+                    "workers": workers,
+                    **asdict(summary),
+                }
+            )
+            + "\n"
+        )
+    return summary
 
 
 def freeze(select_dir: Path) -> dict[str, Any]:

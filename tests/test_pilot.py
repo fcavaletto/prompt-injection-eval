@@ -183,13 +183,139 @@ def test_payload_reaches_the_environment_exactly_as_written() -> None:
         ("no_prompt", "unverified_delivery", "prompt_not_returned"),
     ],
 )
-def test_broken_rendering_is_an_invalid_measurement(fault: str, status: str, defect: str) -> None:
+def test_broken_rendering_stops_the_episode_at_once(fault: str, status: str, defect: str) -> None:
     spec = Spec(DEV_SUITE, "attack", "json", "user_task_0", "injection_task_0", attacks.BASELINE, 0)
     healthy = episode.run(spec, ScriptedProvider("obedient"), SETTINGS)
     assert healthy["status"] == "completed" and healthy["security"] is True
-    broken = episode.run(spec, ScriptedProvider("obedient", fault), SETTINGS)
+    assert len(healthy["turns"]) > 1 and healthy["failed_turn"] is None
+    counting = _Counting(ScriptedProvider("obedient", fault))
+    broken = episode.run(spec, counting, SETTINGS)
     assert broken["status"] == status
     assert any(d.startswith(defect) for d in broken["delivery_defects"])
+    # One request, and the calls it returned were never executed.
+    assert counting.calls == 1 and len(broken["turns"]) == 1
+    assert broken["post_state_sha256"] == broken["branch_state_sha256"]
+    # Not scored: an invalid row is not a resisted attack.
+    assert broken["security"] is None and broken["utility"] is None
+    failed = broken["failed_turn"]
+    assert failed["step"] == 0 and sorted(failed["defects"]) == broken["delivery_defects"]
+    assert failed["request"]["messages"][-1]["role"] == "tool"
+    assert failed["response_raw_calls"], "the returned calls are kept for diagnosis"
+    assert (failed["rendered_prompt"] is None) == (fault == "no_prompt")
+
+
+class _Counting:
+    """Wraps a provider: counts requests, can delay them, and logs when each started."""
+
+    def __init__(
+        self, inner: Any, delay: float = 0.0, concurrency: int = 1, faulty: Any = None
+    ) -> None:
+        self.inner, self.delay, self.concurrency, self.faulty = inner, delay, concurrency, faulty
+        self.name, self.result_origin = inner.name, inner.result_origin
+        self.calls = 0
+        self.log: list[tuple[float, float]] = []
+
+    def generate(self, request: Any) -> Any:
+        import time
+
+        self.calls += 1
+        self.log.append((time.monotonic(), request.timeout_seconds))
+        info = request.metadata["pilot"]
+        first = (
+            info["mode"] == "attack"
+            and info["fmt"] == "text"
+            and info["user_task"] == "user_task_0"
+        )
+        if self.faulty is not None and first and info["injection_task"] == "injection_task_0":
+            return self.faulty.generate(request)
+        time.sleep(self.delay)  # the faulty unit answers at once, so the race is not close
+        return self.inner.generate(request)
+
+    def runtime_info(self, model: str) -> dict[str, Any]:
+        return self.inner.runtime_info(model)
+
+
+def test_smoke_stops_starting_episodes_after_an_invalid_one(tmp_path: Path) -> None:
+    # The first planned unit renders badly and fails at once. Of four workers, only those
+    # already running an episode may finish it; no new episode starts after the failure.
+    provider = _Counting(
+        ScriptedProvider("benign"),
+        delay=0.05,
+        concurrency=4,
+        faulty=ScriptedProvider("benign", "drop_tools"),
+    )
+    summary = runner.run_phase("smoke", provider, SETTINGS, tmp_path)
+    assert summary.stopped_after_failure
+    assert summary.stopped_after_failure.startswith("invalid_delivery")
+    completed = summary.statuses.get("completed", 0)
+    assert summary.statuses == {"invalid_delivery": 1} | (
+        {"completed": completed} if completed else {}
+    )
+    assert completed <= 3 and summary.written == 1 + completed
+    assert summary.not_started == summary.remaining == 24 - summary.written
+    plan = json.loads((tmp_path / "plan.json").read_text())
+    rows = runner.read_traces(tmp_path / "traces.jsonl")
+    totals: Counter[str] = Counter()
+    for line in analysis.accounting(plan, rows):
+        assert line["planned"] == sum(
+            v for k, v in line.items() if k not in ("condition", "planned")
+        )
+        totals.update({k: v for k, v in line.items() if k != "condition"})
+    assert totals["planned"] == 24 and totals["completed"] == completed
+    assert totals["invalid_delivery"] == 1 and totals["not_run"] == summary.not_started
+    verdict = analysis.smoke_verdict(plan, rows)
+    assert not verdict["passed"] and verdict["checks"][0]["observed"] == f"{completed}/24"
+    log = [json.loads(line) for line in (tmp_path / "runs.jsonl").read_text().splitlines()]
+    assert log[-1]["stopped_after_failure"] == summary.stopped_after_failure
+
+
+def test_the_deadline_holds_under_concurrency_and_interrupted_work_resumes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(episode, "MIN_REQUEST_SECONDS", 0.02)
+    slow = _Counting(ScriptedProvider("benign"), delay=0.1, concurrency=4)
+    summary = runner.run_phase("smoke", slow, SETTINGS, tmp_path, deadline_minutes=0.5 / 60)
+    assert summary.deadline_at is not None and summary.stopped_by_deadline
+    # No request started after the deadline, and no timeout exceeded the time then left.
+    assert slow.log and all(start < summary.deadline_at for start, _ in slow.log)
+    assert all(
+        timeout <= max(1.0, (summary.deadline_at - start) / 3) + 1e-6 for start, timeout in slow.log
+    )
+    # Overrun is at most one request in flight.
+    assert summary.seconds < 0.5 + 0.1 + 0.25
+    assert summary.statuses.get("interrupted", 0) >= 1
+    assert summary.written + summary.not_started == 24
+    rows = runner.read_traces(tmp_path / "traces.jsonl")
+    for row in rows:
+        if row["status"] == "interrupted":
+            assert row["security"] is None and row["utility"] is None and row["success"] is None
+    # Interrupted and unstarted units are rerun on resume; finished ones are not.
+    resumed = runner.run_phase("smoke", ScriptedProvider("benign"), SETTINGS, tmp_path)
+    assert resumed.already_done == summary.statuses.get("completed", 0)
+    assert resumed.statuses == {"completed": 24 - resumed.already_done}
+    plan = json.loads((tmp_path / "plan.json").read_text())
+    table = analysis.accounting(plan, runner.read_traces(tmp_path / "traces.jsonl"))
+    assert sum(line["completed"] for line in table) == 24
+    assert analysis.smoke_verdict(plan, runner.read_traces(tmp_path / "traces.jsonl"))["passed"]
+
+
+def test_smoke_criterion_takes_its_denominators_from_the_plan(tmp_path: Path) -> None:
+    summary = runner.run_phase("smoke", ScriptedProvider("benign"), SETTINGS, tmp_path)
+    assert summary.statuses == {"completed": 24}
+    plan = json.loads((tmp_path / "plan.json").read_text())
+    verdict = analysis.smoke_verdict(plan, runner.read_traces(tmp_path / "traces.jsonl"))
+    assert verdict["passed"] and verdict["criterion"] == analysis.SMOKE_CRITERION["version"]
+    by_name = {c["check"]: c for c in verdict["checks"]}
+    assert by_name["every planned episode completed with verified delivery"]["observed"] == "24/24"
+    for fmt in FORMATS:
+        assert by_name[f"from-request user tasks completed, {fmt}"]["observed"] == "2/2"
+    # A silent agent completes nothing: the smoke fails on agency, not on delivery.
+    silent = runner.run_phase("smoke", ScriptedProvider("silent"), SETTINGS, tmp_path / "silent")
+    assert silent.statuses == {"completed": 24}
+    plan = json.loads((tmp_path / "silent" / "plan.json").read_text())
+    verdict = analysis.smoke_verdict(plan, runner.read_traces(tmp_path / "silent" / "traces.jsonl"))
+    assert not verdict["passed"]
+    assert [c["passed"] for c in verdict["checks"]] == [True, True, True, True, False, False]
 
 
 def test_a_payload_that_never_arrives_is_detected_not_scored_as_resistance(
@@ -206,7 +332,7 @@ def test_a_payload_that_never_arrives_is_detected_not_scored_as_resistance(
     assert (
         trace["status"] == "invalid_delivery" and trace["status_detail"] == "payload_not_in_record"
     )
-    assert trace["security"] is None and trace["turns"] == []
+    assert trace["security"] is None and trace["turns"] == [] and trace["failed_turn"] is None
     table = analysis.accounting([asdict(spec)], [trace])
     assert table[0]["planned"] == table[0]["invalid_delivery"] == 1 and table[0]["completed"] == 0
     assert analysis.cells([trace], spec.condition(), "security") == {}
@@ -335,7 +461,8 @@ def test_deadline_stops_cleanly_and_the_run_resumes(tmp_path: Path) -> None:
     stopped = runner.run_phase(
         "smoke", ScriptedProvider(), SETTINGS, tmp_path, deadline_minutes=0.0
     )
-    assert stopped.stopped_by_deadline and stopped.written == 0 and stopped.remaining == 24
+    assert stopped.stopped_by_deadline and stopped.written == 0
+    assert stopped.not_started == stopped.remaining == 24
     resumed = runner.run_phase("smoke", ScriptedProvider(), SETTINGS, tmp_path)
     assert not resumed.stopped_by_deadline and resumed.written == 24
 
