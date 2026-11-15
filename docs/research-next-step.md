@@ -1,6 +1,6 @@
 # Research audit and next step
 
-First written on 2026-11-14, after Studies A and B. **Revised on 2026-11-15** after the closest papers were read in full and a [rendering census](rendering-census.md) was run. Sections 2.3 onward are new; the 2026-11-14 text of those sections is in the repository history (commit `31b63c5`). The revision changes the recommendation: see section 3.
+First written on 2026-11-14, after Studies A and B. **The pilot's design in section 3.4 is superseded by [Pilot design](pilot-design.md), which is registered as Amendment 2 and has a working harness.** **Revised on 2026-11-15** after the closest papers were read in full and a [rendering census](rendering-census.md) was run. Sections 2.3 onward are new; the 2026-11-14 text of those sections is in the repository history (commit `31b63c5`). The revision changes the recommendation: see section 3.
 
 This page audits the evidence so far, places it against the closest literature, and proposes the next experiment. Nothing here was run on a paid GPU. Every new analysis of existing results is **exploratory**: it was written after the outcomes were known. The original results and the [pre-registration](preregistration.md) are unchanged; this page and its [appendix](research-audit-2026-11.md) are dated additions.
 
@@ -101,7 +101,7 @@ The 2026-11-14 design asked whether rendering changes attack success by as much 
 
 The narrowed question: **when tool output is serialized as JSON instead of free text, does an attacker who writes for that format succeed less often?**
 
-This is not chosen because it is likely to produce a striking result. The project's own adaptive results suggest the answer may be "no". It is chosen because either answer is useful and neither is in the literature: "no" means a recommendation in a current paper offers false comfort and that benchmarks using different serializations are comparing fixed strings; "yes" means a free mitigation with a measured size.
+This is not chosen because it is likely to produce a striking result. It is chosen because the comparison has not been made with attacks selected for each format. *Revised 2026-11-15:* an earlier version of this paragraph said what a "no" and a "yes" would mean in general. A pilot with two models, five attacker goals and a library of eight candidates supports neither reading. What it can support is stated in [Pilot design](pilot-design.md), section 5.
 
 ### 3.2 What needs adapted attacks and what fixed attacks can answer
 
@@ -162,7 +162,7 @@ The pilot is too small to settle the question. Its jobs are to show the instrume
 | Controls pass; interval for the adapted-attack difference lies inside ±5 | On these cases, effects that would matter are ruled out for this attacker | Check whether one attacker goal hides a large effect. If not, report as a null with its interval and stop this line unless a stronger attacker is affordable. |
 | Controls pass; interval excludes zero and is centered above 5 | The effect probably survives this budget | Run the confirmatory study; strengthen the attacker first |
 | Controls pass; interval is wide enough to include both 0 and 10 | The pilot is uninformative about the effect | Use its variance estimates in feasibility rule 2. Proceed only if the confirmatory study can reach ±4 to ±6 within budget. |
-| Fixed-attack difference is large and adapted-attack difference is near zero | Format protection is a property of fixed strings | The most informative outcome for a methods paper. Confirm on the untouched suites. |
+| Fixed-attack difference is large and selected-attack difference is near zero | On these cases, the gap seen with the fixed attack was not reproduced with selected attacks | Worth confirming on the untouched suites. It is evidence about this attack and this library, not about formats in general. |
 
 ### 3.6 Cost
 
@@ -185,11 +185,11 @@ If, after 30 minutes, the measured speed projects past the cap, the pilot drops 
 | WP-C | Rendering census | Free | Done 2026-11-15 | Script, fixtures, rows, renders, summary; a test pins the counts |
 | WP-A | Human validation of the Study B scorer | Free; needs people | **Prepared, not carried out** | Protocol and blinded sample exist; labels do not |
 | WP1 | Reproducibility: dependency lock, model and template revisions in every row, image digest, the resume guard in the adaptive runner | Free | Proposed | A run refuses to start without them |
-| WP2 | AgentDojo harness: fixed-prefix replay, two serializations, per-row rendering check, state-based scoring | Free to build | Proposed | With a scripted model that follows the reference calls, at least 95% of banking tasks succeed in both formats and every row passes the rendering check |
-| WP3 | Analysis module: averaging over runs, two-way bootstrap, sign-flip test | Free | Proposed | Recovers a planted effect and its interval on simulated data |
-| WP4 | Eight candidate attacks per format | Free | Proposed | Written and committed before any generation |
-| WP5 | Pre-registration amendment for the pilot | Free | Proposed | Dated and committed before the pilot's first generation |
-| WP6 | The pilot | About $11, cap $16 | **Needs your go-ahead** | Section 3.4 |
+| WP2 | AgentDojo harness: fixed-prefix replay, two serializations, per-row rendering check, state-based scoring | Free to build | **Done 2026-11-15**, offline only | With a scripted model that follows the reference calls, at least 95% of banking tasks succeed in both formats and every row passes the rendering check |
+| WP3 | Analysis module: averaging over runs, two-way bootstrap, sign-flip test | Free | **Done 2026-11-15** | Recovers a planted effect and its interval on simulated data |
+| WP4 | Eight candidate attacks, tried against both formats | Free | **Done 2026-11-15** | Written and committed before any generation |
+| WP5 | Pre-registration amendment for the pilot | Free | **Done 2026-11-15** (Amendment 2) | Dated and committed before the pilot's first generation |
+| WP6 | The pilot | About $13, cap $20 | **Needs your go-ahead** | [Pilot design](pilot-design.md), section 9 |
 | WP7 | Audit of other public harnesses: run the census fixtures through the message-building code of AgentDojo, InjecAgent and ToolHazard for their open-model settings | Free | Proposed | A table of what each harness delivers to each model it reports, or a statement that no defect was found |
 | WP8 | Confirmatory study | About $22 for two models | Only after WP6 | Section 3.3 |
 

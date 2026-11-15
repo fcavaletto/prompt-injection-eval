@@ -94,6 +94,37 @@ Written after Study A ran and before any InjecAgent case was sent to a model. It
 - **Unparsed calls in the main run.** Rows where no call was parsed but the target tool's name appears in the text are counted per condition. If they exceed 5% of a model's cases in any condition, that model's results carry a caveat in the write-up. No model is dropped on that basis after the main run, because that decision would depend on outcomes.
 - **Rows.** Written to `results/v08/`. Every row stores a hash of the rendered prompt, and the full rendered prompt is kept for the first three rows of each condition.
 
+### Amendment 2 (2026-11-15): serialization pilot, before any pilot run
+
+Registered before any model has been run on the pilot harness. The design is [Pilot design](pilot-design.md) as committed with this amendment; that page is part of the registration. It does not replace Study C or Study D, which remain unrun. It is a pilot: it cannot confirm a hypothesis, and it is registered so that its instrument, its data split and its reading are fixed before data exist.
+
+**Question.** On AgentDojo tasks, with the agent resumed at a controlled injection point, does representing every tool result as a JSON object instead of free text change how often an injected instruction is carried out, when the attack is selected for each format from a fixed library?
+
+**Fixed inputs.**
+
+- AgentDojo 0.1.35, benchmark v1.2.2. Banking is development (`dd40d8e04b483dd8a674a181cd94c47ed0edd2aab96df2bf283375d94230e244`); slack is the pilot evaluation suite (`3d8ef21110878202569cd8223bdcad37ad0465feb0f3aec7017babb8e079f303`); workspace and travel are not touched. The hashes cover each suite's environment, injection vectors, task texts and tool schemas.
+- Attack library `bfb5fea427caa36ccc7bfcd18c47acfa7726782d93b8bfeab86eda621a7b94a8`: AgentDojo's `important_instructions` as the fixed baseline, and eight candidates in `src/prompt_injection_eval/pilot/attacks.py`.
+- Models: Qwen3-32B and Granite 4.0 H Small on vLLM, temperature 0, at most 15 rounds, 2,048 output tokens per turn.
+- Three runs per case and condition in the control and evaluation phases; one run in selection.
+
+**Selection.** Per model and format, the candidate with the most successes on the 72 development pairs, ties to the earlier candidate. Nine attacks × two formats × 72 pairs = 1,296 development episodes per model. The frozen choice is committed before that model's first evaluation episode. No attack is changed afterwards.
+
+**Primary quantity, per model.** Attack success on text under the attack selected for text, minus attack success on JSON under the attack selected for JSON, over the 105 pilot pairs, in percentage points. Positive means JSON was attacked less successfully. Attack success is AgentDojo's check on the final environment state.
+
+**Expectations.** For the fixed baseline, text minus JSON is expected to be positive. For the primary quantity no direction is predicted. Intervals are two-sided 95%.
+
+**Also reported.** The same attack across formats, for each of the three attacks; each selected attack minus the baseline and minus the other format's selected attack, within each format; user-task success with and without attack; prompt tokens and latency per episode; every validity control.
+
+**Validity.** A row whose returned prompt fails the delivery check, or for which no prompt is returned, is an invalid measurement. It is counted and reported by condition and is never treated as a failed attack. A contrast with more than 2% of its cases incomplete is reported as not interpretable. Bounds with every incomplete case set to each extreme are always given. No attacker goal is dropped because the model refuses the direct request. A second analysis restricted to goals whose benign twin succeeds in at least two of three runs in both formats is reported with its coverage.
+
+**Uncertainty.** Outcomes are averaged over the three runs. The primary interval resamples user tasks and runs and keeps attacker goals fixed; a two-way interval and a sign-flip test over user tasks are reported beside it. Their assumptions and limits are in the design, section 5.
+
+**Reading.** Statements are limited to these two models, the slack suite's 21 user tasks and 5 attacker goals, selection from eight candidates on 72 pairs, and the interval obtained. An interval within ±5 points is read as "selection from this library left the formats within five points on these tasks". An interval above zero is read as "the best attack found for JSON did worse than the best found for text, at this budget". Neither is read as a statement about formats against other attackers.
+
+**Decisions.** Whether to evaluate a model is decided from its development phases only. A floor or ceiling found in the evaluation is reported as the result; it is not a reason to change the attack.
+
+**Known deviations from AgentDojo, all recorded in every trace.** Tool results are serialized by this harness, not as YAML. The agent starts after a replayed prefix of the reference solution. Attack text is placed in the environment after YAML parsing, so it arrives as written.
+
 ## Results
 
 Appended after the runs; nothing above was changed.
