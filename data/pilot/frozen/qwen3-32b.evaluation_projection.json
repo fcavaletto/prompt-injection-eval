@@ -1,0 +1,55 @@
+{
+ "select_rate_calls_per_second": 1.8841271828241763,
+ "development_control_calls_per_episode": 2.4166666666666665,
+ "evaluate_episodes": 882,
+ "eval_controls_episodes": 312,
+ "by_condition": {
+  "baseline/json": {
+   "episodes": 147,
+   "development_calls": 4.180555555555555,
+   "projected_calls": 9.197222222222223
+  },
+  "baseline/text": {
+   "episodes": 147,
+   "development_calls": 4.361111111111111,
+   "projected_calls": 9.594444444444445
+  },
+  "neutral_baseline_one_line/json": {
+   "episodes": 147,
+   "development_calls": 3.9722222222222223,
+   "projected_calls": 8.738888888888889
+  },
+  "neutral_baseline_one_line/text": {
+   "episodes": 147,
+   "development_calls": 4.375,
+   "projected_calls": 9.625
+  },
+  "text_task_update/json": {
+   "episodes": 147,
+   "development_calls": 2.9305555555555554,
+   "projected_calls": 6.447222222222222
+  },
+  "text_task_update/text": {
+   "episodes": 147,
+   "development_calls": 4.027777777777778,
+   "projected_calls": 8.861111111111112
+  }
+ },
+ "projected_calls": {
+  "eval-controls": 1508.0,
+  "evaluate": 7712.1916666666675
+ },
+ "projected_minutes": {
+  "eval-controls": 13.339509966445155,
+  "evaluate": 68.22072785188017
+ },
+ "deadline_minutes": {
+  "eval-controls": 17.341362956378703,
+  "evaluate": 88.68694620744422
+ },
+ "projected_cost_usd": {
+  "eval-controls": 0.602623022159932,
+  "evaluate": 3.081925894988933
+ },
+ "dollars_per_hour": 2.7105479452054793
+}
