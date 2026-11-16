@@ -138,6 +138,35 @@ Registered before any model has been run on the pilot harness. The design is [Pi
 - The feasibility outputs are kept apart from selection and are never used to choose an attack.
 - No Slack, workspace or travel episode is run.
 
+### Amendment 3 (2026-11-16): one first run per evaluation case, a frozen repeat subset, before any selection or evaluation episode
+
+Registered after the F1 feasibility stage and before any candidate attack, Slack, workspace or travel episode has been run on any model. F1 ran the fixed baseline on banking only; it is not used to choose an attack. Everything in Amendment 2 and its additions stands except the repeat design of the evaluation phase, which this amendment replaces. The implementation, its offline tests and the frozen subset are in the commit that adds this amendment. Design: [Pilot design](pilot-design.md), sections 5 and 9.6c.
+
+**Why.** F1 found no disagreement among the three runs of any of 100 Qwen3-32B control cells. Stable controls support reducing repeats in the evaluation. They do not show that attack episodes are repeatable: attack repeatability has not been measured. The repeats kept below are there to measure it.
+
+**Evaluation runs.**
+
+1. Every evaluation case (Slack user task × attacker goal, 105 pairs) under every evaluated condition (each evaluated attack × each format) gets one run, its first run (run index 0).
+2. A fixed subset of 21 pairs also gets runs 2 and 3 (run indices 1 and 2), under every condition, for both models. It is drawn with seed `20261116` from the suite's task and goal names alone, independently of any outcome: one pair per user task, with goals balanced (one drawn goal has five pairs, the other four have four). The subset, its hash `6b9be500…d88f1`, and the execution order are committed in `data/pilot/amendment-3-evaluation-design.json`; a test checks that the code plans exactly that file.
+3. Execution order: every first run is started before any repeat. The first wave runs the 105 pairs in rounds (each round covers all 21 user tasks and all 5 goals), with all conditions of a pair adjacent. The second wave, runs 2 and then 3 of the subset, starts only when every first-run unit has a final trace.
+4. Per model, the evaluation has 3 attacks × 2 formats × (105 + 2 × 21) = 882 episodes, or 588 if one candidate won for both formats.
+
+**Primary analysis.** Every contrast registered in Amendment 2, including the primary quantity, is computed from first runs only: each of the 105 pairs has equal weight, intervals resample user tasks with attacker goals held fixed (the two-way interval and the sign-flip test are reported beside it, as before). A case's repeats never enter the primary analysis and never give it extra weight. The 2% completeness rule and the extreme-value bounds apply to first runs.
+
+**Repeatability.** Reported per condition and pooled, over repeated cells only: a cell is one subset pair under one condition, and it enters the denominator only if all three of its runs completed. Cells run once are never counted as agreeing. Repeat completeness is reported separately from first-run completeness; a missing repeat never invalidates or removes a completed first run. Section 9.8's condition 2 (runs disagree in at most 5% of cells) is read over these repeated cells.
+
+**Secondary sensitivity analysis.** The same contrasts over the same cases (first run complete in both conditions), each case the mean of its completed runs, every case with equal weight, runs resampled within their own case. It is labelled secondary and does not change any reading of the primary analysis.
+
+**Controls.** Unchanged: three runs per control cell. The capability population is unchanged: goals whose benign twin succeeds in at least two of the controls' three runs in both formats. The run count for that rule is taken from the controls phase, never from the evaluation.
+
+**Qwen3-32B's development controls.** The F1 development controls (`results-published/pilot-f1-2026-11-16/qwen3-32b/dev-controls`, 300 episodes, run at commit `d152041`) count as Qwen3-32B's registered development-controls phase. Before they are used, `scripts/verify_control_reuse.py` checks that they are the registered phase: same releases, suite and settings; the stored plan equals the current plan; every unit completed; every request fingerprint equals the current code's; no request, delivery, execution or scoring code changed since; and the server description equals that of Qwen's selection phase. Its output is archived with the evidence. Granite 4.0 H Small runs its own development controls. The F1 baseline-feasibility episodes stay separate: selection reruns the baseline on the development pairs as registered.
+
+**Development gates.** The four gates of [Pilot design](pilot-design.md), section 9.4, are fixed as `dev-gates-v1` in `analysis.DEVELOPMENT_GATES` and applied by `pie pilot gates` over the development controls and the selection phase. The capability gate counts goals under the capability rule above; the unparsed-call gate is applied in each format.
+
+**Unchanged.** The question, data split, models, attack library, selection rule and budget (1,296 development episodes per model), the round limit of 15, temperature 0, scoring, delivery and parsing controls, the validity thresholds, the stopping rules and the reading rules of Amendment 2. Workspace and travel stay untouched.
+
+**Interpretation, corrected.** The projected task-interval half-widths, about ±9 points per model on Slack's 21 user tasks and about ±5.4 on the 60 reserved workspace and travel tasks, are conditional planning assumptions scaled from one development contrast under the fixed attack. They are neither guaranteed precision nor minimum detectable effects. A confirmatory study needs its own frozen design.
+
 ## Results
 
 Appended after the runs; nothing above was changed.

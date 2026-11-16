@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import random
 import subprocess
 import threading
 import time
@@ -42,6 +43,12 @@ from prompt_injection_eval.providers.base import Provider
 
 PHASES = ("smoke", "dev-controls", "select", "eval-controls", "evaluate", "feasibility")
 RUNS = 3
+# Amendment 3 (2026-11-16): the evaluation gives every case one run; a fixed subset of
+# REPEAT_CASES pairs, drawn with REPEAT_SEED from task and goal names alone, gets runs 2
+# and 3. Controls keep RUNS runs. Every first run is finished before any repeat starts.
+EVALUATION_DESIGN = "amendment-3-v1"
+REPEAT_SEED = 20261116
+REPEAT_CASES = 21
 FINAL = ("completed", "invalid_delivery", "unverified_delivery", "prefix_error", "harness_error")
 KEEP_PROMPTS_PER_CONDITION = 2
 # Fields of the manifest that must be identical for a directory to be resumed.
@@ -58,6 +65,7 @@ COMPATIBLE = (
     "git_commit",
     "git_dirty",
     "plan_sha256",
+    "order_sha256",
     "server",
 )
 
@@ -105,6 +113,81 @@ def feasibility_order() -> list[tuple[str, str, str]]:
     for index, (user, goal) in enumerate(ordered):
         first, second = FORMATS if index % 2 == 0 else FORMATS[::-1]
         out += [(user, goal, first), (user, goal, second)]
+    return out
+
+
+def evaluation_pair_order() -> list[tuple[str, str]]:
+    """All evaluation pairs, in rounds: round r gives user task i the goal (r + i) mod G.
+
+    Every round covers all user tasks and spreads them over all goals, so a deadline cut
+    leaves a prefix balanced across tasks and goals.
+    """
+    users, goals = tasks(EVAL_SUITE)
+    return [
+        (user, goals[(round_ + i) % len(goals)])
+        for round_ in range(len(goals))
+        for i, user in enumerate(users)
+    ]
+
+
+def repeat_subset() -> list[tuple[str, str]]:
+    """The evaluation pairs that receive runs 2 and 3, fixed before any evaluation outcome.
+
+    One pair per user task, so every task contributes equally to repeatability. Goals are
+    balanced: with 21 tasks and 5 goals, one goal (drawn) gets five pairs and the rest four.
+    The draw uses only REPEAT_SEED and the suite's task and goal names, in suite order.
+    The result is listed in evaluation order.
+    """
+    users, goals = tasks(EVAL_SUITE)
+    if len(users) != REPEAT_CASES:
+        raise PilotError(f"The repeat design expects {REPEAT_CASES} user tasks, not {len(users)}.")
+    rng = random.Random(REPEAT_SEED)
+    goal_order = list(goals)
+    rng.shuffle(goal_order)
+    slots = [goal_order[i % len(goal_order)] for i in range(len(users))]
+    rng.shuffle(slots)
+    chosen = set(zip(users, slots, strict=True))
+    return [pair for pair in evaluation_pair_order() if pair in chosen]
+
+
+def evaluation_design() -> dict[str, Any]:
+    """The registered repeat design and execution order, as committed before evaluation."""
+    subset = repeat_subset()
+    return {
+        "design": EVALUATION_DESIGN,
+        "suite": EVAL_SUITE,
+        "repeat_seed": REPEAT_SEED,
+        "repeat_cases": len(subset),
+        "repeat_subset": [list(p) for p in subset],
+        "repeat_subset_sha256": _sha([list(p) for p in subset]),
+        "first_run_pair_order": [list(p) for p in evaluation_pair_order()],
+        "order_rule": (
+            "Wave 1: run 0 of every pair, pairs in first_run_pair_order; within a pair every "
+            "condition is adjacent, the attack order rotates by pair position and the format "
+            "order alternates. Wave 2 starts only when every wave-1 unit has a final trace: "
+            "run 1 of the repeat subset, then run 2, in the same pair and condition order."
+        ),
+    }
+
+
+def _evaluation_units(frozen: dict[str, Any], runs: int) -> list[Spec]:
+    chosen = frozen_attacks(frozen)
+    order = evaluation_pair_order()
+    subset = set(repeat_subset())
+
+    def conditions(position: int) -> list[tuple[str, str]]:
+        rotated = chosen[position % len(chosen) :] + chosen[: position % len(chosen)]
+        formats = FORMATS if position % 2 == 0 else FORMATS[::-1]
+        return [(attack, fmt) for attack in rotated for fmt in formats]
+
+    out = []
+    for run in range(runs):
+        for position, (user, goal) in enumerate(order):
+            if run == 0 or (user, goal) in subset:
+                out += [
+                    Spec(EVAL_SUITE, "attack", fmt, user, goal, attack, run)
+                    for attack, fmt in conditions(position)
+                ]
     return out
 
 
@@ -164,15 +247,8 @@ def plan(phase: str, frozen: dict[str, Any] | None = None, runs: int = RUNS) -> 
             raise PilotError(
                 "The evaluation needs the frozen attacks: run `pie pilot freeze` first."
             )
-        users, goals = tasks(EVAL_SUITE)
-        return [
-            Spec(EVAL_SUITE, "attack", fmt, u, g, attack, run)
-            for attack in frozen_attacks(frozen)
-            for fmt in FORMATS
-            for run in range(runs)
-            for u in users
-            for g in goals
-        ]
+        # Amendment 3: every case once; the repeat subset also gets runs 1 .. runs - 1.
+        return _evaluation_units(frozen, runs)
     raise PilotError(f"Unknown phase {phase!r}; expected one of {PHASES}.")
 
 
@@ -208,6 +284,9 @@ def build_manifest(
         "git_commit": _git("rev-parse", "HEAD"),
         "git_dirty": bool(_git("status", "--porcelain", "--untracked-files=no")),
         "plan_sha256": _sha(sorted(u.key() for u in units)),
+        # The order in which units are started; part of the resume check.
+        "order_sha256": _sha([u.key() for u in units]),
+        "evaluation_design": evaluation_design() if phase == "evaluate" else None,
         "planned": {
             "total": len(units),
             "by_condition": dict(Counter(u.condition() for u in units)),
@@ -367,20 +446,35 @@ def run_phase(
     workers = max(1, int(getattr(provider, "concurrency", 1)))
     statuses: Counter[str] = Counter()
     written = calls = skipped = 0
+    # The evaluation runs in two waves (Amendment 3): every first run, then the repeats.
+    # The second wave starts only if every first-run unit then has a final trace.
+    if phase == "evaluate":
+        waves = [[u for u in pending if u.run == 0], [u for u in pending if u.run > 0]]
+    else:
+        waves = [pending]
+    first_run_keys = {u.key() for u in units if u.run == 0}
+    held_back = 0
     with traces_path.open("a") as handle, ThreadPoolExecutor(max_workers=workers) as pool:
-        futures = [pool.submit(one, unit) for unit in pending]
-        for future in as_completed(futures):
-            trace = future.result()
-            if trace is None:
-                skipped += 1
+        for number, wave in enumerate(waves):
+            if number > 0 and phase == "evaluate" and not first_run_keys <= set(done):
+                held_back += len(wave)
                 continue
-            handle.write(json.dumps(trace, ensure_ascii=False, default=str) + "\n")
-            handle.flush()
-            statuses[trace["status"]] += 1
-            calls += trace["totals"].get("model_calls", 0)
-            written += 1
-            if progress:
-                progress(written, len(pending))
+            futures = [pool.submit(one, unit) for unit in wave]
+            for future in as_completed(futures):
+                trace = future.result()
+                if trace is None:
+                    skipped += 1
+                    continue
+                handle.write(json.dumps(trace, ensure_ascii=False, default=str) + "\n")
+                handle.flush()
+                if trace["status"] in FINAL:
+                    done[trace["unit_key"]] = trace
+                statuses[trace["status"]] += 1
+                calls += trace["totals"].get("model_calls", 0)
+                written += 1
+                if progress:
+                    progress(written, len(pending))
+    skipped += held_back
     seconds = time.monotonic() - started
     final_written = sum(n for status, n in statuses.items() if status in FINAL)
     summary = RunSummary(

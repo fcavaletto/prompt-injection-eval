@@ -274,6 +274,33 @@ def freeze_cmd(select_dir: Path = typer.Option(..., "--select-dir")) -> None:
     typer.echo(f"Written to {select_dir / 'frozen_attacks.json'}. Commit it before the evaluation.")
 
 
+@pilot_app.command("gates")
+def gates_cmd(
+    controls_dir: Path = typer.Option(..., "--controls-dir", help="The dev-controls phase."),
+    select_dir: Path = typer.Option(..., "--select-dir", help="The selection phase."),
+    output: Path | None = typer.Option(None, "--output", help="Write the verdict as JSON."),
+) -> None:
+    """Apply the development gates (pilot-design 9.4). Exit 1 if the model may not be evaluated."""
+    from prompt_injection_eval.pilot import analysis, runner
+
+    verdict = analysis.development_gates(
+        json.loads((controls_dir / "plan.json").read_text()),
+        runner.read_traces(controls_dir / "traces.jsonl"),
+        json.loads((select_dir / "plan.json").read_text()),
+        runner.read_traces(select_dir / "traces.jsonl"),
+    )
+    if output:
+        output.write_text(json.dumps(verdict, indent=1) + "\n")
+    for check in verdict["checks"]:
+        mark = "pass" if check["passed"] else "FAIL"
+        typer.echo(
+            f"  [{mark}] {check['check']}: {check['observed']} (required {check['required']})"
+        )
+    if not verdict["passed"]:
+        raise _fail(f"Development gates {verdict['gates']} failed: do not evaluate this model.")
+    typer.echo(f"Development gates {verdict['gates']} passed.")
+
+
 @pilot_app.command("report")
 def report_cmd(
     phase_dir: list[Path] = typer.Option(
