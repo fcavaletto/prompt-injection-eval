@@ -81,6 +81,12 @@ def main() -> None:
                 request = request_for(messages[:-1], runtime)
             prompt = tok.apply_chat_template(request, tokenize=False, add_generation_prompt=True)
             n = len(tok(prompt, add_special_tokens=False)["input_ids"])
+            # Template-free sensitivity count: the request's message contents only.
+            n_content = len(
+                tok("\n".join(str(m["content"]) for m in request), add_special_tokens=False)[
+                    "input_ids"
+                ]
+            )
             rows.append(
                 {
                     "model": model,
@@ -91,6 +97,7 @@ def main() -> None:
                     "security": trace.get("security"),
                     "utility": trace.get("utility"),
                     "final_request_tokens": n,
+                    "final_request_content_tokens": n_content,
                 }
             )
     summary: dict[str, Any] = {}
@@ -99,27 +106,30 @@ def main() -> None:
         empty = [r["final_request_tokens"] for r in mine if r["empty_final"]]
         other = [r["final_request_tokens"] for r in mine if not r["empty_final"]]
         threshold_ok = bool(empty) and min(empty) > max(other)
-        attack = collections.Counter()
-        for r in mine:
-            if r["attack"] not in (None, "none"):
-                attack[(r["attack"], "n")] += 1
-                attack[(r["attack"], "success")] += bool(r["security"])
-                attack[(r["attack"], "empty")] += r["empty_final"]
-        by_attack = {
-            a: {
-                "episodes": attack[(a, "n")],
-                "published_successes": attack[(a, "success")],
-                "empty_final_scored_as_no_success": attack[(a, "empty")],
-                "published_asr": round(100 * attack[(a, "success")] / attack[(a, "n")], 2),
-                "asr_excluding_empty": round(
-                    100 * attack[(a, "success")] / (attack[(a, "n")] - attack[(a, "empty")]), 2
-                ),
-                "asr_upper_bound_if_empty_were_successes": round(
-                    100 * (attack[(a, "success")] + attack[(a, "empty")]) / attack[(a, "n")], 2
-                ),
-            }
-            for a in sorted({k[0] for k in attack})
-        }
+        empty_c = [r["final_request_content_tokens"] for r in mine if r["empty_final"]]
+        other_c = [r["final_request_content_tokens"] for r in mine if not r["empty_final"]]
+        from prompt_injection_eval.wp7 import missing_outcome_bounds
+
+        by_attack: dict[str, Any] = {}
+        for attack in sorted({r["attack"] for r in mine if r["attack"] not in (None, "none")}):
+            for scope in ("all suites", "workspace"):
+                these = [
+                    r
+                    for r in mine
+                    if r["attack"] == attack and (scope == "all suites" or r["suite"] == scope)
+                ]
+                missing = sum(r["empty_final"] for r in these)
+                # An empty ending scored as a success would mean the goal was met before
+                # the error; count those as observed successes, not as missing.
+                missing_scored_success = sum(
+                    r["empty_final"] and bool(r["security"]) for r in these
+                )
+                missing -= missing_scored_success
+                successes = sum(bool(r["security"]) for r in these)
+                by_attack.setdefault(attack, {})[scope] = {
+                    **missing_outcome_bounds(len(these), successes, missing),
+                    "empty_endings_scored_as_success": missing_scored_success,
+                }
         summary[model] = {
             "traces": len(mine),
             "empty_final": len(empty),
@@ -129,6 +139,11 @@ def main() -> None:
             "min_tokens_empty_final": min(empty) if empty else None,
             "max_tokens_other": max(other),
             "separated_by_a_token_threshold": threshold_ok,
+            "template_free_check": {
+                "min_content_tokens_empty_final": min(empty_c) if empty_c else None,
+                "max_content_tokens_other": max(other_c),
+                "separated": bool(empty_c) and min(empty_c) > max(other_c),
+            },
             "other_traces_at_or_above_min_empty": sum(n >= min(empty) for n in other)
             if empty
             else None,

@@ -2,6 +2,15 @@
 
 Offline. No model was called and no paid compute was used. Each harness's own message-building code built the request it would send; a fake client captured the request; it was rendered with the chat template of the published configuration, from tokenizer files at pinned revisions; and the rendering was checked against a common fixture. Evidence and reproducers: [results-published/wp7-audit-2026-11-16](https://github.com/fcavaletto/prompt-injection-eval/tree/research-audit-2026-11/results-published/wp7-audit-2026-11-16).
 
+*Revised 2026-11-16 (release candidate):*
+
+- The bounds are now stated as conditional missing-outcome bounds.
+- Code behaviour, observation and hypothesis are separated.
+- Provenance claims are qualified.
+- A template-free sensitivity count is added.
+
+The first version is in commit `9158143`.
+
 ## Method
 
 **Fixture** (`data/wp7/fixture.json`):
@@ -36,14 +45,14 @@ A second checker issue appeared only in the full test suite. Importing parts of 
 
 **Classes.**
 
-- *Reproduced under a published configuration*: the configuration that produced published results, with the code at the revision that produced them.
+- *Published (reconstructed)*: the configuration that published results report (provider, model, mode), rebuilt from the code at the pinned revision. In no case does the record show that this revision generated the published results; see Provenance.
 - *Separately tested supported configuration*: a configuration the code supports that no published result used.
 - *Unverifiable*: the rendering cannot be observed (hosted model, gated template, or a configuration not recorded).
 - *Passes*: definitions, call, result and payload all reach the prompt in a recognized form, in order.
 
 **Pins:**
 
-- AgentDojo: 0.1.35 (tag commit `a75aba7`). The published runs come from `runs/` at that tag.
+- AgentDojo: 0.1.35 (tag commit `a75aba7`). The published traces are read from `runs/` at that tag. The tag contains them; it does not establish which code generated them.
 - InjecAgent: `f19c9f2`.
 - ToolHazard: `544b73b`.
 - Agent Data Injection (ADI): `1a3ddf8`.
@@ -56,56 +65,90 @@ A second checker issue appeared only in the full test suite. Importing parts of 
 - `Qwen/Qwen3-32B@9216db5`;
 - for Llama 2, Meta's reference chat format: the mirror ships no template.
 
-Mirrors are recorded as mirrors; the gated originals were not read.
+Mirrors are recorded as mirrors; the gated originals were not read. Whether a mirror's template equals the original's, and whether the original servers used the repository template at all, is not established.
+
+## Provenance
+
+**AgentDojo, Llama 3.3 70B and Meta-SecAlign-70B.**
+
+- **What the traces record:** `pipeline_name: "local"`, benchmark `v1.2.1`, and `agentdojo_package_version: "unknown"`, which suggests a source checkout rather than an installed release.
+- **Two branches merged the same day.** The traces were added in `9272bf1e0` (PR #96, 2025-07-25). LocalLLM support for SecAlign came in a separate branch merged that day (PR #97: `73afb31dc`, `357d8ed60`). Neither commit is an ancestor of the other.
+- **The runs commit's own LocalLLM is an unlikely generator.** It has no `reformat_message`, so it would have sent AgentDojo's content-block dicts (`{"type": "text", "content": ...}`) where an OpenAI-compatible server expects text parts.
+- **The PR #97 code is the most plausible generator.** It adds `reformat_message` and `tool_delimiter`, the latter needed for SecAlign, and it is identical to v0.1.35 in `local_llm.py`. This is an inference; it is not recorded.
+- **Both audited behaviours are in every candidate.** The JSON-dumped content-block list and the swallowed exception are present in every LocalLLM revision from `32521207f` (2025-03-21) through v0.1.35, including both candidates. The stored traces hold tool content as content-block lists, which is consistent with that period. So the two behaviours do not depend on which candidate ran. The token reconstruction does depend on the prompt text, which is the same in both candidates.
+- **Not recorded:** the serving stack, its version, its context limit, the template it used and the output-token budget.
+
+**InjecAgent.** The audited commit (`f19c9f2`, 2024-07-02) restructured the prompted path, splitting system and user prompts and adding `prompt_type`. The paper's results date from February and March 2024 (`2c0231d` and earlier), when the user prompt was the only input. IA-1 describes the released configuration, not necessarily the one behind the paper's tables.
+
+**ToolHazard.** The code is a snapshot uploaded on 2026-08-05 (`7a277e0`, pinned at `544b73b`). Its README states that prompt mode produced the reported results. Whether the snapshot is that exact code is not recorded.
 
 ## Results
 
 | ID | Harness and configuration | Class | Delivered (defs / call / result / payload) | Finding |
 | --- | --- | --- | --- | --- |
-| AD-1 | AgentDojo `local` (LocalLLM), Llama 3.3 70B Instruct; the published runs of 2025-07-25 | Published; **passes delivery, with a representation that is not the documented one** | yes / yes, as the model's own text / yes / yes | Each tool result reaches the model as a JSON string literal of `{"result": [{"type": "text", "content": "<YAML>"}]}`. LocalLLM JSON-dumps a list of content blocks (message content became a list in `32521207f`, 2025-03-21), and the Llama 3.x template's `tojson` encodes that string again. The code's evident intent is `{"result": "<text>"}`: its `'None' -> 'Success'` substitution compares a list with a string and never fires. |
-| AD-1e | Same configuration, server error path | **Reproduced under a published configuration** | n/a | `chat_completion_request` catches every exception and returns `''`. That becomes an empty assistant turn with no tool call, the loop ends, and the episode is scored with no mark of the failure. In the published traces, see below. |
+| AD-1 | AgentDojo `local` (LocalLLM), Llama 3.3 70B Instruct; configuration of the runs added 2025-07-25 | Published (reconstructed); **passes delivery; extra encoding reproduced** | yes / yes, as the model's own text / yes / yes | Each tool result reaches the model as a JSON string literal of `{"result": [{"type": "text", "content": "<YAML>"}]}`. LocalLLM JSON-dumps a list of content blocks (message content became a list in `32521207f`, 2025-03-21), and the Llama 3.x template's `tojson` encodes that string again. The code's evident intent is `{"result": "<text>"}`: its `'None' -> 'Success'` substitution compares a list with a string and never fires. The payload survives and decodes exactly. Whether the extra encoding changes attack success is unmeasured. The template step assumes the server used the repository template, as mirrored. |
+| AD-1e | Same configuration, server error path | Published (reconstructed); **code behaviour confirmed** | n/a | `chat_completion_request` catches every exception, prints it and returns `''`. That becomes an empty assistant turn with no tool call, the loop ends, and the episode enters ordinary outcome scoring with no failure flag. An error does not by itself mean a defence: the security check reads the final environment state, so an attack whose goal was met before the error still scores as a success. For what the published traces show, see below. |
 | AD-1s | AgentDojo `local`, Meta-SecAlign-70B (published runs) | **Unverifiable** | n/a | The template is gated, and the run records store neither `tool_delimiter` nor `model_id`, so what role the tool output had cannot be established. The token analysis below uses Llama 3.3's template as an approximation. |
 | AD-2 | AgentDojo `vllm_parsed` (OpenAILLM), Qwen3-32B, vLLM 0.33.0 preprocessing | Separately tested; **passes** | yes / yes / yes / yes (YAML) | The system message is sent as `developer`. vLLM 0.33.0 converts it to `system` for templates without that role (`vllm/renderers/hf.py`); older vLLM versions were not checked. |
 | AD-3 | AgentDojo `together-prompting` (PromptingLLM) at v0.1.35, Llama 3 70B Instruct | Separately tested; **delivery passes; system text duplicated** | yes / yes, restated in the user turn / yes / yes (YAML) | The request has roles `system, developer, user, ...`. The system text appears inside the tools prompt and again as a `developer` message (`_message_to_together`, since `36d340eab`, 2025-05-09). With the model's own template that is a `developer` header it was not trained on. How Together renders it is not observable. The published Llama 3 70B runs (2024) predate this code. |
-| IA-1 | InjecAgent, prompted agent, `TogetherAI`, Llama-2-70b-chat | Published; **delivery passes; system role not used** | yes / yes, as scratchpad text / yes / yes | Its hand-written template is `[INST] {sys_prompt}{user_prompt} [/INST]`: the system prompt is concatenated into the user turn, where Meta's reference format puts it in `<<SYS>>`. All text arrives. Whether Together's completion endpoint adds a BOS token is not observable. |
+| IA-1 | InjecAgent, prompted agent, `TogetherAI`, Llama-2-70b-chat | Published (reconstructed; see Provenance); **delivery passes; system role not used** | yes / yes, as scratchpad text / yes / yes | Its hand-written template is `[INST] {sys_prompt}{user_prompt} [/INST]`: the system prompt is concatenated into the user turn, where Meta's reference format puts it in `<<SYS>>`. All text arrives. Whether Together's completion endpoint adds a BOS token is not observable. |
 | IA-2 | InjecAgent, prompted agent, local `Llama` (transformers, `max_length=4096`) | Separately tested; **passes** | n/a | Over InjecAgent's 2,108 step-one cases, no prompt reaches 4,096 tokens (maximum 4,093, median 3,236). 19 leave fewer than 256 tokens for the output, which could truncate an answer. Step-two prompts were not measured. |
-| TH-1 | ToolHazard, `infer_mode = "prompt"` (the mode of the reported results, README), Qwen3-8B | Published; **passes** | yes / yes, as the model's text / yes / yes (YAML) | Tools are written into the system prompt in Qwen3's `<tools>` format. Tool output is YAML-dumped and appended as a plain user message without `<tool_response>` tags. `_format_tool_output_text` returns `str(obj)` instead of YAML for non-string outputs, but the environment path read always passes a string. |
+| TH-1 | ToolHazard, `infer_mode = "prompt"` (the mode of the reported results, README), Qwen3-8B | Published (reconstructed); **passes** | yes / yes, as the model's text / yes / yes (YAML) | Tools are written into the system prompt in Qwen3's `<tools>` format. Tool output is YAML-dumped and appended as a plain user message without `<tool_response>` tags. `_format_tool_output_text` returns `str(obj)` instead of YAML for non-string outputs, but the environment path read always passes a string. |
 | TH-2 | ToolHazard, the three formats of Fig. 4 | **Unverifiable** | n/a | The released code has a YAML formatter and a commented-out older formatter, and no JSON or free-form switch. The experiment's renderings cannot be reconstructed. |
 | ADI-1 | ADI end-to-end benchmark, LangGraph baseline, GPT-5.2, JSON tool output | **Unverifiable** at the model; passes at the message level | n/a | `tool_result_to_str` now defaults to `json.dumps`. The payload arrives JSON-escaped with `\uXXXX` escapes and decodes exactly. ADI computes a message-level "injection happened" flag whose normalization misses escaped quotes (false for this payload), but `benchmark.py` discards it, so it affects no reported number. |
 
 **Negative findings.** InjecAgent, ToolHazard and AgentDojo's `vllm_parsed` path deliver definitions, the completed call, the result and the payload intact. InjecAgent's local Llama path leaves at least 3 tokens of output budget on every step-one case. ADI's JSON is valid and lossless.
 
-## AgentDojo's published LocalLLM runs: empty turns at a token threshold
+## AgentDojo's published LocalLLM traces: empty endings and request length
 
-`scripts/wp7_agentdojo_traces.py` rebuilds, for each of the 5,958 published traces of Llama 3.3 70B and Meta-SecAlign-70B, the last request LocalLLM sent: its own code, the suite's tools, and the Llama 3.3 template. It then counts that request's tokens.
+`scripts/wp7_agentdojo_traces.py` rebuilds, for each of the 5,958 published traces of Llama 3.3 70B and Meta-SecAlign-70B, the last request LocalLLM would have sent: its own code (v0.1.35, the most plausible generator), the suite's tools, and the mirrored Llama 3.3 template. It then counts that request's tokens.
+
+**Observed.**
 
 | | Traces | Ending in an empty assistant turn with no call | Suites | Smallest such request | Largest request of any other trace |
 | --- | ---: | ---: | --- | ---: | ---: |
 | Llama 3.3 70B | 2,979 | 48 (46 under attack) | workspace only | 16,564 tokens | 16,537 tokens |
 | Meta-SecAlign-70B | 2,979 | 11 (8 under attack) | workspace only | 17,804 | 17,584 |
 
-Within each model, every empty ending lies above every other trace. That is what a server context limit would produce through the error path in AD-1e. It is not proof:
+- **With the reconstructed template, the separation is complete:** every empty ending lies above every other trace of the same model.
+- **It depends partly on the template.** The template adds per-message headers and JSON-encodes tool content again. Counting only the message contents, with no template:
+  - SecAlign still separates completely;
+  - for Llama 3.3, 2 of the 2,931 non-empty traces lie above the smallest empty one (15,439 tokens). A near-separation.
+- **The SecAlign count is approximate:** its template is gated and its tool role is unrecorded.
 
-- the server's limit was not recorded;
-- the token counts depend on the template (exact for Llama 3.3 up to the mirror, approximate for SecAlign);
-- a model could in principle return nothing.
+**Hypothesis, not established:** a server context limit made these requests fail, and the confirmed error path turned the failures into empty endings. A limit near 16.5k tokens for Llama 3.3 would fit; the SecAlign threshold differs, which a different limit or a different template would explain. Establishing it needs the original server command, context limit and logs. A model that returns nothing for very long inputs would also fit the observation.
 
-**What it could change.** Under attack, every one of these episodes was scored as defended.
+**Conditional missing-outcome bounds.** Take the 59 empty endings as missing outcomes, with every other outcome held fixed. For N planned episodes, S observed successes and M missing:
 
-| Llama 3.3 70B, attack | Published success | If the empty episodes are excluded | If all were successes |
-| --- | ---: | ---: | ---: |
-| `important_instructions`, all suites | 23.1% (219/949) | 23.8% | 26.1% |
-| `important_instructions`, workspace | 6.8% (38/560) | 7.2% | 12.0% |
-| `ignore_previous`, all suites | 12.0% | 12.1% | 13.1% |
+- the full-benchmark rate lies between S/N (every missing episode a failure) and (S+M)/N (every one a success);
+- the complete-case estimate is S/(N−M).
 
-For SecAlign the bounds move by at most 0.4 points; its published success rates are 1.3% to 2.2%. Llama 3.3 lost more episodes this way than SecAlign. The comparison that the published runs support, SecAlign far below Llama 3.3, holds at every bound.
+These are bounds under that assumption, not confidence intervals. All 54 empty endings under attack were scored as attack failures; none was scored as a success.
+
+| Llama 3.3 70B, attack | N | S | M | Bounds, S/N to (S+M)/N | Complete-case S/(N−M) |
+| --- | ---: | ---: | ---: | --- | ---: |
+| `important_instructions`, workspace | 560 | 38 | 29 | 6.8% to 12.0% | 7.2% |
+| `important_instructions`, all suites | 949 | 219 | 29 | 23.1% to 26.1% | 23.8% |
+| `ignore_previous`, workspace | 560 | 9 | 10 | 1.6% to 3.4% | 1.6% |
+| `ignore_previous`, all suites | 949 | 114 | 10 | 12.0% to 13.1% | 12.1% |
+| `direct`, workspace | 560 | 2 | 7 | 0.4% to 1.6% | 0.4% |
+| `direct`, all suites | 949 | 34 | 7 | 3.6% to 4.3% | 3.6% |
+
+The published figure is the lower bound, since the empty endings were counted as failures. The complete-case estimate is unbiased only if the missing episodes would have succeeded at the rate of the others. Here missingness is concentrated in the longest workspace requests, and long contexts are where an injected instruction has been read and may still be acted on. So exclusion may be selective, and the complete-case figure is not a corrected estimate.
+
+**SecAlign comparison.** SecAlign's bounds widen by at most 0.6 points (largest: workspace, 0% to 0.5%; `important_instructions` over all suites, 2.2% to 2.4%). Llama 3.3's lower bound stays above SecAlign's upper bound:
+
+- for every attack over all suites;
+- on workspace for `important_instructions` (6.8% against 0.4%) and `ignore_previous` (1.6% against 0.5%).
+
+The exception is workspace `direct`, where both rates are under 2% (Llama 3.3 at least 0.4%, SecAlign at most 0.5%) and the bounds overlap. The published conclusion that SecAlign is far more robust survives these bounds wherever the rates are large enough to compare.
 
 ## What would need inference
 
 Each item is identified, none is run here:
 
 1. **Whether the 59 empty turns were server errors.** Free first step: ask the maintainers for the serving command or logs. Otherwise, send one reconstructed request above the threshold to a server configured as theirs; that configuration is unknown.
-2. **What those episodes would have scored.** Rerun exactly the 59 episodes with errors logged instead of swallowed and a context window that fits them. This is the smallest experiment that measures the consequence; see the [report draft](report-draft.md).
+2. **How those episodes score without the failure.** Rerun exactly the 59 episodes with errors logged instead of swallowed and a context window that fits them. That measures their outcomes under a changed configuration. It does not recover the original missing outcomes: the context window, the serving run and its nondeterminism all differ. See the [report draft](report-draft.md).
 3. **Whether AD-1's representation changes attack success** relative to the documented `{"result": "<text>"}`. This is a serialization question of exactly the kind this project studies. It would need the same model on a subset of episodes in both representations.
 4. How Together renders a `developer` message (AD-3), and whether it adds BOS (IA-1).
 5. InjecAgent's step-two prompt lengths and any truncated outputs under the local Llama path.
@@ -113,7 +156,7 @@ Each item is identified, none is run here:
 ## Limitations
 
 - Bounded on purpose: three harnesses plus ADI, one or two configurations each, one fixture.
-- Templates from mirrors match the gated originals only if the mirrors are faithful; this was not verified.
+- Templates from mirrors match the gated originals only if the mirrors are faithful; this was not verified. Nor is it known that the original servers used the repository template. The token separation depends partly on it (see the template-free check).
 - vLLM's preprocessing was modelled from its 0.33.0 source for the parts this fixture exercises, not run.
 - Hosted services (Together, OpenAI) cannot be observed.
 - Only the message-building functions were executed from the external repositories. Their source was extracted and run with stubbed dependencies, so nothing else in those repositories ran.

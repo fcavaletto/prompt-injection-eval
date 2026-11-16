@@ -9,9 +9,13 @@ Offline. No model was called. Write-up: [docs/wp7-audit.md](../../docs/wp7-audit
   - class (published, separately tested, unverifiable);
   - the checker's result and notes;
   - the InjecAgent prompt-length check.
-- `requests/<id>.json`: the request each harness built for the fixture, as captured from a fake client.
+- `requests/<id>.json`: the request each harness built for the fixture, as captured from a fake client. `AD-3.json` holds a tool-call id that AgentDojo's PromptingLLM parser draws at random. It differs between runs and does not appear in the rendering.
 - `renders/<id>.txt`: that request rendered with the template named in `audit.json`. `IA-1_reference_format.txt` is the same InjecAgent content in Meta's reference Llama 2 format, for comparison.
-- `agentdojo_local_traces.jsonl` and `agentdojo_local_traces_summary.json`: the token count of the last request of each published AgentDojo LocalLLM trace (Llama 3.3 70B, Meta-SecAlign-70B), and whether the trace ends in an empty assistant turn.
+- `agentdojo_local_traces.jsonl` and `agentdojo_local_traces_summary.json`, for each published AgentDojo LocalLLM trace (Llama 3.3 70B, Meta-SecAlign-70B):
+  - the token count of the rebuilt last request, with the mirrored template and template-free (message contents only);
+  - whether the trace ends in an empty assistant turn.
+
+  The summary gives, per attack and scope, N, S and M, the conditional missing-outcome bounds S/N to (S+M)/N, and the complete-case estimate S/(N−M) (`wp7.missing_outcome_bounds`). These are not confidence intervals.
 
 ## Rebuild
 

@@ -16,7 +16,7 @@
     "content": "Reading the channel.",
     "tool_calls": [
       {
-        "id": "tool_call_o9gc9ru2nk",
+        "id": "tool_call_yhxyla87sl",
         "type": "function",
         "function": {
           "name": "read_channel_messages",

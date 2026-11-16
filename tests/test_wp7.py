@@ -92,8 +92,71 @@ def test_published_local_traces_split_at_a_token_threshold() -> None:
         assert found["separated_by_a_token_threshold"], model
         assert found["min_tokens_empty_final"] > found["max_tokens_other"]
         assert set(found["empty_final_suites"]) == {"workspace"}
-    llama = summary["meta-llama_Llama-3.3-70B-Instruct"]["by_attack"]["important_instructions"]
-    assert (llama["published_successes"], llama["empty_final_scored_as_no_success"]) == (219, 29)
+    # The separation depends on the reconstructed template: on message contents alone,
+    # two Llama 3.3 traces without an empty ending lie above the smallest empty one.
+    llama_free = summary["meta-llama_Llama-3.3-70B-Instruct"]["template_free_check"]
+    assert not llama_free["separated"]
+    assert summary["Meta-SecAlign-70B"]["template_free_check"]["separated"]
+    rows = [
+        json.loads(line)
+        for line in (AUDIT / "agentdojo_local_traces.jsonl").read_text().splitlines()
+    ]
+    llama = [r for r in rows if r["model"] == "meta-llama_Llama-3.3-70B-Instruct"]
+    smallest_empty = min(r["final_request_content_tokens"] for r in llama if r["empty_final"])
+    above = [
+        r
+        for r in llama
+        if not r["empty_final"] and r["final_request_content_tokens"] >= smallest_empty
+    ]
+    assert len(above) == 2
+
+
+def test_missing_outcome_bounds_definition() -> None:
+    found = wp7.missing_outcome_bounds(planned=560, successes=38, missing=29)
+    assert found["lower_bound_pct"] == pytest.approx(100 * 38 / 560)
+    assert found["upper_bound_pct"] == pytest.approx(100 * 67 / 560)
+    assert found["complete_case_pct"] == pytest.approx(100 * 38 / 531)
+    # The complete-case estimate is inside the bounds, not one of them.
+    assert found["lower_bound_pct"] < found["complete_case_pct"] < found["upper_bound_pct"]
+    assert "not a confidence interval" in found["kind"]
+    with pytest.raises(ValueError):
+        wp7.missing_outcome_bounds(planned=10, successes=8, missing=3)
+
+
+def test_published_bounds_reproduce_from_trace_rows() -> None:
+    """Recount N, S and M from the per-trace rows and compare with the stored summary."""
+    rows = [
+        json.loads(line)
+        for line in (AUDIT / "agentdojo_local_traces.jsonl").read_text().splitlines()
+    ]
+    summary = json.loads((AUDIT / "agentdojo_local_traces_summary.json").read_text())["summary"]
+    expected = {
+        ("meta-llama_Llama-3.3-70B-Instruct", "workspace"): (560, 38, 29, 6.79, 7.16, 11.96),
+        ("meta-llama_Llama-3.3-70B-Instruct", "all suites"): (949, 219, 29, 23.08, 23.80, 26.13),
+    }
+    for (model, scope), (n, s, m, low, cc, high) in expected.items():
+        these = [
+            r
+            for r in rows
+            if r["model"] == model
+            and r["attack"] == "important_instructions"
+            and (scope == "all suites" or r["suite"] == scope)
+        ]
+        assert len(these) == n
+        assert sum(bool(r["security"]) for r in these) == s
+        assert sum(r["empty_final"] for r in these) == m
+        assert not any(r["empty_final"] and r["security"] for r in these)
+        stored = summary[model]["by_attack"]["important_instructions"][scope]
+        assert round(stored["lower_bound_pct"], 2) == low
+        assert round(stored["complete_case_pct"], 2) == cc
+        assert round(stored["upper_bound_pct"], 2) == high
+    # The SecAlign comparison survives the bounds for this attack in both scopes.
+    for scope in ("workspace", "all suites"):
+        llama = summary["meta-llama_Llama-3.3-70B-Instruct"]["by_attack"]["important_instructions"][
+            scope
+        ]
+        secalign = summary["Meta-SecAlign-70B"]["by_attack"]["important_instructions"][scope]
+        assert llama["lower_bound_pct"] > secalign["upper_bound_pct"]
 
 
 # ------------------------------------------------------- AgentDojo 0.1.35 regressions

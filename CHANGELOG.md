@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **Release-candidate revision (2026-11-16, offline).**
+  - **Bounds:** missing-outcome bounds corrected to S/N to (S+M)/N with the complete-case estimate S/(N−M), labelled as conditional bounds and not confidence intervals (`wp7.missing_outcome_bounds`, regression tests).
+  - **Wording:** code behaviour, observations and hypotheses separated.
+  - **Provenance:** provenance of other groups' published configurations documented and qualified.
+  - **Sensitivity:** template-free sensitivity count added. The Llama 3.3 separation is complete only with the mirrored template.
+  - **Docs:** corrections C16 and C17; an independent-reviewer checklist (`docs/review-checklist.md`); release blockers in the report draft.
+  - **Validation:** the report states that human validation of the earlier text-based scorer was not performed.
+  - No model was called.
 - **WP7 and a draft report (2026-11-16, offline).** A common fixture and a checker that accepts legitimate encodings (`wp7.py`, `data/wp7/fixture.json`); AgentDojo 0.1.35, InjecAgent, ToolHazard and Agent Data Injection audited through their own message-building code at pinned commits (`scripts/wp7_audit.py`, evidence in `results-published/wp7-audit-2026-11-16/`, write-up `docs/wp7-audit.md`). Two findings in AgentDojo's `local` path: server errors become empty, scored answers (59 published episodes above a sharp token threshold, all workspace); tool results are triple-encoded. Clean passes elsewhere. Literature claims verified from full text (audit appendix D1b; corrections C14, C15). Clustered repeatability sensitivity analysis. Draft methods and replication report in `docs/report-draft.md`. No model was called.
 - **After the pilot, offline (2026-11-16).** Exploratory re-analysis from stored traces (`pilot/exploratory.py`, `scripts/pilot_exploratory.py`, output in `results-published/pilot-2026-11-16/exploratory/`): Qwen3-32B's primary +8.6 splits into +7.1 wording and +1.4 format, with direct interaction tests; corrections C11 to C13. Section 9.8's condition 2 resolved explicitly (pilot design 9.8a): ambiguous, not met under the conservative reading. Novelty reassessed and options costed in `docs/next-stage-2026-11-16.md`; an unregistered confirmatory proposal in `docs/proposal-confirmatory-serialization.md`; `scripts/cost_next_stage.py`. Spending ledger updated from posted billing ($5.18 for the pilot, $31.29 remaining). No model was called.
 - **F1 results (2026-11-16).** Development only, $0.95 estimated of $3 authorized. Granite 4.0 H Small passed the smoke; Qwen3-32B's 300 development controls and 144 baseline feasibility episodes all completed with verified delivery, every pair in both formats; all 1,439 returned prompts match local renderings by hash. Evidence in `results-published/pilot-f1-2026-11-16/`. Revised projection and a recommendation to narrow the pilot by a proposed (not registered) Amendment 3 in `docs/pilot-design.md`, section 9.6b.

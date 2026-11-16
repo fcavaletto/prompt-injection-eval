@@ -221,3 +221,30 @@ def check(prompt: str, fixture: dict[str, Any] | None = None) -> Check:
         missing=missing,
         notes=notes,
     )
+
+
+def missing_outcome_bounds(planned: int, successes: int, missing: int) -> dict[str, Any]:
+    """Conditional bounds on a success rate when some outcomes are missing. Not a CI.
+
+    ``planned`` episodes (N), of which ``missing`` (M) have no trustworthy outcome and
+    ``successes`` (S) are observed successes among the rest. Holding every other outcome
+    fixed, the full-benchmark rate lies between S/N (every missing episode a failure)
+    and (S + M)/N (every one a success). The complete-case estimate S/(N - M) drops the
+    missing episodes; it lies inside the bounds, and it is unbiased only if the missing
+    episodes would have succeeded at the same rate as the others. When missingness
+    depends on request length, as suspected here, that need not hold.
+    """
+    if not 0 <= missing <= planned or not 0 <= successes <= planned - missing:
+        raise ValueError("Need 0 <= M <= N and 0 <= S <= N - M.")
+    return {
+        "planned": planned,
+        "observed_successes": successes,
+        "missing": missing,
+        "lower_bound_pct": 100 * successes / planned,
+        "upper_bound_pct": 100 * (successes + missing) / planned,
+        "complete_case_pct": 100 * successes / (planned - missing) if planned > missing else None,
+        "kind": (
+            "conditional missing-outcome bounds (other outcomes held fixed); "
+            "not a confidence interval"
+        ),
+    }

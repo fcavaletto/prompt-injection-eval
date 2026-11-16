@@ -1,6 +1,6 @@
 {
   "manifest": {
-    "written": "2026-11-16T16:21:04+00:00",
+    "written": "2026-11-16T17:19:27+00:00",
     "python": "3.12.14",
     "agentdojo_path": "agentdojo",
     "transformers": "5.22.1",
@@ -60,14 +60,14 @@
         "commit": "a75aba7631d3ca5fb7ab938965c97ead2f9ff84b"
       },
       "configuration": "provider local (LocalLLM), tool_delimiter 'tool', Llama 3.3 70B Instruct template",
-      "status": "published",
+      "status": "published (reconstructed)",
       "template": {
         "repo": "unsloth/Llama-3.3-70B-Instruct",
         "revision": "99cd0d2c829e92a67c844f9144c2509632e5c87f",
         "mirror_of_gated_repo": "meta-llama/Llama-3.3-70B-Instruct"
       },
       "notes": [
-        "Published configuration: runs/meta-llama_Llama-3.3-70B-Instruct (pipeline_name 'local', benchmark v1.2.1, commit 9272bf1e0, 2025-07-25). LocalLLM at the commits that could have produced them (73afb31dc, 357d8ed60) is identical to v0.1.35 in the lines involved.",
+        "Configuration of the published runs: runs/meta-llama_Llama-3.3-70B-Instruct records pipeline_name 'local', benchmark v1.2.1 and agentdojo_package_version 'unknown'; the runs were added in commit 9272bf1e0 (PR #96, 2025-07-25). The code revision that generated them is not recorded. The LocalLLM in that commit's own tree has no reformat_message and would have sent AgentDojo's content-block dicts as message content; the SecAlign-support code merged the same day (PR #97: 73afb31dc, 357d8ed60, identical to v0.1.35 in this file) adds it, and is the most plausible generator. Both behaviours audited here (the JSON-dumped content-block list and the swallowed exception) are present in every LocalLLM revision from 32521207f (2025-03-21) to v0.1.35, including both candidates.",
         "Tools are delivered as JSON objects in the system prompt; the call is delivered as the model's own <function=...> text, since tool_calls are not sent.",
         "The tool message is sent with role 'tool' and content '{\"result\": [{\"type\": \"text\", \"content\": \"- body: Lunch is at'...: json.dumps({'result': <list of content blocks>}). The code's evident intent is {'result': <text>}: its 'None' -> 'Success' substitution compares a list with a string and can never fire. Since AgentDojo 32521207f (2025-03-21) message content is a list of blocks, so every published LocalLLM run received this doubly wrapped form, with the YAML text JSON-escaped inside it."
       ],
@@ -99,10 +99,10 @@
         "commit": "a75aba7631d3ca5fb7ab938965c97ead2f9ff84b"
       },
       "configuration": "provider local: the server returns an error (e.g. context length exceeded)",
-      "status": "published",
+      "status": "published (reconstructed)",
       "template": null,
       "notes": [
-        "chat_completion_request catches every exception, prints it, and returns ''. The empty string becomes an assistant message with no tool call, so the tool loop ends and the episode is scored. Nothing in the trace marks it as a failed request.",
+        "Confirmed code behaviour: chat_completion_request catches every exception, prints it, and returns ''. The empty string becomes an assistant message with no tool call, so the tool loop ends and the episode enters ordinary outcome scoring with no failure flag. An error is not necessarily scored as a defence: the security check reads the final environment state, so an attack whose goal was already met before the error still scores as a success. In the published traces no empty ending was scored as a success.",
         "Observed: last message role 'assistant', content [{'type': 'text', 'content': ''}], tool_calls []."
       ],
       "error_swallowed": true
@@ -186,13 +186,14 @@
         "commit": "f19c9f2c79a41046eb13c03c51a24c567a8ffa07"
       },
       "configuration": "prompted agent, prompt_type InjecAgent, model_type TogetherAI, meta-llama/Llama-2-70b-chat-hf (hand-written template)",
-      "status": "published",
+      "status": "published (reconstructed)",
       "template": {
         "repo": "NousResearch/Llama-2-70b-chat-hf",
         "revision": "d2b926420bddfdad11512d2eb2a7e7396dc4532d",
         "mirror_of_gated_repo": "meta-llama/Llama-2-70b-chat-hf"
       },
       "notes": [
+        "Provenance: the audited code is the repository's latest commit (f19c9f2, 2024-07-02). That commit restructured the prompted path (system and user prompts split, prompt_type added); the paper's main results date from February and March 2024, when prepare_input took the user prompt only (2c0231d). Which revision produced the published tables is not recorded, so this row describes the released configuration, not necessarily the one behind the paper.",
         "The fixture is expressed in InjecAgent's case format (one user tool, one attacker tool, a Thought/Action/Action Input/Observation scratchpad). The completed call and the tool response, payload included, are text in the user turn.",
         "The Together template is '[INST] {sys_prompt}{user_prompt} [/INST]': the system prompt is concatenated into the user turn without Llama 2's <<SYS>> block. Meta's reference format puts it in <<SYS>> ... <</SYS>>. All text is delivered; the system role is not. Whether Together's completion endpoint adds a BOS token is not observable.",
         "Reference-format rendering hash 5bc7c2b63b00; it differs from the harness prompt: True."
@@ -220,13 +221,14 @@
         "commit": "544b73b12a25431cb0be3eb43df41b4aacce5335"
       },
       "configuration": "infer_mode 'prompt' (the mode of the reported results, README), Qwen3-8B template",
-      "status": "published",
+      "status": "published (reconstructed)",
       "template": {
         "repo": "Qwen/Qwen3-8B",
         "revision": "b968826d9c46dd6066d109eabc6255188de91218",
         "mirror_of_gated_repo": null
       },
       "notes": [
+        "Provenance: the code is a project snapshot uploaded on 2026-08-05 (7a277e0) and pinned at 544b73b; the README states that prompt mode is the mode of the reported results. Whether the snapshot is the exact code behind the paper's tables is not recorded.",
         "Tools are written into the system prompt in Qwen3's own <tools> format (merge_tools_into_system_prompt). The model's call is its own text. The tool output is passed through _format_tool_output_text and appended as a user message, without <tool_response> tags (the tagged version is commented out).",
         "_format_tool_output_text turns the environment's string into an object (json.loads, then ast.literal_eval) and writes it with yaml.dump(block style, width 8192). A non-string output would skip YAML and be passed as str(obj): the return statement sits inside the string branch. The environment path read here always passes a string.",
         "The released code has no switch for the free-form or JSON conditions of Fig. 4 (Sec. 7.2), so that experiment's renderings cannot be reconstructed."

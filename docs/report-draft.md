@@ -1,6 +1,20 @@
 # Draft report: what reaches the model, and does tool-output serialization change injection success?
 
-**Status: draft, 2026-11-16. Not submitted, not released.** It summarizes evidence already in this repository. Every number is from stored traces or code at a pinned revision, and nothing new was run on a model. Pre-registered results are stated as registered. Exploratory analyses are labelled.
+**Status: release candidate draft, 2026-11-16. Not submitted, not released, not independently reviewed.** It summarizes evidence already in this repository. Every number is from stored traces or code at a pinned revision, and nothing new was run on a model. Pre-registered results are stated as registered. Exploratory analyses are labelled.
+
+**What the central claims rest on.** Only two bodies of evidence:
+
+- the registered serialization pilot, whose outcomes are AgentDojo's own state-based checks, with delivery verified on every request;
+- the offline audit of other harnesses (WP7).
+
+The project's earlier Studies A and B used a text-based scorer that has had **no human validation**: the protocol and a blinded sample exist, but no rater has labelled anything. Those studies appear here only as a corrected record of past claims. No new claim rests on that scorer.
+
+Revision of 2026-11-16, after commit `9158143`:
+
+- missing-outcome bounds corrected;
+- code behaviour, observations and hypotheses separated;
+- provenance qualified;
+- a template-free sensitivity count added.
 
 ## 1. Question
 
@@ -32,7 +46,7 @@ What is not in this literature: a prompt-level audit of what public injection ha
 
 - **Rendering census** ([rendering census](rendering-census.md)): four fixed conversations through 26 templates at pinned revisions and 11 Ollama templates, plus 144 stored server prompts compared with local renderings.
 - **Delivery check** (pilot harness): for every model request, the prompt the server returns is parsed. Each offered tool must appear as a JSON object equal to the schema sent, each earlier call with equal name and arguments, each tool result verbatim (and, for JSON, decoding to its record), and the payload in the form the condition prescribes. A row that fails is an invalid measurement, never a failed attack.
-- **External audit** ([WP7](wp7-audit.md)): a common fixture is passed through other harnesses' own message-building code and the published configurations' templates. The checker accepts every legitimate encoding: JSON escaping, YAML scalar styles including folded lines, YAML inside JSON, and Python `repr`. A checker failure is a lead, not a finding: on the first run it flagged two harness configurations whose YAML folding it did not yet recognize. Both were valid.
+- **External audit** ([WP7](wp7-audit.md)): a common fixture is passed through other harnesses' own message-building code at pinned revisions, with the templates the reported configurations would use (reconstructed: see section 7 on provenance). The checker accepts every legitimate encoding: JSON escaping, YAML scalar styles including folded lines, YAML inside JSON, and Python `repr`. A checker failure is a lead, not a finding: on the first run it flagged two harness configurations whose YAML folding it did not yet recognize. Both were valid.
 
 ## 4. Registered pilot (Amendment 2, as amended by Amendment 3)
 
@@ -89,77 +103,118 @@ At temperature 0, repeated runs measure serving nondeterminism.
 - **Granite:** 4 of 84 cells disagreed on attack success and 5 of 84 on user-task success. The cells of one pair are not independent: three of the four attack disagreements are in one pair.
   - Attack success, by pairs: 2 of 21 (1.2% to 30.4%); cluster bootstrap of the cell share, 0% to 13.1%.
   - The all-runs sensitivity analysis moved Granite's primary from +11.4 to +11.1.
-  - Whether nondeterminism is shared across cases (batch effects) was not investigated, so first-run intervals assume it is not.
+  - Whether nondeterminism is shared across cases (batch effects) was not investigated. First-run intervals include run-to-run noise only if it is independent across cases.
 
 **Registered progression gate.** "Runs disagree in at most 5% of cells" names no outcome. It holds for Granite on attack success and fails on user-task success. Read conservatively, it is not met, so the registered criterion for a larger study is not satisfied ([Pilot design](pilot-design.md) 9.8a). No threshold was waived and no repeats were added.
 
 ## 7. Audit of other harnesses (WP7)
 
-Full table: [WP7](wp7-audit.md).
+Full table, provenance and method: [WP7](wp7-audit.md).
 
-**Pass:**
+**Passes:**
 
-- InjecAgent's published prompted path (all content delivered; its Llama 2 template folds the system prompt into the user turn);
-- ToolHazard's published prompt mode (YAML tool output in a user turn);
-- AgentDojo's `vllm_parsed` path;
-- Agent Data Injection's JSON tool messages, at the message level only: the model was a hosted API.
+- InjecAgent's prompted Together path, as released: all content delivered, though its Llama 2 template folds the system prompt into the user turn;
+- ToolHazard's prompt mode, as released: YAML tool output in a user turn;
+- AgentDojo's `vllm_parsed` path.
 
-**Two findings in AgentDojo's `local` path**, which produced its published Llama 3.3 70B and Meta-SecAlign-70B results:
+**Unverifiable:**
 
-1. **Server errors become defended episodes.** `chat_completion_request` catches any exception and returns an empty answer, which ends the episode and is scored.
-   - In the published traces, all 48 Llama 3.3 episodes and 11 SecAlign episodes that end this way are in workspace. Within each model, each one's last request is longer than every other trace's: at least 16,564 tokens against at most 16,537 for Llama 3.3; at least 17,804 against at most 17,584 for SecAlign.
-   - That is consistent with a server context limit. The server's limit was not recorded, so it is not proven.
-   - All attacked ones were scored as defended. For Llama 3.3 under `important_instructions` on workspace, the published 6.8% would lie between 7.2% (excluding them) and 12.0% (if all had succeeded). Over all suites, 23.1% would lie between 23.8% and 26.1%.
-   - SecAlign moves by at most 0.4 points. The published conclusion that SecAlign is far more robust holds at every bound.
-2. **Tool results are triple-encoded.** LocalLLM sends `{"result": [{"type": "text", "content": "<YAML>"}]}` where its code intends `{"result": "<text>"}`, and the Llama 3.x template JSON-encodes the string again. The payload arrives intact, but in a representation nobody documented. Given section 5, the representation is not neutral, though its effect on these numbers is unmeasured.
+- Meta-SecAlign-70B's rendering: its template is gated and its tool role is unrecorded;
+- ToolHazard's three-format experiment: no code path for it;
+- Agent Data Injection at the model: the agent is a hosted API. At the message level its JSON is valid and lossless.
 
-Also found, in configurations that no published result used:
+**Provenance.** "Published configuration" here means the provider, model and mode that published results report, rebuilt from code at a pinned revision. For none of the three harnesses does the record show that revision generated the published results.
 
-- AgentDojo's prompting path now sends its system text twice, once as `developer`.
-- ToolHazard's formatter would skip YAML for non-string outputs.
+- AgentDojo's traces record `agentdojo_package_version: "unknown"`. They were added on a branch (PR #96) separate from the LocalLLM changes merged the same day (PR #97). The PR #97 code, identical to v0.1.35 in the relevant file, is the most plausible generator.
+- Both behaviours below are present in every LocalLLM revision from 2025-03-21 to v0.1.35, including both candidate revisions.
+- InjecAgent restructured its prompted path after the paper's results.
+- Templates for gated models come from mirrors, and whether the original servers used them is unrecorded.
+
+**AgentDojo `local` path** (the provider of the published Llama 3.3 70B and Meta-SecAlign-70B runs): four statements, each held at its own level of evidence.
+
+1. **Confirmed code behaviour.**
+   - `chat_completion_request` catches any exception and returns an empty string. The episode then ends with an empty assistant turn and enters ordinary outcome scoring, with no failure flag.
+   - This does not automatically score an error as a defence. Security is read from the final environment state, so an attack completed before the error would still count as a success.
+2. **Observed in the published traces.**
+   - 59 episodes end in an empty assistant turn with no call: 48 Llama 3.3 (46 under attack) and 11 SecAlign (8 under attack). All are in workspace, and every one under attack was scored as an attack failure.
+   - Rebuilt with LocalLLM's code and the mirrored template, every such request is longer than every other trace's for the same model: at least 16,564 tokens against at most 16,537 for Llama 3.3; at least 17,804 against at most 17,584 for SecAlign.
+   - Without any template, on message contents alone, SecAlign still separates. For Llama 3.3, 2 of 2,931 other traces lie above the smallest empty one. The sharpness therefore depends partly on the template.
+3. **Hypothesis, not established.** A server context limit caused these endings through the error path. The server command, context limit and logs would settle it; none was recorded. A model that returns nothing on very long inputs would also fit.
+4. **Representation, reproduced; effect unmeasured.**
+   - LocalLLM sends each tool result as `{"result": [{"type": "text", "content": "<YAML>"}]}`, where its code evidently intends `{"result": "<text>"}`.
+   - With the Llama 3.x template, `tojson` encodes that string once more.
+   - The payload survives and decodes exactly. Whether this representation changes attack success has not been measured.
+
+**Conditional missing-outcome bounds.** Take the empty endings as missing outcomes and hold every other outcome fixed. With N planned episodes, S observed successes and M missing:
+
+- the full-benchmark rate lies between S/N and (S+M)/N;
+- the complete-case estimate is S/(N−M).
+
+These are bounds under that assumption, not confidence intervals.
+
+| Llama 3.3 70B, `important_instructions` | N | S | M | Bounds | Complete-case |
+| --- | ---: | ---: | ---: | --- | ---: |
+| Workspace | 560 | 38 | 29 | 6.8% to 12.0% | 7.2% |
+| All suites | 949 | 219 | 29 | 23.1% to 26.1% | 23.8% |
+
+- The published figure is the lower bound.
+- The missing episodes are the longest workspace requests, so missingness depends on length and plausibly on the episode's course. Exclusion may therefore be selective, and the complete-case figure is not a corrected estimate.
+- Meta-SecAlign-70B's bounds widen by at most 0.6 points. Llama 3.3's lower bound stays above SecAlign's upper bound for every attack over all suites, and on workspace for the two stronger attacks. Only workspace `direct`, under 2% for both models, overlaps. The published robustness comparison survives.
+
+**Configurations that no published result used:**
+
+- AgentDojo's prompting path now sends its system text twice, once as `developer`;
+- ToolHazard's formatter would skip YAML for non-string outputs;
 - Agent Data Injection's unused delivery flag misfires on escaped payloads.
 
 ## 8. What is demonstrated and what is not
 
 **Demonstrated:**
 
-- Delivery was verified on every pilot request.
-- The registered pilot results.
-- The exact decomposition of Qwen's primary contrast.
-- For Granite, a same-attack format effect with an interval above zero, on 21 Slack tasks and 5 goals.
-- In AgentDojo's `local` path, the error-to-answer path and the triple encoding, reproduced from pinned code.
-- The token-threshold split in the published traces.
-- Clean passes for three other harness paths.
+- delivery verified on every pilot request;
+- the registered pilot results;
+- the exact decomposition of Qwen's primary contrast;
+- for Granite, a same-attack format effect with an interval above zero, on 21 Slack tasks and 5 goals;
+- in AgentDojo's `local` code, the error-to-empty-answer path and the extra encoding, reproduced from pinned code and present in every candidate revision;
+- in the published traces, 59 empty endings, concentrated in the longest workspace requests, and the conditional bounds they imply;
+- clean passes for three other harness paths.
 
-**Uncertain:**
+**Inferred, not established:**
 
-- Whether the 59 empty AgentDojo episodes were context-limit errors, and what they would have scored.
-- Whether the triple encoding changed AgentDojo's published success rates.
-- Whether Granite's format effect generalizes beyond Slack, these goals and this attack library.
-- Whether the effect differs between the two models.
-- Whether serving nondeterminism is shared across cases.
-- Whether the mirrors' templates equal the gated originals.
-- How hosted services render what they receive.
+- that the empty endings were context-limit errors;
+- that the PR #97 code generated the traces;
+- that the servers used the mirrored templates.
 
-## 9. The smallest experiment for the WP7 finding
+**Unknown:**
 
-This is not run, not authorized, and not the existing serialization proposal.
+- what the 59 episodes would have scored without the failure;
+- whether the extra encoding changed published success rates;
+- whether Granite's format effect generalizes beyond Slack, these goals and this library, or differs from Qwen's;
+- whether serving nondeterminism is shared across cases;
+- how hosted services render their inputs.
 
-**Step 0, free:** ask the AgentDojo maintainers for the serving command and logs of the 2025-07-25 runs. A recorded `--max-model-len` below about 16.5k tokens, or logged 400 errors, settles the mechanism.
+## 9. Possible follow-up for the WP7 finding (not run, not authorized)
 
-**Step 1, only if needed:** rerun exactly the 59 affected episodes.
+**Step 0, free.** A draft inquiry to the AgentDojo maintainers has been prepared for the author's review. It has not been sent or posted. It asks for:
 
-- **Configuration:** the published one (provider `local`, benchmark v1.2.1, same attacks), with a context window that fits them (32,768), and the provider patched to record a failed request as an error instead of an empty answer.
-- **Models:** Llama 3.3 70B Instruct, and Meta-SecAlign-70B (a LoRA adapter on the same base; gated, so it needs access).
-- **Outcome:** each episode's attack and task result, substituted into the published counts to replace the bounds in section 7 with an estimate.
-- **Why this addresses the finding:**
-  - The finding concerns those 59 episodes and nothing else in the runs.
-  - Rerunning them measures its consequence directly.
-  - With the original limit restored, the same requests should fail, which tests the mechanism.
-- **Limits:** a rerun is not the original run (serving nondeterminism, server version). It answers what these episodes score with the failure removed, not what they scored then.
-- **Rough size:** about 59 episodes of up to about 20 calls, on two 80 GB GPUs for a 70B model in bf16, with startup dominated by downloading about 140 GB of weights. On the order of 1 to 2 GPU-hours. Prices were not checked because no rental is authorized.
+- the server command;
+- the context limit;
+- the output-token budget;
+- the tokenizer and template revisions;
+- the SecAlign tool delimiter;
+- the code commit;
+- the error logs.
 
-The triple encoding (finding 2) needs a different experiment: the same model on a stratified subset of episodes under both representations. It is a serialization study of AgentDojo's own pipeline, larger than step 1, and lower priority.
+A recorded context limit near the observed thresholds, or logged request errors for the affected episodes, would establish the mechanism without any inference.
+
+**Step 1, only if step 0 cannot settle it.** Rerun exactly the 59 affected episodes with a context window that fits them, and with failed requests recorded instead of swallowed.
+
+- **What it measures.** These episodes' outcomes under a changed configuration: a larger context window, a different serving run, and new nondeterminism. It does **not** recover the original missing outcomes. The original runs could not produce an outcome for these requests, which is the finding.
+- **What it cannot do.** Substituting the rerun outcomes into the published counts gives a counterfactual "what these runs would have scored had the requests fit", not a corrected original measurement. It does not narrow the conditional bounds, which describe the original runs.
+- **The mechanism.** Restoring the original limit and observing the same requests fail would test the hypothesis, but only if that limit is known.
+- **Size.** About 59 episodes on a 70B model in bf16, on the order of 1 to 2 GPU-hours plus weight download. Prices were not checked.
+
+Measuring the extra encoding's effect would need a different study: the same model on a stratified subset under both representations. It is larger and lower priority.
 
 ## 10. Reproducing without inference
 
@@ -181,29 +236,36 @@ Prompt hashes: `python scripts/verify_pilot_prompts.py <phase-dir> --repository 
 ## 11. Limitations
 
 - **Pilot scope:** two models, both carrying tool results in a user turn; one serving stack; one evaluation suite with five goals; a fixed library of eight wordings and no adaptive attacker; temperature 0.
-- **Audit scope:** bounded by design (four harnesses, one fixture). Hosted services are invisible, and some templates are mirrors.
-- **Scorers:** AgentDojo's state checks are the scorers. The project's earlier text-based scorer has no human validation (its protocol is prepared, not carried out).
+- **Audit scope:** bounded by design (four harnesses, one fixture). Hosted services are invisible. Templates for gated models are mirrors, and the code revisions behind other groups' published results are reconstructed, not recorded.
+- **Scorers:** the pilot and the audit use AgentDojo's state checks. **Human validation of the project's earlier text-based scorer was not performed**, so no claim here rests on it.
 - **Exploratory analyses:** written after the outcomes were known.
+- **Review:** no independent human review has taken place yet. A [checklist](review-checklist.md) is prepared for one. Review by another AI system would not count.
 
 ## 12. Contribution, release format, remaining work
 
-**Strongest defensible contribution:** a methods and replication report with three parts.
+**Strongest defensible contribution:** a methods and replication report built on the pilot and the WP7 audit.
 
-1. A prompt-level audit method that accepts legitimate encodings, with evidence that it works: it found silent defects in this project's own earlier studies, two issues in AgentDojo's published open-model path with bounded consequences, and clean passes elsewhere.
-2. A small, pre-registered, delivery-verified replication of the serialization effect on two open models. Its main lesson is about design: comparing each format with its own selected attack confounds format with attack wording, and the same-attack contrast is the one to register.
-3. Repeatability measured under one stack, with its dependence structure stated.
+1. **A prompt-level delivery audit** that accepts legitimate encodings, applied to four public harnesses at pinned revisions.
+   - It reproduced a silent error path and an undocumented encoding in AgentDojo's open-model provider.
+   - In that provider's published traces it located 59 episodes whose outcomes are suspect, and bounded their effect conditionally: the published robustness comparison survives.
+   - Three other harness paths passed.
+2. **A small, pre-registered, delivery-verified replication of the serialization effect** on two open models. Its methodological lesson: comparing each format with its own selected attack confounds format with attack wording, so the same-attack contrast is the one to register.
+3. **Repeatability under one stack,** with its dependence structure stated.
 
 None of these is established as a main-conference research finding.
 
-**Release format:** an arXiv preprint or workshop paper (evaluation methodology or ML security), with the tagged repository and its evidence bundles as the artifact.
+**Release format:** an arXiv preprint or workshop paper (evaluation methodology or ML security). The tagged repository and its evidence bundles are the artifact.
 
-**Remaining work before release:**
+**Release blockers** (all are the author's decisions or need people; none needs compute):
 
-- Report the two AgentDojo findings to its maintainers and ask for the serving configuration. This is outward-facing, so it is your decision.
-- Decide whether step 1 of section 9 is worth funding.
-- Merge `research-audit-2026-11` and tag a release. Your decision; not done.
-- Have someone other than the author check the WP7 renderings and the decomposition code.
-- Either carry out the human validation protocol for the earlier scorer or state plainly that it was not done.
-- Optionally:
-  - verify the mirrored templates against the gated originals if access is available;
-  - measure InjecAgent's step-two prompt lengths.
+1. Independent human review against the [checklist](review-checklist.md), returned and published as received.
+2. A decision on the AgentDojo maintainer inquiry: send it, revise it, or not. Releasing claims about another group's published results is better preceded by giving them the chance to answer. The report states the mechanism as a hypothesis either way.
+3. A statement in the release that human validation of the earlier text-based scorer was not performed. It is in this draft, and the remaining decision is whether to keep Studies A and B in the release at all.
+4. Merging `research-audit-2026-11` into `main`, choosing a version and tagging a release. Not done.
+5. Author name, affiliation and submission venue. Not done.
+
+**Optional, not blocking:**
+
+- check the mirrored templates against the gated originals if access is granted;
+- measure InjecAgent's step-two prompt lengths;
+- the rerun in section 9, if it is ever authorized and step 0 cannot settle the mechanism.

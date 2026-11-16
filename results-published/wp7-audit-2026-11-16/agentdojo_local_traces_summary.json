@@ -13,31 +13,78 @@
       "min_tokens_empty_final": 16564,
       "max_tokens_other": 16537,
       "separated_by_a_token_threshold": true,
+      "template_free_check": {
+        "min_content_tokens_empty_final": 15439,
+        "max_content_tokens_other": 15569,
+        "separated": false
+      },
       "other_traces_at_or_above_min_empty": 0,
       "by_attack": {
         "direct": {
-          "episodes": 949,
-          "published_successes": 34,
-          "empty_final_scored_as_no_success": 7,
-          "published_asr": 3.58,
-          "asr_excluding_empty": 3.61,
-          "asr_upper_bound_if_empty_were_successes": 4.32
+          "all suites": {
+            "planned": 949,
+            "observed_successes": 34,
+            "missing": 7,
+            "lower_bound_pct": 3.582718651211802,
+            "upper_bound_pct": 4.3203371970495255,
+            "complete_case_pct": 3.6093418259023355,
+            "kind": "conditional missing-outcome bounds (other outcomes held fixed); not a confidence interval",
+            "empty_endings_scored_as_success": 0
+          },
+          "workspace": {
+            "planned": 560,
+            "observed_successes": 2,
+            "missing": 7,
+            "lower_bound_pct": 0.35714285714285715,
+            "upper_bound_pct": 1.6071428571428572,
+            "complete_case_pct": 0.3616636528028933,
+            "kind": "conditional missing-outcome bounds (other outcomes held fixed); not a confidence interval",
+            "empty_endings_scored_as_success": 0
+          }
         },
         "ignore_previous": {
-          "episodes": 949,
-          "published_successes": 114,
-          "empty_final_scored_as_no_success": 10,
-          "published_asr": 12.01,
-          "asr_excluding_empty": 12.14,
-          "asr_upper_bound_if_empty_were_successes": 13.07
+          "all suites": {
+            "planned": 949,
+            "observed_successes": 114,
+            "missing": 10,
+            "lower_bound_pct": 12.012644889357219,
+            "upper_bound_pct": 13.066385669125395,
+            "complete_case_pct": 12.140575079872205,
+            "kind": "conditional missing-outcome bounds (other outcomes held fixed); not a confidence interval",
+            "empty_endings_scored_as_success": 0
+          },
+          "workspace": {
+            "planned": 560,
+            "observed_successes": 9,
+            "missing": 10,
+            "lower_bound_pct": 1.6071428571428572,
+            "upper_bound_pct": 3.392857142857143,
+            "complete_case_pct": 1.6363636363636365,
+            "kind": "conditional missing-outcome bounds (other outcomes held fixed); not a confidence interval",
+            "empty_endings_scored_as_success": 0
+          }
         },
         "important_instructions": {
-          "episodes": 949,
-          "published_successes": 219,
-          "empty_final_scored_as_no_success": 29,
-          "published_asr": 23.08,
-          "asr_excluding_empty": 23.8,
-          "asr_upper_bound_if_empty_were_successes": 26.13
+          "all suites": {
+            "planned": 949,
+            "observed_successes": 219,
+            "missing": 29,
+            "lower_bound_pct": 23.076923076923077,
+            "upper_bound_pct": 26.13277133825079,
+            "complete_case_pct": 23.804347826086957,
+            "kind": "conditional missing-outcome bounds (other outcomes held fixed); not a confidence interval",
+            "empty_endings_scored_as_success": 0
+          },
+          "workspace": {
+            "planned": 560,
+            "observed_successes": 38,
+            "missing": 29,
+            "lower_bound_pct": 6.785714285714286,
+            "upper_bound_pct": 11.964285714285714,
+            "complete_case_pct": 7.1563088512241055,
+            "kind": "conditional missing-outcome bounds (other outcomes held fixed); not a confidence interval",
+            "empty_endings_scored_as_success": 0
+          }
         }
       }
     },
@@ -50,31 +97,78 @@
       "min_tokens_empty_final": 17804,
       "max_tokens_other": 17584,
       "separated_by_a_token_threshold": true,
+      "template_free_check": {
+        "min_content_tokens_empty_final": 16563,
+        "max_content_tokens_other": 16324,
+        "separated": true
+      },
       "other_traces_at_or_above_min_empty": 0,
       "by_attack": {
         "direct": {
-          "episodes": 949,
-          "published_successes": 12,
-          "empty_final_scored_as_no_success": 3,
-          "published_asr": 1.26,
-          "asr_excluding_empty": 1.27,
-          "asr_upper_bound_if_empty_were_successes": 1.58
+          "all suites": {
+            "planned": 949,
+            "observed_successes": 12,
+            "missing": 3,
+            "lower_bound_pct": 1.2644889357218125,
+            "upper_bound_pct": 1.5806111696522656,
+            "complete_case_pct": 1.2684989429175475,
+            "kind": "conditional missing-outcome bounds (other outcomes held fixed); not a confidence interval",
+            "empty_endings_scored_as_success": 0
+          },
+          "workspace": {
+            "planned": 560,
+            "observed_successes": 0,
+            "missing": 3,
+            "lower_bound_pct": 0.0,
+            "upper_bound_pct": 0.5357142857142857,
+            "complete_case_pct": 0.0,
+            "kind": "conditional missing-outcome bounds (other outcomes held fixed); not a confidence interval",
+            "empty_endings_scored_as_success": 0
+          }
         },
         "ignore_previous": {
-          "episodes": 949,
-          "published_successes": 15,
-          "empty_final_scored_as_no_success": 3,
-          "published_asr": 1.58,
-          "asr_excluding_empty": 1.59,
-          "asr_upper_bound_if_empty_were_successes": 1.9
+          "all suites": {
+            "planned": 949,
+            "observed_successes": 15,
+            "missing": 3,
+            "lower_bound_pct": 1.5806111696522656,
+            "upper_bound_pct": 1.8967334035827186,
+            "complete_case_pct": 1.5856236786469344,
+            "kind": "conditional missing-outcome bounds (other outcomes held fixed); not a confidence interval",
+            "empty_endings_scored_as_success": 0
+          },
+          "workspace": {
+            "planned": 560,
+            "observed_successes": 0,
+            "missing": 3,
+            "lower_bound_pct": 0.0,
+            "upper_bound_pct": 0.5357142857142857,
+            "complete_case_pct": 0.0,
+            "kind": "conditional missing-outcome bounds (other outcomes held fixed); not a confidence interval",
+            "empty_endings_scored_as_success": 0
+          }
         },
         "important_instructions": {
-          "episodes": 949,
-          "published_successes": 21,
-          "empty_final_scored_as_no_success": 2,
-          "published_asr": 2.21,
-          "asr_excluding_empty": 2.22,
-          "asr_upper_bound_if_empty_were_successes": 2.42
+          "all suites": {
+            "planned": 949,
+            "observed_successes": 21,
+            "missing": 2,
+            "lower_bound_pct": 2.212855637513172,
+            "upper_bound_pct": 2.4236037934668073,
+            "complete_case_pct": 2.2175290390707496,
+            "kind": "conditional missing-outcome bounds (other outcomes held fixed); not a confidence interval",
+            "empty_endings_scored_as_success": 0
+          },
+          "workspace": {
+            "planned": 560,
+            "observed_successes": 0,
+            "missing": 2,
+            "lower_bound_pct": 0.0,
+            "upper_bound_pct": 0.35714285714285715,
+            "complete_case_pct": 0.0,
+            "kind": "conditional missing-outcome bounds (other outcomes held fixed); not a confidence interval",
+            "empty_endings_scored_as_success": 0
+          }
         }
       }
     }
