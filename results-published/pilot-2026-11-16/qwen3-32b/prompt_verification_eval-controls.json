@@ -1,0 +1,14 @@
+{
+  "phase_dir": "results/pilot/qwen3-32b/eval-controls",
+  "tokenizer": "Qwen/Qwen3-32B@9216db5781bf21249d130ec9da846c4624c16137",
+  "transformers": "5.22.1",
+  "template_kwargs": {
+    "enable_thinking": false
+  },
+  "episodes": 312,
+  "turns_checked": 1457,
+  "hashes_matching_local_rendering": 1457,
+  "full_prompts_kept_and_compared": 57,
+  "full_prompts_identical": 57,
+  "mismatches": []
+}

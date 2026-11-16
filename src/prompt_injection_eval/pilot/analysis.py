@@ -887,7 +887,7 @@ def repeatability(
         {
             "condition": condition,
             **{k: line[k] for k in keys},
-            "disagreement share": line[keys[2]] / line[keys[1]] if line[keys[1]] else None,
+            "disagreement %": 100 * line[keys[2]] / line[keys[1]] if line[keys[1]] else None,
         }
         for condition, line in sorted(per_condition.items())
     ]

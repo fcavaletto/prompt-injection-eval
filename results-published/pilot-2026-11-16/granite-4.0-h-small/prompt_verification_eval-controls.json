@@ -1,0 +1,12 @@
+{
+  "phase_dir": "results/pilot/granite-4.0-h-small/eval-controls",
+  "tokenizer": "ibm-granite/granite-4.0-h-small@b8c0982bab7fde4eb48110f5a069527c008fab39",
+  "transformers": "5.22.1",
+  "template_kwargs": {},
+  "episodes": 312,
+  "turns_checked": 1508,
+  "hashes_matching_local_rendering": 1508,
+  "full_prompts_kept_and_compared": 58,
+  "full_prompts_identical": 58,
+  "mismatches": []
+}

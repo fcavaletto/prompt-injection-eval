@@ -1,0 +1,9 @@
+condition,planned,completed,invalid_delivery,unverified_delivery,prefix_error,harness_error,infra_error,interrupted,not_run
+clean/-/json,63,63,0,0,0,0,0,0,0
+clean/-/text,63,63,0,0,0,0,0,0,0
+direct/-/json,15,15,0,0,0,0,0,0,0
+direct/-/text,15,15,0,0,0,0,0,0,0
+scratch/-/json,63,63,0,0,0,0,0,0,0
+scratch/-/text,63,63,0,0,0,0,0,0,0
+twin/-/json,15,15,0,0,0,0,0,0,0
+twin/-/text,15,15,0,0,0,0,0,0,0

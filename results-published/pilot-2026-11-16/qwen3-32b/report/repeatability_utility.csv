@@ -1,0 +1,7 @@
+condition,repeated cells planned,cells with every run completed,cells whose runs disagree,disagreement %
+attack/baseline/json,21,21,0,0.0
+attack/baseline/text,21,21,0,0.0
+attack/neutral_baseline_one_line/json,21,21,0,0.0
+attack/neutral_baseline_one_line/text,21,21,0,0.0
+attack/text_task_update/json,21,21,0,0.0
+attack/text_task_update/text,21,21,0,0.0

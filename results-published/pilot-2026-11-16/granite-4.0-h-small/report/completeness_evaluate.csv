@@ -1,0 +1,5 @@
+condition,first run: planned,first run: completed,first run: invalid or error,first run: interrupted or not run,repeat: planned,repeat: completed,repeat: invalid or error,repeat: interrupted or not run,first run: incomplete share,first run: within 2% limit
+attack/baseline/json,105,105,0,0,42,42,0,0,0.0,True
+attack/baseline/text,105,105,0,0,42,42,0,0,0.0,True
+attack/text_fake_turn/json,105,105,0,0,42,42,0,0,0.0,True
+attack/text_fake_turn/text,105,105,0,0,42,42,0,0,0.0,True

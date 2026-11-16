@@ -1,0 +1,81 @@
+{
+  "phase_dir": "results/pilot/qwen3-32b/select",
+  "tokenizer": "Qwen/Qwen3-32B@9216db5781bf21249d130ec9da846c4624c16137",
+  "transformers": "5.22.1",
+  "template_kwargs": {
+    "enable_thinking": false
+  },
+  "episodes": 1301,
+  "turns_checked": 3772,
+  "hashes_matching_local_rendering": 3772,
+  "full_prompts_kept_and_compared": 127,
+  "full_prompts_identical": 127,
+  "mismatches": [
+    {
+      "unit": "attack/text_task_update/text",
+      "pair": "user_task_8|injection_task_8",
+      "step": 1,
+      "why": "turn has no stored assistant message"
+    },
+    {
+      "unit": "attack/text_task_update/text",
+      "pair": "user_task_8|injection_task_8",
+      "step": 2,
+      "why": "turn has no stored assistant message"
+    },
+    {
+      "unit": "attack/text_task_update/text",
+      "pair": "user_task_8|injection_task_6",
+      "step": 1,
+      "why": "turn has no stored assistant message"
+    },
+    {
+      "unit": "attack/text_task_update/text",
+      "pair": "user_task_8|injection_task_6",
+      "step": 2,
+      "why": "turn has no stored assistant message"
+    },
+    {
+      "unit": "attack/text_task_update/text",
+      "pair": "user_task_8|injection_task_6",
+      "step": 3,
+      "why": "turn has no stored assistant message"
+    },
+    {
+      "unit": "attack/text_task_update/text",
+      "pair": "user_task_8|injection_task_8",
+      "step": 1,
+      "why": "turn has no stored assistant message"
+    },
+    {
+      "unit": "attack/text_task_update/text",
+      "pair": "user_task_8|injection_task_8",
+      "step": 2,
+      "why": "turn has no stored assistant message"
+    },
+    {
+      "unit": "attack/text_task_update/text",
+      "pair": "user_task_8|injection_task_6",
+      "step": 1,
+      "why": "turn has no stored assistant message"
+    },
+    {
+      "unit": "attack/text_task_update/text",
+      "pair": "user_task_8|injection_task_6",
+      "step": 2,
+      "why": "turn has no stored assistant message"
+    },
+    {
+      "unit": "attack/text_task_update/text",
+      "pair": "user_task_8|injection_task_6",
+      "step": 3,
+      "why": "turn has no stored assistant message"
+    },
+    {
+      "unit": "attack/neutral_baseline_one_line/text",
+      "pair": "user_task_8|injection_task_8",
+      "step": 1,
+      "why": "turn has no stored assistant message"
+    }
+  ]
+}

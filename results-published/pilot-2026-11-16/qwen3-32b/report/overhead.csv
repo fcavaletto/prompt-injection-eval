@@ -1,0 +1,4 @@
+attack,text: prompt tokens per episode,text: model calls per episode,text: seconds per episode,json: prompt tokens per episode,json: model calls per episode,json: seconds per episode
+baseline,12264,6.52,31.57,11538,6.11,32.09
+text_task_update,12537,6.93,32.69,11751,6.46,33.31
+neutral_baseline_one_line,10992,5.99,29.43,11010,5.94,31.57

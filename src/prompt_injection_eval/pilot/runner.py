@@ -336,6 +336,8 @@ class RunSummary:
     seconds: float
     model_calls: int
     deadline_at: float | None = None  # time.monotonic() value
+    # Evaluation repeats not started because a first run had no final trace (Amendment 3).
+    held_back: int = 0
 
 
 def _unrun_trace(unit: Spec, settings: Settings, status: str, detail: str) -> dict[str, Any]:
@@ -474,7 +476,6 @@ def run_phase(
                 written += 1
                 if progress:
                     progress(written, len(pending))
-    skipped += held_back
     seconds = time.monotonic() - started
     final_written = sum(n for status, n in statuses.items() if status in FINAL)
     summary = RunSummary(
@@ -482,7 +483,7 @@ def run_phase(
         already_done=already,
         written=written,
         statuses=dict(statuses),
-        not_started=skipped,
+        not_started=skipped + held_back,
         stopped_by_deadline=deadline is not None
         and (skipped > 0 or statuses.get("interrupted", 0) > 0)
         and not stop_reason,
@@ -491,6 +492,7 @@ def run_phase(
         seconds=seconds,
         model_calls=calls,
         deadline_at=deadline,
+        held_back=held_back,
     )
     with (output_dir / "runs.jsonl").open("a") as log:
         log.write(

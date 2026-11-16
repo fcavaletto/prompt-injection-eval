@@ -234,8 +234,8 @@ def test_repeatability_counts_only_cells_that_were_repeated() -> None:
     assert found["repeated_cells_disagreeing"] == 21
     assert abs(found["disagreement_share"] - 21 / 126) < 1e-12
     by_condition = {line["condition"]: line for line in found["by_condition"]}
-    assert by_condition["attack/cand_j/json"]["disagreement share"] == 1.0
-    assert by_condition["attack/cand_t/text"]["disagreement share"] == 0.0
+    assert by_condition["attack/cand_j/json"]["disagreement %"] == 100.0
+    assert by_condition["attack/cand_t/text"]["disagreement %"] == 0.0
     # A repeated cell missing one run leaves the denominator; it is not counted as agreeing.
     missing = rows[-1]
     rows_cut = [r for r in rows if r is not missing]

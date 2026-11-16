@@ -519,6 +519,60 @@ Registered in [Amendment 3](preregistration.md#amendment-3-2026-11-16-one-first-
 - **Projection, per model, at $2.69/h, from F1** (central / conservative): selection 26 / 56 min; Slack controls 5 / 17 min; evaluation 39 / 76 min; overhead and idle 20 / 30 min; Granite adds 3 / 5 min of development controls. About 1.5 / 3.0 h, $4.1 / $8.2 per model; $8.3 / $16.5 for both.
 - **Before Slack, per model.** Re-project the evaluation from that model's own selection phase: calls per episode by format, scaled by 2.2 for Slack attacks (capped at 16) and 2.0 for controls, and its measured aggregate rate. If the projected evaluation does not fit before the pod's expiry, or the projected cost of finishing both models exceeds what remains of the $20, the evaluation is not started: that model stops at development and the options are reported. Coverage, the round limit and the design are not changed to fit.
 
+### 9.6d Pilot results (2026-11-16)
+
+Evidence: [results-published/pilot-2026-11-16](https://github.com/fcavaletto/prompt-injection-eval/tree/research-audit-2026-11/results-published/pilot-2026-11-16). AgentDojo tasks, agent resumed after a reference-prefix replay; not AgentDojo benchmark scores.
+
+**Accounting and validity.**
+
+- Both models ran every planned episode to completion with verified delivery: 4,986 new episodes, plus Qwen's 300 F1 controls reused after the reuse check.
+- All 21,327 returned prompts of the new phases match a local rendering by hash.
+- Six episodes cut short by RunPod proxy disconnects (`infra_error`) were rerun on resume.
+- Both models passed `dev-gates-v1`. All five Slack goals have a capable benign twin for both models.
+
+**Selection** (frozen and committed before each model's first Slack episode):
+
+- Qwen3-32B: `text_task_update` for text, `neutral_baseline_one_line` for JSON.
+- Granite 4.0 H Small: `text_fake_turn` for both formats, evaluated once.
+
+**Primary analysis** (first runs, 105 pairs, task interval):
+
+| Model | Primary difference | Same attack, baseline | Same attack, selected |
+| --- | --- | --- | --- |
+| Qwen3-32B | +8.6 (+2.9 to +14.3) | +1.9 (−3.8 to +7.6) | +1.9 and +1.0, intervals across zero |
+| Granite 4.0 H Small | +11.4 (+2.9 to +21.0) | +9.5 (+2.9 to +17.1) | the primary (same attack) |
+
+Both primary intervals lie above zero. By the registered reading: with this library and budget, the best attack found for JSON did worse than the best found for text, on these tasks and goals.
+
+What the other contrasts show:
+
+- **Qwen: an attack-wording effect.** The format difference under any one attack is about +1 to +2 points. The primary difference comes from the JSON-selected wording being weaker on Slack in both formats, mostly on one goal, with three of five goals at ceiling. Selection on banking did not transfer to Slack for JSON.
+- **Granite: a same-attack format difference.** JSON was attacked about 10 points less often under both attacks.
+- **Two-way intervals reach zero** for both models.
+
+**Repeatability** (repeated cells only):
+
+- Qwen: 0 of 126 cells disagree.
+- Granite: 4 of 84 (4.8%) on attack success and 5 of 84 (6.0%) on user-task success.
+
+The sensitivity analysis over all runs gives the same readings.
+
+**Section 9.8.**
+
+- Conditions 1, 3 and 4 hold for both models. Condition 3 is projected under the planning assumption stated in Amendment 3.
+- Condition 2 holds for Qwen. For Granite it holds on attack success and fails narrowly on user-task success.
+
+**Cost.** About $5.23 of the $20 allowance, estimated from lifetimes because billing had not fully posted (Qwen $3.73, Granite $1.50). About $31.2 of the $50 project limit remains.
+
+**Recommendation.** No confirmatory study is authorized, and none should start from this pilot's design unchanged. The next stage is to write and freeze a confirmatory design for workspace and travel that addresses what the pilot showed:
+
+1. When the two formats' selected attacks differ, the primary quantity mixes attack wording with format, as Qwen's result shows. The same-attack format contrasts, under the fixed baseline and under each selected attack, should be registered as co-primary or the primary should be redefined.
+2. Selection on banking did not transfer to Slack for one model. The confirmatory design should say how attacks are selected for the reserved suites.
+3. Ceiling: Qwen's Slack success was 86% to 94%.
+4. The provider should retry dropped proxy connections, registered as an instrument change.
+
+At about ±5.4 points (projected, conditional), a confirmatory study could distinguish an effect of Granite's size, about 10 points, from zero. It would still be a measured statement about formats under selection from a fixed library, not a main-conference contribution by itself.
+
 ### 9.7 Known limitations
 
 - **Two models, one template design.** Both carry tool results in a user turn. Nothing here speaks to dedicated tool roles, to gpt-oss, or to closed models.

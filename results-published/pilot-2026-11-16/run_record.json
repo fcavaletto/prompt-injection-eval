@@ -1,0 +1,194 @@
+{
+ "authorization": "Two-model pilot under Amendment 3; at most 20.00 USD all-in for the pilot, 50.00 USD for the project (2026-11-16)",
+ "code": {
+  "amendment_3_and_implementation": "1f4c368 (CI passed: test, pilot)",
+  "qwen_freeze": "177312a",
+  "granite_freeze": "e37d3e4"
+ },
+ "budget_accounting_usd": {
+  "project_spent_before_pilot_billing": 13.527,
+  "remaining_before_pilot": 36.473,
+  "pilot_allowance": 20.0,
+  "qwen_allocation": 10.0,
+  "qwen_expiry": "214 min after creation: (10.00 - 0.10) / 2.7105 h - 5 min",
+  "granite_allocation": 15.0,
+  "granite_allocation_basis": "20.00 - about 3.9 (Qwen, conservative estimate after deletion) leaves about 16.1; capped at 15.00",
+  "granite_expiry": "324 min after creation: (15.00 - 0.10) / 2.7105 h - 5 min",
+  "worst_case_if_both_expiries_reached": 18.72
+ },
+ "qwen3-32b": {
+  "pod": "pxrrdap88tin5c",
+  "gpu": "RTX PRO 6000 Blackwell 96 GB, SECURE",
+  "data_center": "US-PA-1",
+  "listed_price_per_hour": 2.69,
+  "price_checked": "2026-11-16 before creation",
+  "container_disk_gb": 150,
+  "image": "vllm/vllm-openai:v0.33.0 sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e (image cached on host)",
+  "times_utc": {
+   "created": "11:35:38",
+   "weights_downloaded": "11:39:22 (161.8 s, 61.0 GiB)",
+   "healthy": "11:43:12",
+   "rendering_check": "11:43:3x",
+   "select_pass_1": "11:44 to 11:52:37 (stopped by fail-fast after a proxy infra_error)",
+   "select_pass_2": "11:54:34 to 12:18:29",
+   "select_pass_3": "12:18:3x to 12:19:4x (3 reruns)",
+   "gates_freeze_projection": "12:19 to 12:20",
+   "freeze_committed": "177312a, before any Slack episode",
+   "eval_controls": "12:20:37 to 12:27:18",
+   "evaluate": "12:27:18 to 12:57:27",
+   "deleted": "about 12:58:05 (API 204, list-pods empty)",
+   "in_pod_expiry": "15:09:16, never reached"
+  },
+  "lifetime_minutes_estimate": 82.5,
+  "phases": {
+   "dev-controls": "F1's 300 episodes reused after scripts/verify_control_reuse.py passed (control_reuse_check.json)",
+   "select": {
+    "episodes": 1296,
+    "completed": 1296,
+    "superseded_infra_error_traces": 5,
+    "model_calls": 3783,
+    "rates_calls_per_second": [
+     1.82,
+     1.99
+    ],
+    "client_deadline_minutes": [
+     213.1,
+     191.7
+    ]
+   },
+   "eval-controls": {
+    "episodes": 312,
+    "completed": 312,
+    "model_calls": 1457,
+    "rate_calls_per_second": 3.66,
+    "client_deadline_minutes": 17.3
+   },
+   "evaluate": {
+    "episodes": 882,
+    "completed": 882,
+    "model_calls": 5578,
+    "rate_calls_per_second": 3.09,
+    "client_deadline_minutes": 88.7
+   }
+  },
+  "host_speed_note": "On the 144 baseline selection episodes identical to F1's, latency per call was 8.53 s against F1's 3.80 s for the same output length (57.5 against 58.0 tokens): this host was about 2.2 times slower during selection. Slack phases ran faster (3.1 to 3.7 calls/s).",
+  "estimated_cost_from_lifetime_and_listed_rates_usd": 3.727
+ },
+ "granite-4.0-h-small": {
+  "pod": "1jlad7wd8u3l3o",
+  "gpu": "RTX PRO 6000 Blackwell 96 GB, SECURE",
+  "data_center": "CA-MTL-3",
+  "listed_price_per_hour": 2.69,
+  "price_checked": "2026-11-16 before creation",
+  "container_disk_gb": 150,
+  "image": "vllm/vllm-openai:v0.33.0 sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e (image cached on host)",
+  "times_utc": {
+   "created": "12:58:12",
+   "healthy": "13:04:11",
+   "dev_controls": "13:04:50 to 13:06:38",
+   "select": "13:06:38 to 13:15:58",
+   "freeze_committed": "e37d3e4, 13:16, before any Slack episode",
+   "eval_controls": "13:17:16 to 13:20:23",
+   "evaluate_pass_1": "13:20:47 to 13:27:39 (repeats held back: one first run ended in a proxy infra_error)",
+   "evaluate_pass_2": "13:27:59 to 13:30:49",
+   "deleted": "about 13:31:25 (API 204, list-pods empty)",
+   "in_pod_expiry": "18:21:57, never reached"
+  },
+  "lifetime_minutes_estimate": 33.2,
+  "phases": {
+   "dev-controls": {
+    "episodes": 300,
+    "completed": 300,
+    "model_calls": 829,
+    "rate_calls_per_second": 7.93
+   },
+   "select": {
+    "episodes": 1296,
+    "completed": 1296,
+    "model_calls": 4088,
+    "rate_calls_per_second": 7.35
+   },
+   "eval-controls": {
+    "episodes": 312,
+    "completed": 312,
+    "model_calls": 1508,
+    "rate_calls_per_second": 8.21
+   },
+   "evaluate": {
+    "episodes": 588,
+    "completed": 588,
+    "superseded_infra_error_traces": 1,
+    "model_calls": 4095,
+    "rates_calls_per_second": [
+     7.16,
+     7.09
+    ]
+   }
+  },
+  "deadline_deviation": "Slack-phase client deadlines were set at the in-pod expiry minus 3 minutes (pilot-design 9.6), not at 1.3 times the projection (9.5); see the README.",
+  "estimated_cost_from_lifetime_and_listed_rates_usd": 1.5
+ },
+ "workers": 16,
+ "prompt_verification": {
+  "qwen3-32b/select": {
+   "episodes": 1301,
+   "turns_checked": 3772,
+   "hashes_matching_local_rendering": 3772,
+   "full_prompts_kept_and_compared": 127,
+   "full_prompts_identical": 127,
+   "unverifiable_turns": 11
+  },
+  "qwen3-32b/eval-controls": {
+   "episodes": 312,
+   "turns_checked": 1457,
+   "hashes_matching_local_rendering": 1457,
+   "full_prompts_kept_and_compared": 57,
+   "full_prompts_identical": 57,
+   "unverifiable_turns": 0
+  },
+  "qwen3-32b/evaluate": {
+   "episodes": 882,
+   "turns_checked": 5578,
+   "hashes_matching_local_rendering": 5578,
+   "full_prompts_kept_and_compared": 45,
+   "full_prompts_identical": 45,
+   "unverifiable_turns": 0
+  },
+  "granite-4.0-h-small/dev-controls": {
+   "episodes": 300,
+   "turns_checked": 829,
+   "hashes_matching_local_rendering": 829,
+   "full_prompts_kept_and_compared": 44,
+   "full_prompts_identical": 44,
+   "unverifiable_turns": 0
+  },
+  "granite-4.0-h-small/select": {
+   "episodes": 1296,
+   "turns_checked": 4088,
+   "hashes_matching_local_rendering": 4088,
+   "full_prompts_kept_and_compared": 227,
+   "full_prompts_identical": 227,
+   "unverifiable_turns": 0
+  },
+  "granite-4.0-h-small/eval-controls": {
+   "episodes": 312,
+   "turns_checked": 1508,
+   "hashes_matching_local_rendering": 1508,
+   "full_prompts_kept_and_compared": 58,
+   "full_prompts_identical": 58,
+   "unverifiable_turns": 0
+  },
+  "granite-4.0-h-small/evaluate": {
+   "episodes": 589,
+   "turns_checked": 4095,
+   "hashes_matching_local_rendering": 4095,
+   "full_prompts_kept_and_compared": 22,
+   "full_prompts_identical": 22,
+   "unverifiable_turns": 0
+  }
+ },
+ "billing_api": "Read 2026-11-16 about 13:40Z: Qwen pod 2.6458 USD posted for 11:00 to 13:00 (the 12:00 bucket incomplete); nothing yet for the Granite pod. The costs above are estimates from lifetime and listed rates, not billing records.",
+ "no_expiry_extended": true,
+ "no_rehearsal_pod_rented": true,
+ "pilot_estimated_total_usd": 5.227
+}

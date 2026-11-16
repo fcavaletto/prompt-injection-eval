@@ -1,0 +1,5 @@
+condition,repeated cells planned,cells with every run completed,cells whose runs disagree,disagreement %
+attack/baseline/json,21,21,1,4.761904761904762
+attack/baseline/text,21,21,2,9.523809523809524
+attack/text_fake_turn/json,21,21,1,4.761904761904762
+attack/text_fake_turn/text,21,21,1,4.761904761904762

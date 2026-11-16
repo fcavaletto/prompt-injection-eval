@@ -1,0 +1,102 @@
+{
+ "reused_phase": "results-published/pilot-f1-2026-11-16/qwen3-32b/dev-controls",
+ "reused_phase_git_commit": "d152041d1b8ab543cb912ad8188326a6d86e23c4",
+ "reused_phase_created": "2026-11-15T23:33:44+00:00",
+ "reused_phase_plan_sha256": "7beb89135c516ccef967f0df95446d4fca31d2e3a185c1afc7931c397f9da11e",
+ "label": "qwen3-32b",
+ "checked_at_commit": "1f4c3687bf0fdcbad3b96b12b8dbc176cc98880a",
+ "against": "results/pilot/qwen3-32b/select/manifest.json",
+ "passed": true,
+ "checks": [
+  {
+   "check": "study, phase, releases, suite and attack library",
+   "passed": true,
+   "detail": "equal"
+  },
+  {
+   "check": "stored plan equals the current registered plan, in order",
+   "passed": true,
+   "detail": "300 stored units, 300 planned now"
+  },
+  {
+   "check": "every planned unit has a completed trace",
+   "passed": true,
+   "detail": {
+    "statuses": {
+     "completed": 300
+    },
+    "trace_lines": 300
+   }
+  },
+  {
+   "check": "every trace's request fingerprint equals the current code's",
+   "passed": true,
+   "detail": "300 of 300 equal"
+  },
+  {
+   "check": "no request, delivery, execution or scoring code changed since the phase ran",
+   "passed": true,
+   "detail": {
+    "from": "d152041d1b8ab543cb912ad8188326a6d86e23c4",
+    "to": "1f4c3687bf0fdcbad3b96b12b8dbc176cc98880a",
+    "paths": [
+     "src/prompt_injection_eval/pilot/__init__.py",
+     "src/prompt_injection_eval/pilot/adapter.py",
+     "src/prompt_injection_eval/pilot/attacks.py",
+     "src/prompt_injection_eval/pilot/delivery.py",
+     "src/prompt_injection_eval/pilot/episode.py",
+     "src/prompt_injection_eval/pilot/serialize.py",
+     "src/prompt_injection_eval/providers",
+     "pyproject.toml"
+    ],
+    "diff": null
+   }
+  },
+  {
+   "check": "settings equal those of the new phase",
+   "passed": true,
+   "detail": {
+    "reused": {
+     "model": "Qwen/Qwen3-32B",
+     "label": "qwen3-32b",
+     "temperature": 0.0,
+     "seed": 20261115,
+     "max_output_tokens": 2048,
+     "think": false,
+     "max_rounds": 15,
+     "timeout_seconds": 300.0
+    },
+    "new": {
+     "model": "Qwen/Qwen3-32B",
+     "label": "qwen3-32b",
+     "temperature": 0.0,
+     "seed": 20261115,
+     "max_output_tokens": 2048,
+     "think": false,
+     "max_rounds": 15,
+     "timeout_seconds": 300.0
+    }
+   }
+  },
+  {
+   "check": "server configuration equals that of the new phase",
+   "passed": true,
+   "detail": {
+    "reused": {
+     "runtime": "vllm",
+     "runtime_version": "0.33.0",
+     "served_model": "Qwen/Qwen3-32B",
+     "max_model_len": 32768,
+     "launch_args": "vllm/vllm-openai:v0.33.0 (sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e) Qwen/Qwen3-32B --revision 9216db5781bf21249d130ec9da846c4624c16137 --dtype bfloat16 --max-model-len 32768 --generation-config vllm --enable-auto-tool-choice --tool-call-parser hermes; RTX PRO 6000 Blackwell 96GB"
+    },
+    "new": {
+     "runtime": "vllm",
+     "runtime_version": "0.33.0",
+     "served_model": "Qwen/Qwen3-32B",
+     "max_model_len": 32768,
+     "launch_args": "vllm/vllm-openai:v0.33.0 (sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e) Qwen/Qwen3-32B --revision 9216db5781bf21249d130ec9da846c4624c16137 --dtype bfloat16 --max-model-len 32768 --generation-config vllm --enable-auto-tool-choice --tool-call-parser hermes; RTX PRO 6000 Blackwell 96GB"
+    }
+   }
+  }
+ ]
+}

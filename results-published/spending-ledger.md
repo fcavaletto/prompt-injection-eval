@@ -27,4 +27,14 @@ The earlier figure of "about $12.3 before the smoke" excluded both. They are lis
 
 ## Pilot (authorized 2026-11-16: at most $20 all-in across both models)
 
-Filled in as pods are rented; see section 9.6c of the pilot design and the pilot's `run_record.json`.
+Price read before each rental: $2.69/h, Secure, RTX PRO 6000 Blackwell 96 GB; 150 GB container disk.
+
+| Pod | Model | In-pod expiry (allocation) | Lifetime | Amount | Source |
+| --- | --- | --- | ---: | ---: | --- |
+| `pxrrdap88tin5c` | Qwen3-32B | 214 min ($10.00) | about 82.5 min | 3.73 | estimate from lifetime and listed rates; billing had posted 2.6458 for 11:00 to 13:00 with one bucket incomplete |
+| `1jlad7wd8u3l3o` | Granite 4.0 H Small | 324 min ($15.00) | about 33.2 min | 1.50 | estimate; billing not yet posted |
+| | **Pilot** | | | **about 5.23** | of the $20 allowance |
+
+Neither expiry was reached; both pods were deleted by the client and `list-pods` returned no pods afterwards.
+
+**Project total after the pilot: about $18.75; about $31.2 of $50 remains** (estimate until billing posts; about $29.0 if the unattributed items above are counted).

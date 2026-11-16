@@ -1,0 +1,52 @@
+{
+  "study": "pilot-serialization-v1",
+  "phase": "dev-controls",
+  "agentdojo": "0.1.35",
+  "benchmark": "v1.2.2",
+  "suite_sha256": {
+    "banking": "dd40d8e04b483dd8a674a181cd94c47ed0edd2aab96df2bf283375d94230e244"
+  },
+  "attack_library_sha256": "bfb5fea427caa36ccc7bfcd18c47acfa7726782d93b8bfeab86eda621a7b94a8",
+  "frozen_sha256": null,
+  "frozen": null,
+  "settings": {
+    "model": "ibm-granite/granite-4.0-h-small",
+    "label": "granite-4.0-h-small",
+    "temperature": 0.0,
+    "seed": 20261115,
+    "max_output_tokens": 2048,
+    "think": null,
+    "max_rounds": 15,
+    "timeout_seconds": 300.0
+  },
+  "package_version": "0.6.0",
+  "git_commit": "177312a3ea6226d35383451ac197ebec550357d2",
+  "git_dirty": false,
+  "plan_sha256": "7beb89135c516ccef967f0df95446d4fca31d2e3a185c1afc7931c397f9da11e",
+  "order_sha256": "5d33a1c67f8b65464d203a5e995d454b437bf19aca38caf731453bdd35f7286a",
+  "evaluation_design": null,
+  "planned": {
+    "total": 300,
+    "by_condition": {
+      "clean/-/text": 48,
+      "scratch/-/text": 48,
+      "direct/-/text": 27,
+      "twin/-/text": 27,
+      "clean/-/json": 48,
+      "scratch/-/json": 48,
+      "direct/-/json": 27,
+      "twin/-/json": 27
+    }
+  },
+  "provider": "openai",
+  "result_origin": "empirical_model_run",
+  "server": {
+    "runtime": "vllm",
+    "runtime_version": "0.33.0",
+    "served_model": "ibm-granite/granite-4.0-h-small",
+    "max_model_len": 32768,
+    "launch_args": "vllm/vllm-openai:v0.33.0 (sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e) ibm-granite/granite-4.0-h-small --revision b8c0982bab7fde4eb48110f5a069527c008fab39 --dtype bfloat16 --max-model-len 32768 --generation-config vllm --enable-auto-tool-choice --tool-call-parser granite4; RTX PRO 6000 Blackwell 96GB",
+    "model_root": "ibm-granite/granite-4.0-h-small"
+  },
+  "created": "2026-11-16T13:04:53+00:00"
+}

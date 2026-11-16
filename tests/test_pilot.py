@@ -816,7 +816,9 @@ def test_repeats_start_only_after_every_first_run_is_final(
     monkeypatch.setattr(episode, "run", cut)
     held = runner.run_phase("evaluate", provider, SETTINGS, tmp_path / "held", frozen=frozen)
     assert held.statuses == {"completed": 629, "interrupted": 1}
-    assert held.not_started == 252 and held.remaining == 253
+    assert held.not_started == held.held_back == 252 and held.remaining == 253
+    # No deadline was set: the hold-back is not reported as a deadline stop.
+    assert not held.stopped_by_deadline
     rows = runner.read_traces(tmp_path / "held" / "traces.jsonl")
     assert {row["run"] for row in rows} == {0}
     monkeypatch.setattr(episode, "run", real)

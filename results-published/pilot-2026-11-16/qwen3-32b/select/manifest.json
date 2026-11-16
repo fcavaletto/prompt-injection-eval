@@ -1,0 +1,62 @@
+{
+  "study": "pilot-serialization-v1",
+  "phase": "select",
+  "agentdojo": "0.1.35",
+  "benchmark": "v1.2.2",
+  "suite_sha256": {
+    "banking": "dd40d8e04b483dd8a674a181cd94c47ed0edd2aab96df2bf283375d94230e244"
+  },
+  "attack_library_sha256": "bfb5fea427caa36ccc7bfcd18c47acfa7726782d93b8bfeab86eda621a7b94a8",
+  "frozen_sha256": null,
+  "frozen": null,
+  "settings": {
+    "model": "Qwen/Qwen3-32B",
+    "label": "qwen3-32b",
+    "temperature": 0.0,
+    "seed": 20261115,
+    "max_output_tokens": 2048,
+    "think": false,
+    "max_rounds": 15,
+    "timeout_seconds": 300.0
+  },
+  "package_version": "0.6.0",
+  "git_commit": "1f4c3687bf0fdcbad3b96b12b8dbc176cc98880a",
+  "git_dirty": false,
+  "plan_sha256": "e8e4755e8eb90a811b77a64ed10e6aa3d3306bd4d798f04daf009b66f51b75e8",
+  "order_sha256": "a023711af0572365ebd207d343d8eb27b0508d0eb7eff737efbfb915a52bfa2d",
+  "evaluation_design": null,
+  "planned": {
+    "total": 1296,
+    "by_condition": {
+      "attack/baseline/text": 72,
+      "attack/baseline/json": 72,
+      "attack/text_task_update/text": 72,
+      "attack/text_task_update/json": 72,
+      "attack/text_fake_turn/text": 72,
+      "attack/text_fake_turn/json": 72,
+      "attack/text_end_of_output/text": 72,
+      "attack/text_end_of_output/json": 72,
+      "attack/json_field_mimic/text": 72,
+      "attack/json_field_mimic/json": 72,
+      "attack/json_single_line_authority/text": 72,
+      "attack/json_single_line_authority/json": 72,
+      "attack/json_key_value_prose/text": 72,
+      "attack/json_key_value_prose/json": 72,
+      "attack/neutral_pass_on/text": 72,
+      "attack/neutral_pass_on/json": 72,
+      "attack/neutral_baseline_one_line/text": 72,
+      "attack/neutral_baseline_one_line/json": 72
+    }
+  },
+  "provider": "openai",
+  "result_origin": "empirical_model_run",
+  "server": {
+    "runtime": "vllm",
+    "runtime_version": "0.33.0",
+    "served_model": "Qwen/Qwen3-32B",
+    "max_model_len": 32768,
+    "launch_args": "vllm/vllm-openai:v0.33.0 (sha256:d825baf9ce4b1b6bfc5ecc7b79880c7e6748c65a72d697ce3d47607aafa84c6e) Qwen/Qwen3-32B --revision 9216db5781bf21249d130ec9da846c4624c16137 --dtype bfloat16 --max-model-len 32768 --generation-config vllm --enable-auto-tool-choice --tool-call-parser hermes; RTX PRO 6000 Blackwell 96GB",
+    "model_root": "Qwen/Qwen3-32B"
+  },
+  "created": "2026-11-16T11:44:01+00:00"
+}

@@ -240,6 +240,13 @@ def run_cmd(
                 f"Smoke criterion {verdict['criterion']} failed. Read the traces before spending more."
             )
         typer.echo(f"Smoke criterion {verdict['criterion']} passed.")
+    if summary.held_back and not summary.stopped_by_deadline:
+        typer.echo(
+            f"{summary.held_back} repeats were not started because a first run has no final "
+            "trace (an infrastructure error or an interruption). Rerun the same command to resume.",
+            err=True,
+        )
+        raise typer.Exit(code=3)
     if summary.stopped_by_deadline:
         typer.echo(
             "Stopped by the deadline. Rerun the same command to resume, or stop here.", err=True
