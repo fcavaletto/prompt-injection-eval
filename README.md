@@ -5,7 +5,36 @@
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
 
-A measurement harness for indirect prompt injection on open-weight models, and three studies run with it: a static benchmark, an adaptive attacker, and a ten-model study of where the document sits in the conversation.
+A measurement harness for indirect prompt injection on open-weight models, and three studies run with it: a static benchmark, an adaptive attacker, and a ten-model study of where the document sits in the conversation. Since then it has added a pre-registered, delivery-verified serialization pilot on AgentDojo tasks and an offline audit of what other public harnesses deliver to the model.
+
+## Current status (checkpoint, 2026-11-16)
+
+**This is a repository checkpoint, not a release.** The paper is a draft, independent human review is pending, and the research programme continues. Current findings, with the evidence they rest on:
+
+- **[Draft report](docs/report-draft.md):** what reaches the model, and whether tool-output serialization changes injection success. Its central claims rest only on the pilot and the audit below.
+- **[Serialization pilot](docs/pilot-design.md)** (pre-registered as Amendments 2 and 3). Two open models on AgentDojo Slack tasks, with delivery verified on every request ([evidence](results-published/pilot-2026-11-16/)).
+  - **Granite 4.0 H Small:** JSON tool output was attacked less often than free text under the same attack: +10.5 points averaged over its two attacks (task interval +3.8 to +17.1).
+  - **Qwen3-32B:** most of its registered +8.6 was a difference between the attacks selected for each format. The same-attack format component was +1.4 (−2.9 to +6.2), which neither shows nor excludes a small effect.
+  - **Exploratory:** the decomposition was written after the outcomes were known.
+  - **Gate:** read conservatively, the registered gate for a larger study was not met.
+- **[WP7 audit](docs/wp7-audit.md)** of AgentDojo, InjecAgent, ToolHazard and Agent Data Injection, offline and at pinned commits ([evidence](results-published/wp7-audit-2026-11-16/)).
+  - **Confirmed in AgentDojo's `local` provider:** a failed request becomes an empty answer that is scored with no failure flag. Tool results also carry an extra, undocumented encoding; the payload survives, and the effect on attack success is unmeasured.
+  - **In its published Llama 3.3 70B traces:** 59 empty endings (with Meta-SecAlign-70B), all in the longest workspace requests. They imply conditional missing-outcome bounds, not confidence intervals: 6.8% to 12.0% on workspace and 23.1% to 26.1% over all suites for `important_instructions`.
+  - **Not affected:** the published SecAlign robustness comparison survives these bounds.
+  - **Clean passes** for the other harness paths that could be observed.
+- **[Corrections](docs/corrections.md):** C1 to C17, each with a dated note where the statement appears.
+- **[Reviewer checklist](docs/review-checklist.md):** for the independent human review that has not yet happened.
+
+**Stated limitations:**
+
+- **Unverified mechanism:** that context-limit errors caused AgentDojo's empty endings is a hypothesis; the server configuration and logs were not recorded.
+- **Reconstructed provenance:** the code revisions behind other groups' published results are reconstructed, not recorded, and gated models' templates come from mirrors.
+- **Narrow pilot:** two models, one suite, five attacker goals, a fixed attack library and one serving stack.
+- **No human validation:** the earlier studies' text-based scorer has never been validated by a person, and no current finding rests on it.
+
+## Earlier studies (historical, with dated corrections)
+
+The summary below and the harness description after it concern the project's earlier studies (up to 2026-11-15), as first written. Those studies were scored by the text-based scorer, and several of their claims are corrected. The corrections are linked in place; the original text and pre-registered verdicts are kept.
 
 > **Corrections, 2026-11-15.** Parts of the placement and InjecAgent results below are invalid or overstated: two of ten models were run with chat templates that hid the tools or the tool call from them, two more cannot be checked, the "role" explanation is withdrawn, and no result has been validated by a human rater. The full list is in [docs/corrections.md](docs/corrections.md). The adaptive-attack table directly below is not affected.
 
@@ -213,10 +242,13 @@ Use the supplied synthetic documents. Do not load confidential production docume
 
 ## Roadmap
 
+*2026-11-16:* the current direction is in the [draft report](docs/report-draft.md), section 12: independent review of the pilot and the audit, then a decision on release. This checkpoint does not end the research programme. The paragraph below is the roadmap as written for 0.6.0.
+
 Version 0.4.0 added the adaptive study. Version 0.5.0 added the result without the blank character, the quiet-attack measure, and the tool-result placement with its control. Version 0.6.0 adds a provider for a remote vLLM server, the ten-model placement study, and the JSON-encoded tool-result control. Next, in rough order of value: an optimizing attacker (gradient search on one small model, or a strong attacker model) to replace the failed model-written arm; adaptive strategies written for the JSON-encoded tool result; a mechanistic look at why the tool role weakens the rule, building on role probes; attacks that write chat-control tokens into the tool output; and a second, independent annotator for the rule-scored rows. Still out of scope: LLM-as-judge as the primary score, agents with real tools, and a claim that any of these templates is a security boundary.
 
 ## For reviewers
 
+- **Current checkpoint (2026-11-16):** start with the [draft report](docs/report-draft.md) and the [reviewer checklist](docs/review-checklist.md). The bullets below describe the earlier studies.
 - **The argument in two pages:** [docs/adaptive.md](docs/adaptive.md) for the adaptive attacker, and [docs/placement.md](docs/placement.md) for the ten-model placement result. The headline tables, the gpt-oss correction, and each "What this does not show" carry the claims.
 - **Check a number without a GPU:** `pie adaptive report` rebuilds every adaptive table from the gzipped rows in `results-published/v04/` and `results-published/v06/`, and two tests in `tests/test_adaptive.py` pin the headline and placement counts.
 - **Where the method lives:** the strategy library is `src/prompt_injection_eval/adaptive/strategies.py`, the tuning and held-out split is `data/adaptive_seeds.jsonl`, the ranking is `adaptive/rank.py`, the paired statistics are `stats.py` and `adaptive/analysis.py`, and the tool-result placement is `adaptive/toolrole.py`.

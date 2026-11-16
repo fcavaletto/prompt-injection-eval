@@ -28,4 +28,4 @@ Last updated 2026-11-16 (C16, C17 added for the release candidate). Evidence for
 
 - **No human validation.** No independent rater has labelled any output. A [protocol and blinded sample](annotation-protocol.md) are prepared.
 - **No rerun.** None of the invalid runs has been repeated with a working template. The corrections remove claims; they do not replace them with new measurements.
-- **No release.** These corrections are on the branch `research-audit-2026-11` until they are merged.
+- **No release.** These corrections are on the branch `research-audit-2026-11` until they are merged. *Updated 2026-11-16: merged into `main` as a repository checkpoint. No release has been tagged and independent review is pending.*

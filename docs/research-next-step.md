@@ -204,7 +204,7 @@ WP7 matters more than its size suggests. If the check finds that published numbe
 3. **The budget for a confirmatory study.** Two models fit the remaining $37 only at the expected cost.
 4. **Raters.** Who labels the validation sample, or whether the paper says the author did.
 5. **The ±5 point threshold.** It is argued in section 3.3 from this project's own defense effects. A different yardstick would change what counts as a null.
-6. **Whether to release the corrections.** They are on a branch. Merging them to the default branch and tagging a version makes them the public record.
+6. **Whether to release the corrections.** They are on a branch. *Updated 2026-11-16: the branch has been merged into `main` as a checkpoint; no version has been tagged.* Merging them to the default branch and tagging a version makes them the public record.
 
 ## What would make this a serious submission, and what would reframe it
 
