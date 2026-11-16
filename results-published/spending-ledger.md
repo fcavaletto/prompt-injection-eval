@@ -31,10 +31,22 @@ Price read before each rental: $2.69/h, Secure, RTX PRO 6000 Blackwell 96 GB; 15
 
 | Pod | Model | In-pod expiry (allocation) | Lifetime | Amount | Source |
 | --- | --- | --- | ---: | ---: | --- |
-| `pxrrdap88tin5c` | Qwen3-32B | 214 min ($10.00) | about 82.5 min | 3.73 | estimate from lifetime and listed rates; billing had posted 2.6458 for 11:00 to 13:00 with one bucket incomplete |
-| `1jlad7wd8u3l3o` | Granite 4.0 H Small | 324 min ($15.00) | about 33.2 min | 1.50 | estimate; billing not yet posted |
-| | **Pilot** | | | **about 5.23** | of the $20 allowance |
+| `pxrrdap88tin5c` | Qwen3-32B | 214 min ($10.00) | about 82.5 min | 3.7038 | billing record, read 2026-11-16 15:17 UTC (GPU 3.6778, disk 0.0260; 11:00 to 13:00) |
+| `1jlad7wd8u3l3o` | Granite 4.0 H Small | 324 min ($15.00) | about 33.2 min | 1.4807 | billing record, same read (GPU 1.4685, disk 0.0122; 12:00 to 14:00) |
+| | **Pilot** | | | **5.1845** | of the $20 allowance; the pre-billing estimate was 5.23 |
 
 Neither expiry was reached; both pods were deleted by the client and `list-pods` returned no pods afterwards.
 
-**Project total after the pilot: about $18.75; about $31.2 of $50 remains** (estimate until billing posts; about $29.0 if the unattributed items above are counted).
+**Project total after the pilot: $18.7115 (billing records); $31.2885 of $50 remains.** Records are billing-API figures and can still be revised.
+
+## Reconciliation with the account (2026-11-10 to 2026-11-16, read 2026-11-16 15:17 UTC)
+
+| | Amount |
+| --- | ---: |
+| Account total, all resources (`list-billing`, daily buckets) | 20.5239 |
+| Attributed to this project (above) | 18.7115 |
+| 2026-11-10 pods, not attributed (day bucket; the per-pod records above sum to 1.1112) | 1.1116 |
+| Network volume `0uhv9a501u`, not attributed, 2026-11-10 to now | 0.7010 |
+| Difference | 0.0000 (rounding: −0.0002) |
+
+The account total therefore splits exactly into this project's costs and the two unrelated items. The network volume still accrues about $0.117 a day. Nothing unrelated was touched. `list-pods` returned no pods at the same time.

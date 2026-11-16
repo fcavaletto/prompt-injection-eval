@@ -547,7 +547,9 @@ Both primary intervals lie above zero. By the registered reading: with this libr
 What the other contrasts show:
 
 - **Qwen: an attack-wording effect.** The format difference under any one attack is about +1 to +2 points. The primary difference comes from the JSON-selected wording being weaker on Slack in both formats, mostly on one goal, with three of five goals at ceiling. Selection on banking did not transfer to Slack for JSON.
+  *Note 2026-11-16 (exploratory re-analysis, section 9.6e): the heading is too categorical. The decomposition attributes +7.1 points (+2.4 to +12.9) to the wording difference and +1.4 (−2.9 to +6.2) to the average same-attack format difference. The format interval does not establish the absence of a format effect.*
 - **Granite: a same-attack format difference.** JSON was attacked about 10 points less often under both attacks.
+  *Note 2026-11-16: averaged over both attacks, +10.5 (+3.8 to +17.1). That Granite's format effect is larger than Qwen's is not established: the direct comparison under the baseline is +7.6 (−0.9 to +16.2). Section 9.6e.*
 - **Two-way intervals reach zero** for both models.
 
 **Repeatability** (repeated cells only):
@@ -561,8 +563,11 @@ The sensitivity analysis over all runs gives the same readings.
 
 - Conditions 1, 3 and 4 hold for both models. Condition 3 is projected under the planning assumption stated in Amendment 3.
 - Condition 2 holds for Qwen. For Granite it holds on attack success and fails narrowly on user-task success.
+  *Note 2026-11-16: condition 2 does not name an outcome, so whether it is met for Granite is ambiguous. Under the conservative reading it is not met. Section 9.8a resolves this explicitly; the larger study is not justified by section 9.8 as written for Granite.*
 
 **Cost.** About $5.23 of the $20 allowance, estimated from lifetimes because billing had not fully posted (Qwen $3.73, Granite $1.50). About $31.2 of the $50 project limit remains.
+
+*Note 2026-11-16: this recommendation is revisited, after a novelty reassessment and posted billing, in [Next stage, 2026-11-16](next-stage-2026-11-16.md). Billing posted: $5.18 for the pilot.*
 
 **Recommendation.** No confirmatory study is authorized, and none should start from this pilot's design unchanged. The next stage is to write and freeze a confirmatory design for workspace and travel that addresses what the pilot showed:
 
@@ -572,6 +577,38 @@ The sensitivity analysis over all runs gives the same readings.
 4. The provider should retry dropped proxy connections, registered as an instrument change.
 
 At about ±5.4 points (projected, conditional), a confirmatory study could distinguish an effect of Granite's size, about 10 points, from zero. It would still be a measured statement about formats under selection from a fixed library, not a main-conference contribution by itself.
+
+### 9.6e Exploratory re-analysis and tightened interpretation (2026-11-16)
+
+**Exploratory, not pre-registered.** Written after the outcomes were known, from the stored traces, with no new model call. Code: `src/prompt_injection_eval/pilot/exploratory.py`, `scripts/pilot_exploratory.py`, tests in `tests/test_pilot_exploratory.py`. Output and detail: [exploratory/](https://github.com/fcavaletto/prompt-injection-eval/tree/research-audit-2026-11/results-published/pilot-2026-11-16/exploratory). First runs, 105 pairs, equal weight per pair, the registered task interval.
+
+**What the registered primary measures.** The primary stays as registered: each format against the attack selected for it on development data. It measures the outcome of a procedure (select the best of nine wordings on banking, per format, then use it on Slack), not serialization alone. When the two formats' selected attacks differ, it combines three things: how the format affects a fixed attack, how the two wordings differ in strength on the new suite, and whether selection on banking picked a good wording for Slack. The same-attack contrasts isolate the first.
+
+**Qwen3-32B, decomposed.** The primary splits exactly into a wording component and a format component:
+
+| | Estimate | Task interval | Sign-flip p |
+| --- | ---: | --- | ---: |
+| Primary, `text_task_update` on text − `neutral_baseline_one_line` on JSON | +8.6 | +2.9 to +14.3 | 0.02 |
+| Wording: mean over formats of the text-selected minus the JSON-selected attack | +7.1 | +2.4 to +12.9 | 0.02 |
+| Format: mean over the two selected attacks of text − JSON | +1.4 | −2.9 to +6.2 | 0.70 |
+| Interaction: format effect under the text-selected minus under the JSON-selected attack | +1.0 | −5.7 to +7.6 | 1.00 |
+
+Of the wording component, 4.8 points come from `injection_task_2`. Goals 3 to 5 are at 95% to 100% in all six conditions.
+
+**Granite 4.0 H Small.** Its selected attack was the same for both formats, so its primary is a same-attack contrast. Averaged over its two evaluated attacks the format effect is +10.5 (+3.8 to +17.1). The interaction between attack and format is +1.9 (−7.6 to +11.4).
+
+**Between models.** Under the common baseline attack, Granite's format effect minus Qwen's is +7.6 (−0.9 to +16.2).
+
+**Tightened reading.** These replace the categorical phrases in section 9.6d, the pilot README and the pre-registration results entry (each has a dated note):
+
+- *For both models, as registered:* with this library and budget, the attack selected for JSON did worse against JSON than the attack selected for text did against text.
+- *Qwen:* most of that difference (about 7 of 8.6 points) is a difference in strength between the two selected wordings, seen in both formats. The average same-attack format difference is +1.4 points with an interval from −2.9 to +6.2. That is compatible both with no format effect and with a format effect of up to about 6 points; it does not show that the format had no effect. Three of five goals were at ceiling, so the format comparison rests mostly on two goals.
+- *Qwen, interaction:* whether the format effect depended on which attack was used was tested directly. No dependence was detected (+1.0, −5.7 to +7.6 against the JSON-selected attack; 0.0, −7.6 to +7.6 against the baseline).
+- *Granite:* JSON was attacked less often under the same attack, by about 10 points averaged over the two attacks, with a task interval from about 4 to 17 points. No dependence on the attack was detected, with a wide interval.
+- *Between models:* the pilot does not establish that Granite's format effect is larger than Qwen's. Qwen's base rates near ceiling would compress any effect on the absolute scale.
+- *Selection transfer:* on Slack JSON, the wording selected for text succeeded 6.7 points more often than the wording selected for JSON (registered secondary, −12.4 to −1.0 for JSON-selected minus text-selected). The ranking learned on banking did not hold on Slack for that pair of wordings.
+
+None of these is a claim about formats in general, other attackers, or other models.
 
 ### 9.7 Known limitations
 
@@ -600,3 +637,40 @@ A confirmatory study on the 700 reserved pairs is justified only if all four hol
 If the intervals are wide enough to include both zero and ten points and condition 3 fails, the pilot has shown that this design cannot answer the question at an affordable size. That is reported, and the larger study is not run.
 
 Even then, what a confirmatory study would support is a measured statement about formats under selection from a fixed library. It would not, by itself, be a main-conference contribution.
+
+### 9.8a Condition 2, resolved explicitly (2026-11-16)
+
+Added after the pilot's outcomes were known. It does not change the rule above; it states how the rule applies to what was observed.
+
+**The registered wording.** "Runs disagree in at most 5% of cells", read under Amendment 3 "over repeated cells only (the 21-pair subset, every condition, all three runs completed)". A cell is one subset pair under one evaluation condition. The rule does not say which outcome a disagreement is counted on, whether it applies per model or pooled, or whether control cells count.
+
+**What was observed.**
+
+| | Attack success | User-task success | Either outcome |
+| --- | --- | --- | --- |
+| Qwen3-32B, 126 repeated cells | 0 (0%; exact 95% interval 0% to 2.9%) | 0 | 0 |
+| Granite 4.0 H Small, 84 repeated cells | 4 (4.8%; 1.3% to 11.7%) | 5 (6.0%; 2.0% to 13.3%) | 8 (9.5%) |
+
+Granite's Slack controls, which ran three times and are not named by the rule, disagreed on user-task success in 6 of 84 cells. Qwen's disagreed in none.
+
+**Does the rule permit progression?**
+
+- **Qwen: yes,** under every reading.
+- **Granite: ambiguous.** Counted on attack success, the study's outcome, 4.8% is at most 5% and the condition holds. Counted on any recorded outcome, as section 9.6d and the pilot README already did before this question was asked, it fails (6.0% on user-task success, 9.5% on either). Pooled over both models it holds on either outcome alone (1.9% and 2.4%).
+- **The reading adopted here is the conservative one:** condition 2 is not shown to hold for Granite. Choosing the attack-success reading now, after seeing that it passes and the other fails, would resolve the ambiguity in the favorable direction after the fact. Section 9.8 requires all four conditions, so **section 9.8 as registered does not justify the larger two-model study.**
+- Even on the attack-success reading, the point estimate passing says little: the exact interval runs to 11.7%, so 84 cells cannot show that the true rate is below 5%.
+
+The threshold is not waived, and no further repeats will be collected to move the percentage.
+
+**What the nondeterminism implies for a prospective study.** At temperature 0 on vLLM 0.33.0, Granite's outcome changed between identical runs in about 5% to 10% of cells; Qwen's never did. The cause was not investigated: batch composition and a hybrid state-space architecture are possible routes, not established ones.
+
+- **For estimation the effect is small.** Each first-run outcome is one draw from the serving stack's distribution, and the primary estimand can be defined as the expected outcome under that stack. First-run estimates are unbiased for it, and the task bootstrap already includes run-to-run noise, because each case contributes one noisy observation. Granite's sensitivity analysis over all runs moved the primary from +11.4 to +11.1 and the baseline contrast from +9.5 to +10.2.
+- **For reporting it matters.** A single-run number for a model like Granite is not reproducible exactly. Reports should give repeatability with an exact interval, per model and outcome, next to every headline number.
+- **A 5% point threshold is a poor gate.** Near the threshold, the decision turns on one or two cells, and nondeterminism that leaves the primary analysis valid can fail it.
+
+**Proposed for any future design (not registered; it would have to be registered before that study's data):**
+
+1. Name the outcome (attack success) and apply the rule per model.
+2. Report disagreement over a pre-drawn repeat subset with an exact 95% interval, by condition and pooled.
+3. Treat it as a reliability statistic, not a go/no-go gate, while the point estimate is below 15%. From 10% up, report the all-runs sensitivity analysis beside the primary, and base each claim on whichever of the two is less favorable to it.
+4. Stop and investigate the instrument (decoding settings, server flags) if the point estimate reaches 15%, before any further phase.

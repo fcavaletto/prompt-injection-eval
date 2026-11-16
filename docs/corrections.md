@@ -2,7 +2,7 @@
 
 This page lists every published statement in this project that was later found invalid, unsupported or overstated. The original pages keep their text, with a dated note at the place the statement appears. The published rows and reports under `results-published/` are not edited.
 
-Last updated 2026-11-15. Evidence for each entry: [audit appendix](research-audit-2026-11.md) and [rendering census](rendering-census.md).
+Last updated 2026-11-16. Evidence for each entry: [audit appendix](research-audit-2026-11.md) and [rendering census](rendering-census.md).
 
 | # | Statement as published | Where | Status | What to read instead |
 | --- | --- | --- | --- | --- |
@@ -16,6 +16,9 @@ Last updated 2026-11-15. Evidence for each entry: [audit appendix](research-audi
 | C8 | Removing line breaks "contributed nothing measurable" | [Placement page](placement.md) | **Too strong** (exploratory). Pooled, it lowers success by about 6 points; nine of ten models go down. | A small reduction that single-model tests could not detect. |
 | C9 | "A raw tool result is easier to inject through ... on every model" (ten of ten) | README, [home page](index.md), [Placement page](placement.md) | **Qualified.** The counts are as published. For Phi-4-mini and Granite 3.3 the tool turn was malformed (C1, C2), and for gpt-oss it cannot be checked (C3). | In all ten runs the count rose. In six of them the conversation is known to have been rendered as intended. |
 | C10 | On 2026-11-14 this project wrote that ToolHazard reports no numbers and that no paper studies the serving layer | [Research next step](research-next-step.md), first version | **Wrong.** ToolHazard's Figure 4 gives numbers, and several 2026 papers study the serving stack as a confound. | The revised page of 2026-11-15. |
+| C11 | Qwen3-32B's pilot primary difference is "attack wording, not format" | [Pilot design](pilot-design.md) 9.6d, pilot README, [Pre-registration](preregistration.md) results | **Too categorical** (exploratory re-analysis, 2026-11-16). Most of the difference is wording: +7.1 points (+2.4 to +12.9). The average same-attack format difference is +1.4 (−2.9 to +6.2), which neither shows nor excludes a format effect of a few points. | [Pilot design](pilot-design.md), section 9.6e |
+| C12 | Granite shows a same-attack format difference while Qwen does not | Same | **Qualified.** Granite's averaged format effect is +10.5 (+3.8 to +17.1). The direct comparison with Qwen under the same baseline attack is +7.6 (−0.9 to +16.2), so a difference between the models is not established. | Section 9.6e |
+| C13 | Section 9.8 holds except condition 2 for Granite "fails narrowly", followed by a recommendation to write a confirmatory design | [Pilot design](pilot-design.md) 9.6d, pilot README | **Unresolved as written.** Condition 2 names no outcome. On attack success it holds (4.8%); on user-task success it fails (6.0%). Read conservatively, section 9.8 does not justify the larger study as registered. | Section 9.8a; [Next stage](next-stage-2026-11-16.md) |
 
 ## What has not been done
 

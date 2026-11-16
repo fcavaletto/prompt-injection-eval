@@ -1,5 +1,7 @@
 # Research audit and next step
 
+*Note 2026-11-16: after the pilot, the novelty assessment and recommendation are updated in [Next stage, 2026-11-16](next-stage-2026-11-16.md), with two papers new to this project (Agent Data Injection, arXiv:2607.05120; AutoDojo, arXiv:2606.15057). The recommendation there is to conclude this line and release it as a methods and replication report after the free WP7 audit.*
+
 First written on 2026-11-14, after Studies A and B. **The pilot's design in section 3.4 is superseded by [Pilot design](pilot-design.md), which is registered as Amendment 2 and has a working harness.** **Revised on 2026-11-15** after the closest papers were read in full and a [rendering census](rendering-census.md) was run. Sections 2.3 onward are new; the 2026-11-14 text of those sections is in the repository history (commit `31b63c5`). The revision changes the recommendation: see section 3.
 
 This page audits the evidence so far, places it against the closest literature, and proposes the next experiment. Nothing here was run on a paid GPU. Every new analysis of existing results is **exploratory**: it was written after the outcomes were known. The original results and the [pre-registration](preregistration.md) are unchanged; this page and its [appendix](research-audit-2026-11.md) are dated additions.
@@ -191,7 +193,7 @@ If, after 30 minutes, the measured speed projects past the cap, the pilot drops 
 | WP5 | Pre-registration amendment for the pilot | Free | **Done 2026-11-15** (Amendment 2) | Dated and committed before the pilot's first generation |
 | WP6 | The pilot | About $5.2 for both models (estimate) | **Qwen3-32B smoke, Granite smoke and the F1 feasibility stage done** ([smoke](https://github.com/fcavaletto/prompt-injection-eval/tree/research-audit-2026-11/results-published/pilot-smoke-2026-11-15/qwen3-32b), [F1](https://github.com/fcavaletto/prompt-injection-eval/tree/research-audit-2026-11/results-published/pilot-f1-2026-11-16)). Recommendation in [Pilot design](pilot-design.md), section 9.6b. **Pilot done 2026-11-16** under Amendment 3 ([evidence](https://github.com/fcavaletto/prompt-injection-eval/tree/research-audit-2026-11/results-published/pilot-2026-11-16), [results and recommendation](pilot-design.md#96d-pilot-results-2026-11-16)); about $5.2 | [Pilot design](pilot-design.md), section 9 |
 | WP7 | Audit of other public harnesses: run the census fixtures through the message-building code of AgentDojo, InjecAgent and ToolHazard for their open-model settings | Free | Proposed | A table of what each harness delivers to each model it reports, or a statement that no defect was found |
-| WP8 | Confirmatory study | About $22 for two models | Only after WP6 | Section 3.3 |
+| WP8 | Confirmatory study | About $22 for two models | Only after WP6. *2026-11-16: not justified by pilot section 9.8 as registered (9.8a); an unregistered same-attack design is in [the proposal](proposal-confirmatory-serialization.md), $10.8 to $21.2* | Section 3.3 |
 
 WP7 matters more than its size suggests. If the check finds that published numbers from other groups rest on prompts missing tools or payloads, the method has shown its value outside this project. If it finds nothing, the methods contribution is smaller than hoped and that is worth knowing before writing it up.
 

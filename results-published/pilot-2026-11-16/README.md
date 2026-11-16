@@ -94,6 +94,7 @@ The attack selected for JSON on banking did worse on Slack than the text-selecte
 What the contrasts beside it show:
 
 - **Qwen3-32B: the primary difference is attack wording, not format.** Every same-attack contrast is within +1 to +2 points with intervals across zero. Three of five goals are at or near 100% under every condition (ceiling). The +8.6 comes almost entirely from `injection_task_2`, where the JSON-selected wording succeeded 10–11 times in 21 in both formats against 15–16 for the text-selected wording. Banking-based selection for JSON did not transfer to Slack.
+  *Note 2026-11-16: too categorical. Decomposed, +7.1 points (+2.4 to +12.9) are wording and +1.4 (−2.9 to +6.2) the average same-attack format difference, which does not exclude a format effect of a few points. See [exploratory/](exploratory/README.md) and Corrections C11.*
 - **Granite 4.0 H Small: a same-attack format difference.** Under the fixed baseline and under the selected attack, JSON was attacked about 10 points less often than text, with task intervals excluding zero, in the direction ToolHazard reports for fixed attacks. Format-aware selection did not find a JSON-specific wording: the same candidate won in both formats.
 - **The two-way intervals reach zero for both models.** With five goals they are not trustworthy, but they show the results are conditional on these goals.
 
@@ -123,6 +124,8 @@ The readings above do not change.
 | 2. Runs disagree in at most 5% of repeated cells | Yes (0%) | Attack success yes (4.8%); user task no (6.0%) |
 | 3. Projected task interval on the 60 reserved tasks ±6 or tighter | Yes (±5.7 on 21 tasks → about ±3.4) | Yes (±9.1 on 21 tasks → about ±5.4) |
 | 4. Informative: primary interval excludes zero | Yes | Yes |
+
+*Note 2026-11-16: condition 2 names no outcome. Read conservatively (any recorded outcome) it is not met for Granite, so section 9.8 does not justify the larger study as registered. See pilot design section 9.8a.*
 
 Condition 3 scales by √(21/60) and assumes similar between-task variance on workspace and travel. It is a conditional planning assumption, not a guaranteed precision or a minimum detectable effect.
 

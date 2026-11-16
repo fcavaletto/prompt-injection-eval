@@ -175,6 +175,16 @@ The first version of this section (2026-11-14, commit `31b63c5`) was written fro
 | AgentDojo, arXiv:2406.13352 v3, and its code at commit `089ed46` | Code read: `tool_execution.py`. Paper: metadata only. | Tool results are rendered with `yaml.safe_dump` by default; the docstring notes `json.dumps` would also work. The arXiv comment on v3 records "fixing a bug in the Llama implementation". | No format comparison in the code read. |
 | Hofer, Debenedetti, Tramèr, arXiv:2606.10525 v1 | Direct: Sec. 2.1 and the configuration appendix | Notes that one attack "was not evaluated against Gemma3-4B because no compatible" chat template was available. | The census finds the same: Gemma 3's template rejects tool messages. |
 
+### D1a. Added 2026-11-16, after the pilot
+
+Read through a fetching tool: the opening of each paper verbatim, the rest as a model-extracted summary (marked (s)). Not yet read in full.
+
+| Work | Verified how | What it establishes | What it leaves open |
+| --- | --- | --- | --- |
+| *Agent Data Injection Attacks are Realistic Threats to AI Agents*, arXiv:2607.05120 v1 | Abstract to Sec. IV-A verbatim; Sec. V and VI (s). Code: `github.com/compsec-snu/adi` (not opened) | Format-aware "data injection": fake JSON objects and delimiter spoofing, assuming the attacker knows the format (Sec. III-A); models misread even escaped delimiters (Sec. III-C). On AgentDojo with tool output switched to JSON, GPT-5.2: 49.1% ADI success (s) against near-zero for instruction injection (0.0% to 0.7%, verbatim) | No comparison of serializations with the payload fixed; closed models only as agents; point estimates (s) |
+| *AutoDojo*, arXiv:2606.15057 v3 | Sec. 3 to 4.2 verbatim; appendices (s). Code: `github.com/xhOwenMa/AutoDojo` | Cheap black-box optimization of injections on AgentDojo raises success well above static attacks and breaks detector defenses (Sec. 4.2); one strategy writes "an entry shaped like the surrounding tool output" | Serialization not varied; single runs (s) |
+| *SARA*, arXiv:2608.27146 v1 | Abstract and first part verbatim; rest (s) | Runtime authorization defense; AgentDojo and AgentDyn | Serialization not varied; not close |
+
 ### D2. Checked for metadata only
 
 Nasr et al., *The Attacker Moves Second* (arXiv:2510.09023); Zhan et al., *Adaptive Attacks Break Defenses...* (arXiv:2503.00061, Findings of NAACL 2025); Zhan et al., *InjecAgent* (arXiv:2403.02691, Findings of ACL 2024); McCauley et al., *IH-Benchmark* (arXiv:2607.25987); Zhang et al., *IHEval* (arXiv:2502.08745, NAACL 2025); Nguyen et al., *INFUSE* (arXiv:2610.20776); Lee et al., *Will the User Ever Know?* (arXiv:2608.30362, EMNLP 2026); Abdelnabi and Bagdasarian (arXiv:2605.17634). What the first version said about their content has not been re-verified.
