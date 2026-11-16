@@ -69,6 +69,10 @@ def main() -> None:
         },
         "selected": {QWEN: {"text": qt, "json": qj}, GRANITE: {"text": gs, "json": gs}},
         "contrasts": {k: [c.row() for c in v] for k, v in results.items()},
+        "repeatability_clustered": {
+            label: [exploratory.clustered_repeatability(rows, o) for o in ("security", "utility")]
+            for label, rows in ((QWEN, q_rows), (GRANITE, g_rows))
+        },
     }
     (args.output / "exploratory.json").write_text(json.dumps(out, indent=2) + "\n")
     with (args.output / "goal_rates.csv").open("w", newline="") as fh:

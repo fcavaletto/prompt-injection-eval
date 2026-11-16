@@ -653,6 +653,16 @@ Added after the pilot's outcomes were known. It does not change the rule above; 
 
 Granite's Slack controls, which ran three times and are not named by the rule, disagreed on user-task success in 6 of 84 cells. Qwen's disagreed in none.
 
+*Note 2026-11-16, later the same day (statistics qualified; the resolution below is unchanged):*
+
+- **The "exact" intervals assume independent cells. They are not independent.** A repeated pair contributes one cell per condition, and those cells share the user task, the goal and adjacent positions in the run order. Three of Granite's four attack-success disagreements are in one pair (`user_task_19`, `injection_task_4`). So the intervals are exact only under an independence that does not hold, and their coverage is not guaranteed.
+- **Clustered sensitivity analysis**, exploratory, from `exploratory.clustered_repeatability`:
+  - *Granite, attack success:* 2 of 21 repeated pairs contain a disagreement (exact interval over pairs 1.2% to 30.4%). Resampling pairs, the cell-level share has a percentile interval of 0% to 13.1%.
+  - *Granite, user-task success:* 4 of 21 pairs (5.4% to 41.9%). Pair bootstrap 1.2% to 11.9%.
+  - *Qwen:* 0 of 21 pairs (0% to 16.1%).
+  - Goals recur across pairs, which neither analysis accounts for.
+- With 21 pairs, none of these pins down the disagreement rate. A 5% point threshold read on these data is decided by one or two pairs.
+
 **Does the rule permit progression?**
 
 - **Qwen: yes,** under every reading.
@@ -664,11 +674,20 @@ The threshold is not waived, and no further repeats will be collected to move th
 
 **What the nondeterminism implies for a prospective study.** At temperature 0 on vLLM 0.33.0, Granite's outcome changed between identical runs in about 5% to 10% of cells; Qwen's never did. The cause was not investigated: batch composition and a hybrid state-space architecture are possible routes, not established ones.
 
-- **For estimation the effect is small.** Each first-run outcome is one draw from the serving stack's distribution, and the primary estimand can be defined as the expected outcome under that stack. First-run estimates are unbiased for it, and the task bootstrap already includes run-to-run noise, because each case contributes one noisy observation. Granite's sensitivity analysis over all runs moved the primary from +11.4 to +11.1 and the baseline contrast from +9.5 to +10.2.
+- **For estimation the effect is small.** Each first-run outcome is one draw from the serving stack's distribution, and the primary estimand can be defined as the expected outcome under that stack. First-run estimates are unbiased for it, and the task bootstrap already includes run-to-run noise, because each case contributes one noisy observation. *Qualified 2026-11-16: this holds only if run-to-run noise is independent across cases. Nondeterminism shared across cases was not investigated: batch composition, cases served concurrently, drift over a run. If present, it correlates outcomes across user tasks, and the task bootstrap does not capture that correlation. Both formats of a pair ran adjacently, so a shared batch effect could also partly cancel or partly add in the paired difference. The claim is a hypothesis, not a demonstrated property.* Granite's sensitivity analysis over all runs moved the primary from +11.4 to +11.1 and the baseline contrast from +9.5 to +10.2.
 - **For reporting it matters.** A single-run number for a model like Granite is not reproducible exactly. Reports should give repeatability with an exact interval, per model and outcome, next to every headline number.
 - **A 5% point threshold is a poor gate.** Near the threshold, the decision turns on one or two cells, and nondeterminism that leaves the primary analysis valid can fail it.
 
 **Proposed for any future design (not registered; it would have to be registered before that study's data):**
+
+*Rationale, added 2026-11-16. These values are judgement, not derivations, and stay unregistered.*
+
+- At temperature 0, disagreement measures the instrument. Its cost to a first-run estimate is extra variance.
+- If a fraction d of cells is unstable and an unstable cell is roughly a coin flip, each case's outcome gains variance of about d/4. Binary outcomes near the pilot's base rates have variance of about 0.2 to 0.25 between cases, so the inflation is roughly d. At 10% that means intervals about 5% wider; at 15%, about 7%. For a paired difference the relative cost can be larger, because pairing removes part of the variance between cases that this noise would otherwise be small against.
+- **10%** is where reporting both analyses starts to be worth the space.
+- **15%** is where the instrument behaves unlike a deterministic one often enough that a configuration problem should be ruled out first.
+- Both thresholds should be read against the pair-level count and its interval, not against a cell count that treats dependent cells as independent.
+
 
 1. Name the outcome (attack success) and apply the rule per model.
 2. Report disagreement over a pre-drawn repeat subset with an exact 95% interval, by condition and pooled.

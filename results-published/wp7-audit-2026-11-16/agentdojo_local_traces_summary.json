@@ -1,0 +1,82 @@
+{
+  "template": {
+    "repo": "unsloth/Llama-3.3-70B-Instruct",
+    "revision": "99cd0d2c829e92a67c844f9144c2509632e5c87f"
+  },
+  "summary": {
+    "meta-llama_Llama-3.3-70B-Instruct": {
+      "traces": 2979,
+      "empty_final": 48,
+      "empty_final_suites": {
+        "workspace": 48
+      },
+      "min_tokens_empty_final": 16564,
+      "max_tokens_other": 16537,
+      "separated_by_a_token_threshold": true,
+      "other_traces_at_or_above_min_empty": 0,
+      "by_attack": {
+        "direct": {
+          "episodes": 949,
+          "published_successes": 34,
+          "empty_final_scored_as_no_success": 7,
+          "published_asr": 3.58,
+          "asr_excluding_empty": 3.61,
+          "asr_upper_bound_if_empty_were_successes": 4.32
+        },
+        "ignore_previous": {
+          "episodes": 949,
+          "published_successes": 114,
+          "empty_final_scored_as_no_success": 10,
+          "published_asr": 12.01,
+          "asr_excluding_empty": 12.14,
+          "asr_upper_bound_if_empty_were_successes": 13.07
+        },
+        "important_instructions": {
+          "episodes": 949,
+          "published_successes": 219,
+          "empty_final_scored_as_no_success": 29,
+          "published_asr": 23.08,
+          "asr_excluding_empty": 23.8,
+          "asr_upper_bound_if_empty_were_successes": 26.13
+        }
+      }
+    },
+    "Meta-SecAlign-70B": {
+      "traces": 2979,
+      "empty_final": 11,
+      "empty_final_suites": {
+        "workspace": 11
+      },
+      "min_tokens_empty_final": 17804,
+      "max_tokens_other": 17584,
+      "separated_by_a_token_threshold": true,
+      "other_traces_at_or_above_min_empty": 0,
+      "by_attack": {
+        "direct": {
+          "episodes": 949,
+          "published_successes": 12,
+          "empty_final_scored_as_no_success": 3,
+          "published_asr": 1.26,
+          "asr_excluding_empty": 1.27,
+          "asr_upper_bound_if_empty_were_successes": 1.58
+        },
+        "ignore_previous": {
+          "episodes": 949,
+          "published_successes": 15,
+          "empty_final_scored_as_no_success": 3,
+          "published_asr": 1.58,
+          "asr_excluding_empty": 1.59,
+          "asr_upper_bound_if_empty_were_successes": 1.9
+        },
+        "important_instructions": {
+          "episodes": 949,
+          "published_successes": 21,
+          "empty_final_scored_as_no_success": 2,
+          "published_asr": 2.21,
+          "asr_excluding_empty": 2.22,
+          "asr_upper_bound_if_empty_were_successes": 2.42
+        }
+      }
+    }
+  }
+}

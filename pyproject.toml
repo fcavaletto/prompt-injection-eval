@@ -82,6 +82,9 @@ select = ["E", "F", "I", "UP", "B"]
 # Report sentences and command messages are kept on one line each.
 "src/prompt_injection_eval/pilot/cli.py" = ["B008", "E501"]
 "src/prompt_injection_eval/pilot/analysis.py" = ["E501"]
+# Audit notes are long strings recorded verbatim in audit.json.
+"scripts/wp7_audit.py" = ["E501"]
+"scripts/wp7_agentdojo_traces.py" = ["E501"]
 "notebooks/*.ipynb" = ["E501"]
 
 [tool.pytest.ini_options]

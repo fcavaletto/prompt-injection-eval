@@ -20,9 +20,12 @@ Detail: [Pilot design](pilot-design.md), section 9.8a.
 - The rule is ambiguous. Read conservatively it is not met, so **section 9.8 as registered does not justify the larger study.**
 - The threshold is not waived and no further repeats are collected.
 - The nondeterminism is small for estimation: first-run estimates already absorb it, and the all-runs analysis moved Granite's primary by 0.3 points. It is large enough to matter for reproducing single-run numbers.
+  *Qualified 2026-11-16: this assumes run-to-run noise independent across cases; shared batch effects were not investigated. The 4 of 84 cells are clustered (2 of 21 pairs); see [Pilot design](pilot-design.md) 9.8a.*
 - A replacement rule is proposed there for any future design, to be registered before that design's data.
 
 ## 3. Novelty, reassessed
+
+*Note 2026-11-16, later: every claim marked (s) below, and the ToolHazard figures, were verified from full text and code. All held except the attribution of 87 tasks to ToolHazard's format experiment. See [the audit appendix](research-audit-2026-11.md), D1b. The novelty conclusion stands.*
 
 **Read for this page.** Read 2026-11-16 through a fetching tool: the opening of each paper verbatim, and the rest as a model-extracted summary. Statements from the summary part are marked (s); they should be checked against the paper before being cited.
 
@@ -33,7 +36,7 @@ Detail: [Pilot design](pilot-design.md), section 9.8a.
 
 | Question | Closest existing experiment | What remains open | Evidence that would answer it | Kind |
 | --- | --- | --- | --- | --- |
-| Does JSON instead of free-text tool output lower the success of a fixed injection? | ToolHazard Sec. 7.2, Fig. 4: GPT-4.1 and Gemini-3.1-Pro, prompt mode, 87 tasks, no intervals; e.g. 52.6% free-form vs 5.9% JSON on one attack | Size and sign on open models in function-calling mode, with verified delivery and task-clustered intervals; formats defined exactly | Same-attack contrasts on untouched pairs at about ±5 points, two or more families. The pilot gives Granite +10.5 (+3.8 to +17.1) and Qwen +1.6 (−2.2 to +5.7), Slack only | **Controlled replication** |
+| Does JSON instead of free-text tool output lower the success of a fixed injection? | ToolHazard Sec. 7.2, Fig. 4: GPT-4.1 and Gemini-3.1-Pro, prompt mode (per the README), experiment size not stated (87 is the benchmark's), no intervals; e.g. 52.6% free-form vs 5.9% JSON on one attack | Size and sign on open models in function-calling mode, with verified delivery and task-clustered intervals; formats defined exactly | Same-attack contrasts on untouched pairs at about ±5 points, two or more families. The pilot gives Granite +10.5 (+3.8 to +17.1) and Qwen +1.6 (−2.2 to +5.7), Slack only | **Controlled replication** |
 | Does an attacker who writes for JSON succeed against JSON? | ADI, arXiv:2607.05120: JSON-shaped "data injection" (fake objects, delimiter spoofing) on AgentDojo with tool output switched to JSON. GPT-5.2: 49.1% (s), against near-zero for instruction injection (0.0% to 0.7%, verbatim). It assumes the attacker knows the format (Sec. III-A). AutoDojo: black-box optimization on AgentDojo, including entries "shaped like the surrounding tool output"; no format varied | Neither varies the serialization with the payload fixed. Does escaped JSON (as `json.dumps` writes it) blunt format-aware payloads relative to free text, on models whose prompts are verified? ADI reports that models misread even escaped delimiters (Sec. III-C), which predicts little protection | A crossed design: payloads written for JSON, for text, and instruction baselines, each under both serializations, with delivery verified. Development on banking and Slack, confirmation on untouched pairs | **Potentially novel**, narrowed by ADI. Not established |
 | Does choosing attacks per format confound format comparisons? | General adaptive-attack work (Nasr et al.; AutoDojo) optimizes per defense. No paper found that decomposes a format comparison into wording and format | Whether selected-attack comparisons in this literature are confounded in the same way | The pilot's decomposition (Qwen: 7.1 of 8.6 points are wording), applied to other published selected-attack comparisons | **Measurement and methods** |
 | How repeatable are agent-security outcomes at temperature 0? | Pape et al. and Masoudian et al.: the backend shifts benchmark scores. Agent-security papers read here report single runs: AutoDojo (s), SARA's attack metrics (s), ADI (s) | Per-model disagreement rates on attack outcomes under one stack | Repeat subsets per model and stack. The pilot gives Qwen 0 of 126 and Granite 4 to 8 of 84 | **Measurement** |
@@ -76,6 +79,8 @@ Costs come from `scripts/cost_next_stage.py`. They include controls (three runs)
 | D. Revised direction: format-aware data injection under two serializations | New payload family, development on banking and Slack, new scoring; then 2 attacks × 2 formats × 700 pairs, both models | $16.4 / $33.7 for evaluation, plus about $2 to $4 of development. **The conservative case exceeds the remainder** | If it held: whether escaping in JSON serialization blunts attacks written for JSON, on open models. Possibly novel, narrowed by ADI |
 
 ## 6. Recommendation
+
+*Note 2026-11-16, later: WP7 has been run ([WP7](wp7-audit.md)). It found two issues in AgentDojo's published open-model path and clean passes elsewhere. The updated recommendation is in the [report draft](report-draft.md), section 12. It still recommends against another serialization experiment now.*
 
 **Conclude this line with the current evidence, and release it as a methods and replication report. Run the free WP7 audit first. Do not spend the remaining budget on another serialization experiment now.**
 

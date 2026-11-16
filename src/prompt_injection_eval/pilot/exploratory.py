@@ -237,3 +237,84 @@ def goal_rates(
                     }
                 )
     return out
+
+
+def _clopper_pearson(k: int, n: int, alpha: float = 0.05) -> tuple[float, float]:
+    """Exact binomial interval by bisection on the binomial tails (no scipy)."""
+    from math import comb
+
+    def cdf(x: int, p: float) -> float:
+        return sum(comb(n, i) * p**i * (1 - p) ** (n - i) for i in range(x + 1))
+
+    def solve(pred: Any) -> float:
+        lo, hi = 0.0, 1.0
+        for _ in range(80):
+            mid = (lo + hi) / 2
+            lo, hi = (lo, mid) if pred(mid) else (mid, hi)
+        return (lo + hi) / 2
+
+    low = 0.0 if k == 0 else solve(lambda p: 1 - cdf(k - 1, p) >= alpha / 2)
+    high = 1.0 if k == n else solve(lambda p: cdf(k, p) <= alpha / 2)
+    return low, high
+
+
+def clustered_repeatability(
+    rows: list[dict[str, Any]],
+    outcome: str = "security",
+    replicates: int = REPLICATES,
+    seed: int = SEED,
+) -> dict[str, Any]:
+    """Repeat disagreement with the dependence between cells of one pair made explicit.
+
+    A repeated pair contributes one cell per evaluated condition, and those cells share
+    the user task, the goal and (in this pilot) adjacent positions in the run order. The
+    registered table counts cells as if independent; its exact binomial interval is exact
+    only under that assumption. This adds: the pair-level count (pairs with any
+    disagreeing cell, with an exact interval over pairs, which are closer to independent:
+    one per user task), and a cluster bootstrap of the cell-level share that resamples
+    pairs. Goals recur across pairs (five goals), which neither accounts for.
+    """
+    from prompt_injection_eval.pilot.analysis import latest
+
+    runs: dict[tuple[str, str, str], dict[int, bool]] = defaultdict(dict)
+    for row in latest(rows).values():
+        if (
+            row["status"] == "completed"
+            and row.get(outcome) is not None
+            and row["mode"] == "attack"
+        ):
+            runs[(row["user_task"], row["injection_task"], row["condition"])][int(row["run"])] = (
+                bool(row[outcome])
+            )
+    by_pair: dict[tuple[str, str], list[bool]] = defaultdict(list)
+    for (user, goal, _), found in runs.items():
+        if len(found) >= 3:
+            by_pair[(user, goal)].append(len(set(found.values())) > 1)
+    pairs = sorted(by_pair)
+    disagree = np.array([sum(by_pair[p]) for p in pairs], dtype=float)
+    cells_n = np.array([len(by_pair[p]) for p in pairs], dtype=float)
+    k_cells, n_cells = int(disagree.sum()), int(cells_n.sum())
+    k_pairs = int((disagree > 0).sum())
+    rng = np.random.default_rng(seed)
+    shares = np.empty(replicates)
+    for i in range(replicates):
+        pick = rng.integers(0, len(pairs), len(pairs))
+        shares[i] = disagree[pick].sum() / cells_n[pick].sum()
+    low, high = np.percentile(shares, [2.5, 97.5])
+    cell_low, cell_high = _clopper_pearson(k_cells, n_cells) if n_cells else (np.nan, np.nan)
+    pair_low, pair_high = _clopper_pearson(k_pairs, len(pairs)) if pairs else (np.nan, np.nan)
+    return {
+        "outcome": outcome,
+        "repeated_pairs": len(pairs),
+        "repeated_cells": n_cells,
+        "disagreeing_cells": k_cells,
+        "cell_share_pct": round(100 * k_cells / n_cells, 2) if n_cells else None,
+        "cell_exact_interval_if_independent_pct": [
+            round(100 * cell_low, 1),
+            round(100 * cell_high, 1),
+        ],
+        "cell_share_pair_bootstrap_pct": [round(100 * low, 1), round(100 * high, 1)],
+        "pairs_with_any_disagreement": k_pairs,
+        "pair_share_exact_interval_pct": [round(100 * pair_low, 1), round(100 * pair_high, 1)],
+        "disagreeing_cells_per_pair": sorted((int(d) for d in disagree if d), reverse=True),
+    }

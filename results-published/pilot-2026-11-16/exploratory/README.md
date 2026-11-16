@@ -60,6 +60,9 @@ All of this is exploratory and holds for these two models, Slack's 21 user tasks
 
 ## Repeatability, detail added here
 
-- Granite, evaluation (registered table): 4 of 84 repeated cells disagree on attack success (4.8%; exact 95% interval 1.3% to 11.7%), 5 of 84 on user-task success (6.0%; 2.0% to 13.3%), 8 of 84 on either (9.5%).
+- Granite, evaluation (registered table): 4 of 84 repeated cells disagree on attack success (4.8%; exact 95% interval 1.3% to 11.7% *if cells were independent*), 5 of 84 on user-task success (6.0%; 2.0% to 13.3%, same caveat), 8 of 84 on either (9.5%).
+- *Added later on 2026-11-16:* cells of one pair are not independent; three of the four attack-success disagreements are in one pair. Clustered (`repeatability_clustered` in `exploratory.json`):
+  - attack success, 2 of 21 pairs (exact over pairs 1.2% to 30.4%; pair bootstrap of the cell share 0% to 13.1%);
+  - user-task success, 4 of 21 pairs (5.4% to 41.9%; 1.2% to 11.9%).
 - Granite, Slack controls (three runs, not part of the registered gate): 6 of 84 cells disagree on user-task success.
-- Qwen: 0 of 126 evaluation cells on either outcome (0% to 2.9%) and 0 of 84 control cells.
+- Qwen: 0 of 126 evaluation cells on either outcome (0% to 2.9% if independent; 0 of 21 pairs, 0% to 16.1%) and 0 of 84 control cells.
