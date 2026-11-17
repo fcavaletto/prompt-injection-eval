@@ -1,0 +1,9 @@
+outcome,model,phase,modes,outcomes,repeated_cases,repeated_cells,disagreeing_cells,cell_share_pct,cases_with_any_disagreement,case_share_exact_interval_pct,cell_share_case_bootstrap_pct
+security,qwen3-32b,evaluate,"[""attack""]","{""attack"": ""security""}",21,126,0,0.0,0,"[0.0, 16.1]","[0.0, 0.0]"
+utility,qwen3-32b,evaluate,"[""attack""]","{""attack"": ""utility""}",21,126,0,0.0,0,"[0.0, 16.1]","[0.0, 0.0]"
+per mode,qwen3-32b,eval-controls,"[""clean"", ""scratch"", ""direct"", ""twin""]","{""clean"": ""utility"", ""scratch"": ""utility"", ""direct"": ""success"", ""twin"": ""success""}",26,104,0,0.0,0,"[0.0, 13.2]","[0.0, 0.0]"
+per mode,qwen3-32b,dev-controls,"[""clean"", ""scratch"", ""direct"", ""twin""]","{""clean"": ""utility"", ""scratch"": ""utility"", ""direct"": ""success"", ""twin"": ""success""}",25,100,0,0.0,0,"[0.0, 13.7]","[0.0, 0.0]"
+security,granite-4.0-h-small,evaluate,"[""attack""]","{""attack"": ""security""}",21,84,4,4.76,2,"[1.2, 30.4]","[0.0, 13.1]"
+utility,granite-4.0-h-small,evaluate,"[""attack""]","{""attack"": ""utility""}",21,84,5,5.95,4,"[5.4, 41.9]","[1.2, 11.9]"
+per mode,granite-4.0-h-small,eval-controls,"[""clean"", ""scratch"", ""direct"", ""twin""]","{""clean"": ""utility"", ""scratch"": ""utility"", ""direct"": ""success"", ""twin"": ""success""}",26,104,6,5.77,3,"[2.4, 30.2]","[0.0, 11.5]"
+per mode,granite-4.0-h-small,dev-controls,"[""clean"", ""scratch"", ""direct"", ""twin""]","{""clean"": ""utility"", ""scratch"": ""utility"", ""direct"": ""success"", ""twin"": ""success""}",25,100,4,4.0,4,"[4.5, 36.1]","[1.0, 8.0]"
