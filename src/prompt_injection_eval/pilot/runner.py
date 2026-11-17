@@ -269,7 +269,7 @@ def build_manifest(
     except Exception:  # noqa: BLE001 - provenance must not abort a run
         server = None
     return {
-        "study": STUDY,
+        "study": settings.study,
         "phase": phase,
         "agentdojo": AGENTDOJO_VERSION,
         "benchmark": BENCHMARK_VERSION,
@@ -370,6 +370,7 @@ def run_phase(
     deadline_minutes: float | None = None,
     progress: Callable[[int, int], None] | None = None,
     fail_fast: bool | None = None,
+    units: list[Spec] | None = None,
 ) -> RunSummary:
     """Run every planned unit that has no final trace yet.
 
@@ -384,7 +385,8 @@ def run_phase(
     """
     adapter.require_agentdojo()
     fail_fast = phase == "smoke" if fail_fast is None else fail_fast
-    units = plan(phase, frozen, runs)
+    # A study other than the pilot (Stage 1) passes its own frozen units, in run order.
+    units = plan(phase, frozen, runs) if units is None else list(units)
     manifest = build_manifest(phase, settings, units, provider, frozen)
     output_dir.mkdir(parents=True, exist_ok=True)
     manifest_path, traces_path = output_dir / "manifest.json", output_dir / "traces.jsonl"

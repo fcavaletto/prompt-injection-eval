@@ -33,6 +33,12 @@ MIN_REQUEST_SECONDS = 2.0
 # The provider makes up to this many attempts per request; each gets a share of the time left.
 PROVIDER_ATTEMPTS = 3
 RESUMED = ("attack", "clean")
+# Hosted-API failures, each its own non-final status (rerun only by an explicit resume).
+API_STATUS = {
+    "budget_exhausted": "budget_exhausted",
+    "model_mismatch": "endpoint_mismatch",
+    "provider_mismatch": "endpoint_mismatch",
+}
 
 
 @dataclass(frozen=True)
@@ -73,6 +79,10 @@ class Settings:
     # Left at their defaults, neither field enters a fingerprint, so pilot hashes are unchanged.
     profile: str | None = None
     study: str = STUDY
+    # 2026-11-17: AgentDojo scores two tasks from the call trace (slack injection_task_5 and
+    # user_task_11). In a round-limited episode its trace includes the last response's calls,
+    # which its loop never executed. When True, scoring sees only executed calls.
+    score_executed_calls_only: bool = False
 
 
 class _Abort(Exception):
@@ -159,6 +169,7 @@ def _static_inputs(spec: Spec, settings: Settings, setup: _Setup) -> dict[str, A
             if k not in ("label", "timeout_seconds")
             and not (k == "profile" and v is None)
             and not (k == "study" and v == STUDY)
+            and not (k == "score_executed_calls_only" and v is False)
         },
     }
 
@@ -340,9 +351,15 @@ def run(
             response = provider.generate(request)
             if response.error_type is not None:
                 late = deadline is not None and time.monotonic() >= deadline - MIN_REQUEST_SECONDS
+                status = "interrupted" if late else "infra_error"
+                if settings.profile == "request":
+                    # Hosted API: keep what was sent and every attempt; name the outcome.
+                    failed.update({"step": step, "api": response.provider_metadata})
+                    status = (
+                        API_STATUS.get(response.error_type, "api_error") if not late else status
+                    )
                 raise _Abort(
-                    "interrupted" if late else "infra_error",
-                    f"model request {step}: {response.error_type}: {response.error_message}",
+                    status, f"model request {step}: {response.error_type}: {response.error_message}"
                 )
             meta = dict(response.provider_metadata or {})
             rendered = meta.get("rendered_prompt")
@@ -357,16 +374,25 @@ def run(
                     for i, m in enumerate(wire)
                     if m["role"] == "tool"
                 }
-                defects = delivery.check_contract(
-                    rendered,
-                    wire,
-                    tools,
-                    records,
-                    formats,
-                    setup.payload,
-                    payload_index,
-                    profile=settings.profile,
-                )
+                if settings.profile == "request":
+                    # Hosted API: verify the request actually sent; rendering is unobserved.
+                    sent = meta.get("sent_request")
+                    defects = delivery.check_request(
+                        sent, wire, tools, records, formats, setup.payload, payload_index
+                    )
+                    if isinstance(sent, dict):
+                        rendered = json.dumps(sent, sort_keys=True, ensure_ascii=False)
+                else:
+                    defects = delivery.check_contract(
+                        rendered,
+                        wire,
+                        tools,
+                        records,
+                        formats,
+                        setup.payload,
+                        payload_index,
+                        profile=settings.profile,
+                    )
             calls, summaries, bad_json, unknown = [], [], 0, 0
             for position, call in enumerate(meta.get("tool_calls") or []):
                 name = call.get("name") or EMPTY_FUNCTION_NAME
@@ -400,6 +426,29 @@ def run(
                     if rendered
                     else None,
                     "delivery_defects": defects,
+                    **(
+                        {
+                            "api": {
+                                k: meta.get(k)
+                                for k in (
+                                    "sent_request",
+                                    "raw_response",
+                                    "attempts",
+                                    "requested_model",
+                                    "reported_model",
+                                    "reported_provider",
+                                    "usage",
+                                    "reasoning_tokens",
+                                    "native_finish_reason",
+                                    "generation_id",
+                                    "spend",
+                                    "delivery_verification",
+                                )
+                            }
+                        }
+                        if settings.profile == "request"
+                        else {}
+                    ),
                 }
             )
             prompts.append(rendered)
@@ -505,10 +554,18 @@ def run(
     trace["failed_turn"] = failed or None
     if trace["status"] == "completed" and turns:
         # Only a verified, finished episode is scored. Anything else is not a measurement.
+        scored = messages
+        if (
+            settings.score_executed_calls_only
+            and messages
+            and messages[-1]["role"] == "assistant"
+            and messages[-1].get("tool_calls")
+        ):
+            scored = [*messages[:-1], {**messages[-1], "tool_calls": None}]
         if setup.scored_user_task is not None:
-            trace["utility"] = adapter.score(spec.suite, setup.scored_user_task, messages, pre, env)
+            trace["utility"] = adapter.score(spec.suite, setup.scored_user_task, scored, pre, env)
         if setup.scored_goal is not None:
-            hit = adapter.score(spec.suite, setup.scored_goal, messages, pre, env)
+            hit = adapter.score(spec.suite, setup.scored_goal, scored, pre, env)
             trace["security" if spec.mode == "attack" else "success"] = hit
     schema_rejections = sum(
         1

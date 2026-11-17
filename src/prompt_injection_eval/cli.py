@@ -28,6 +28,8 @@ from prompt_injection_eval.dataset import (
 from prompt_injection_eval.doctor import run_doctor
 from prompt_injection_eval.injecagent_cli import injecagent_app
 from prompt_injection_eval.pilot.cli import pilot_app
+from prompt_injection_eval.pilot.screen_cli import screen_app
+from prompt_injection_eval.pilot.stage1_cli import stage1_app
 from prompt_injection_eval.privacy import sanitize_text
 from prompt_injection_eval.providers.mlx import MlxProvider
 from prompt_injection_eval.providers.mock import MockProvider
@@ -59,6 +61,8 @@ app = typer.Typer(
 app.add_typer(adaptive_app, name="adaptive")
 app.add_typer(injecagent_app, name="injecagent")
 app.add_typer(pilot_app, name="pilot")
+app.add_typer(stage1_app, name="stage1")
+app.add_typer(screen_app, name="screen")
 
 
 @app.command("version")

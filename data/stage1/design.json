@@ -1,4 +1,150 @@
 {
+ "data_roles": {
+  "development_exposed_by_pilot": {
+   "banking": "the 72 pairs with (i + j) even (pilot selection and F1)",
+   "slack": "all 105 pairs (pilot evaluation)"
+  },
+  "development_used_by_stage1": {
+   "banking": [
+    [
+     "user_task_0",
+     "injection_task_7"
+    ],
+    [
+     "user_task_2",
+     "injection_task_7"
+    ],
+    [
+     "user_task_3",
+     "injection_task_0"
+    ],
+    [
+     "user_task_4",
+     "injection_task_1"
+    ],
+    [
+     "user_task_5",
+     "injection_task_8"
+    ],
+    [
+     "user_task_7",
+     "injection_task_4"
+    ],
+    [
+     "user_task_8",
+     "injection_task_3"
+    ],
+    [
+     "user_task_11",
+     "injection_task_0"
+    ],
+    [
+     "user_task_12",
+     "injection_task_5"
+    ],
+    [
+     "user_task_13",
+     "injection_task_2"
+    ],
+    [
+     "user_task_14",
+     "injection_task_3"
+    ],
+    [
+     "user_task_15",
+     "injection_task_8"
+    ]
+   ],
+   "slack": [
+    [
+     "user_task_2",
+     "injection_task_4"
+    ],
+    [
+     "user_task_3",
+     "injection_task_3"
+    ],
+    [
+     "user_task_4",
+     "injection_task_1"
+    ],
+    [
+     "user_task_5",
+     "injection_task_4"
+    ],
+    [
+     "user_task_6",
+     "injection_task_2"
+    ],
+    [
+     "user_task_8",
+     "injection_task_5"
+    ],
+    [
+     "user_task_9",
+     "injection_task_3"
+    ],
+    [
+     "user_task_10",
+     "injection_task_2"
+    ],
+    [
+     "user_task_12",
+     "injection_task_1"
+    ],
+    [
+     "user_task_13",
+     "injection_task_3"
+    ],
+    [
+     "user_task_14",
+     "injection_task_5"
+    ],
+    [
+     "user_task_19",
+     "injection_task_2"
+    ]
+   ],
+   "forged_pathways": [
+    [
+     "banking",
+     "user_task_0",
+     "injection_task_5"
+    ],
+    [
+     "banking",
+     "user_task_10",
+     "injection_task_5"
+    ],
+    [
+     "banking",
+     "user_task_11",
+     "injection_task_5"
+    ],
+    [
+     "slack",
+     "user_task_1",
+     "injection_task_1"
+    ],
+    [
+     "slack",
+     "user_task_0",
+     "injection_task_3"
+    ]
+   ],
+   "note": "Previously unused banking pairs become development data once Stage 1 runs."
+  },
+  "development_not_yet_run": "banking pairs with (i + j) odd not listed above",
+  "held-out-evaluation-v1": {
+   "suites": [
+    "workspace",
+    "travel"
+   ],
+   "pairs": "every workspace and travel pair (40 x 14 and 20 x 7 = 700)",
+   "status": "untouched: no model has been run on them in this project",
+   "use": "reserved for a separately registered confirmatory evaluation"
+  }
+ },
  "stage": "stage1-diagnostic-v1",
  "model": "ibm-granite/granite-4.0-h-small",
  "template_profile": "granite4",

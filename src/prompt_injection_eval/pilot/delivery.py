@@ -399,3 +399,81 @@ def check_contract(
     if payload is not None and payload_index is None:
         defects.append("payload_has_no_carrier")
     return sorted(set(defects))
+
+
+# ---- Request-level verification for hosted APIs (2026-11-17) ---------------------------
+#
+# A hosted API returns no rendered prompt. What can be checked is the request this harness
+# actually sent: the provider adapter records the outgoing body, and this compares it with
+# the intended conversation. It says nothing about how the provider renders it internally.
+
+REQUEST_LEVEL = "request-level: outgoing request verified; provider rendering unobserved"
+
+
+def check_request(
+    sent: dict[str, Any] | None,
+    messages: list[dict[str, Any]],
+    tools: list[dict[str, Any]],
+    records: dict[int, serialize.Record],
+    fmt: str | dict[int, str],
+    payload: str | None = None,
+    payload_index: int | None = None,
+) -> list[str]:
+    """Defects in the outgoing request against the intended conversation; [] if none."""
+    if not isinstance(sent, dict):
+        return ["request_not_recorded"]
+    formats = (
+        fmt
+        if isinstance(fmt, dict)
+        else {i: fmt for i, m in enumerate(messages) if m["role"] == "tool"}
+    )
+    defects: list[str] = []
+    out = sent.get("messages") or []
+    if not strict_equal(sent.get("tools") or [], list(tools)):
+        defects.append("tools_differ")
+    if [m.get("role") for m in out] != [m["role"] for m in messages]:
+        return defects + ["role_sequence_differs"]
+    open_calls: list[str] = []
+    for index, (want, got) in enumerate(zip(messages, out, strict=True)):
+        role = want["role"]
+        if role in ("system", "user"):
+            if got.get("content") != want["content"]:
+                defects.append(f"{role}_message_altered:{index}")
+        elif role == "assistant":
+            sent_calls = got.get("tool_calls") or []
+            want_calls = want.get("tool_calls") or []
+            if len(sent_calls) != len(want_calls):
+                defects.append(f"call_count:{index}")
+                continue
+            open_calls = []
+            for w, g in zip(want_calls, sent_calls, strict=True):
+                args = g["function"]["arguments"]
+                try:
+                    args = json.loads(args) if isinstance(args, str) else args
+                except ValueError:
+                    defects.append(f"call_arguments_not_json:{index}")
+                    continue
+                want_args = w["function"]["arguments"]
+                want_args = json.loads(want_args) if isinstance(want_args, str) else want_args
+                if g["function"]["name"] != w["function"]["name"] or not strict_equal(
+                    args, want_args
+                ):
+                    defects.append(f"call_altered:{index}")
+                if g.get("id") != w.get("id"):
+                    defects.append(f"call_id_altered:{index}")
+                open_calls.append(g.get("id"))
+        else:  # tool
+            content = got.get("content")
+            if not open_calls or got.get("tool_call_id") != open_calls.pop(0):
+                defects.append(f"result_association:{index}")
+            record = records.get(index)
+            if record is None or content != serialize.serialize(record, formats[index]):
+                defects.append(f"result_is_not_the_record:{index}")
+            if content != want["content"]:
+                defects.append(f"result_altered:{index}")
+            if index == payload_index and payload is not None:
+                if not _in_order(payload_in_format(payload, formats[index]), content or ""):
+                    defects.append("payload_not_in_request")
+    if payload is not None and payload_index is None:
+        defects.append("payload_has_no_carrier")
+    return sorted(set(defects))

@@ -1,0 +1,21 @@
+{
+ "episodes_including_calibration": 64,
+ "measured": {
+  "first_request_chars_mean": 6516,
+  "first_request_chars_max": 7710,
+  "reference_calls_per_episode_mean": 1.6
+ },
+ "prices_usd_per_token": {
+  "prompt": 1e-07,
+  "completion": 5e-07,
+  "source": "OpenRouter endpoints API, 2026-11-17"
+ },
+ "central_usd": 0.14,
+ "central_assumptions": "4 calls/episode, 4 chars/token, 600 output tokens incl. reasoning per call",
+ "high_usd": 3.74,
+ "high_assumptions": "every episode reaches 16 calls, 10% retried, 3 chars/token, 2048 output tokens per call",
+ "worst_case_usd_unbounded": 26.32,
+ "worst_case_assumptions": "16 calls/episode, 3 attempts each, 2 chars/token, every call at max_tokens",
+ "enforced_cap_usd": 5.0,
+ "enforcement": "SpendGuard reserves each attempt's worst case before sending; calls stop at the cap"
+}

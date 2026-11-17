@@ -270,6 +270,12 @@ def units() -> list[Spec]:
     return out
 
 
+def family(unit: Spec) -> str:
+    if unit.mode == "clean":
+        return "control"
+    return "forged" if unit.attack in FORGED_TWINS else "instruction"
+
+
 def counts(found: list[Spec] | None = None) -> dict[str, int]:
     found = units() if found is None else found
     attack = sum(u.mode == "attack" and u.attack in INSTRUCTION_TWINS for u in found)
@@ -290,9 +296,36 @@ def sha(value: Any) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, default=str).encode()).hexdigest()
 
 
+HELD_OUT = "held-out-evaluation-v1"
+
+
+def data_roles() -> dict[str, Any]:
+    """What each suite and pair set is, once Stage 1 has used it (Amendment 4)."""
+    return {
+        "development_exposed_by_pilot": {
+            "banking": "the 72 pairs with (i + j) even (pilot selection and F1)",
+            "slack": "all 105 pairs (pilot evaluation)",
+        },
+        "development_used_by_stage1": {
+            "banking": [list(p) for p in pairs()["banking"]],
+            "slack": [list(p) for p in pairs()["slack"]],
+            "forged_pathways": [[p.suite, p.user_task, p.goal] for p in PATHWAYS],
+            "note": "Previously unused banking pairs become development data once Stage 1 runs.",
+        },
+        "development_not_yet_run": "banking pairs with (i + j) odd not listed above",
+        HELD_OUT: {
+            "suites": ["workspace", "travel"],
+            "pairs": "every workspace and travel pair (40 x 14 and 20 x 7 = 700)",
+            "status": "untouched: no model has been run on them in this project",
+            "use": "reserved for a separately registered confirmatory evaluation",
+        },
+    }
+
+
 def design() -> dict[str, Any]:
     found = units()
     return {
+        "data_roles": data_roles(),
         "stage": STAGE,
         "model": MODEL,
         "template_profile": PROFILE,
