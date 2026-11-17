@@ -174,7 +174,49 @@ class Check:
         return out
 
 
-def check(prompt: str, fixture: dict[str, Any] | None = None) -> Check:
+_TYPES = ("string", "integer", "number", "boolean", "array", "object")
+
+
+def _strict_missing(prompt: str, fx: dict[str, Any], user_at: int) -> list[str]:
+    """Items added 2026-11-17 (docs/measurement-contract.md, WP7 classes W1 to W4).
+
+    Marker presence alone accepted a renamed parameter, a changed declared type, a renamed
+    argument key and an argument of another scalar type. Strict mode also requires, near
+    each parameter's description marker, the parameter's own quoted name (within 300
+    characters before it) and, as the nearest declared-type token within 200 characters,
+    its declared type; and, after the user turn, the call's argument written as
+    ``"key": "value"``, ``'key': 'value'`` or ``key='value'``.
+    """
+    missing = []
+    for tool in fx["tools"]:
+        for name, spec in tool["parameters"].items():
+            marker = next(m for m in fx["markers"]["parameters"] if m in spec["description"])
+            at = prompt.find(marker)
+            if at < 0:
+                continue  # already reported as a missing parameter marker
+            before = prompt[max(0, at - 300) : at]
+            if not re.search(rf"([\"']){re.escape(name)}\1", before):
+                missing.append(f"parameter name {name}")
+            window_start = max(0, at - 200)
+            window = prompt[window_start : at + 200]
+            types = [
+                (abs(window_start + m.start() - at), m.group(2))
+                for m in re.finditer(rf"([\"'])({'|'.join(_TYPES)})\1", window)
+            ]
+            if not types or min(types)[1] != spec["type"]:
+                missing.append(f"parameter type {name}")
+    rest = prompt[max(user_at, 0) :]
+    for key, value in fx["call"]["arguments"].items():
+        k, v = re.escape(key), re.escape(value)
+        pattern = rf"([\"']){k}\1\s*:\s*([\"']){v}\2|\b{k}=([\"']){v}\3"
+        if not re.search(pattern, rest):
+            missing.append(f"call argument {key}")
+    return missing
+
+
+def check(prompt: str, fixture: dict[str, Any] | None = None, strict: bool = False) -> Check:
+    """``strict=False`` is the check the 2026-11-16 audit ran; ``strict=True`` adds the
+    parameter-name, declared-type and argument items (``_strict_missing``)."""
     fx = fixture or load_fixture()
     marks = fx["markers"]
     missing: list[str] = []
@@ -210,10 +252,13 @@ def check(prompt: str, fixture: dict[str, Any] | None = None) -> Check:
     )
     if sys_at < 0:
         missing.append("system text")
+    strict_missing = _strict_missing(prompt, fx, user_at) if strict else []
+    missing += strict_missing
     return Check(
         definitions=definitions,
-        parameters=not params_missing,
-        call=call,
+        parameters=not params_missing
+        and not any(m.startswith("parameter") for m in strict_missing),
+        call=call and not any(m.startswith("call argument") for m in strict_missing),
         result=result,
         payload=payload,
         payload_form=form,

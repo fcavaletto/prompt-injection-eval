@@ -178,3 +178,224 @@ def call_like_text(text: str | None, tool_names: list[str]) -> bool:
         value.get("name") in tool_names and ("arguments" in value or "parameters" in value)
         for _, value in json_objects(text)
     )
+
+
+# ---- The measurement contract (docs/measurement-contract.md), added 2026-11-17 ----------
+#
+# ``check`` above is the check the archived pilot ran, kept unchanged so that its recorded
+# defects can be reproduced. ``check_contract`` adds what validation showed ``check``
+# misses: the turn structure and roles of the pinned template, exact multiplicity of
+# schemas, calls and results, type-strict equality, and the generation header.
+
+
+def strict_equal(a: Any, b: Any) -> bool:
+    """Equality that also requires equal JSON types: ``True != 1 != 1.0``."""
+    if type(a) is not type(b):
+        return False
+    if isinstance(a, dict):
+        return a.keys() == b.keys() and all(strict_equal(a[k], b[k]) for k in a)
+    if isinstance(a, list):
+        return len(a) == len(b) and all(strict_equal(x, y) for x, y in zip(a, b, strict=True))
+    return bool(a == b)
+
+
+def _turns(rendered: str, profile: Any) -> list[tuple[str, int, int]]:
+    import re
+
+    pattern = re.escape(profile.turn_start).replace(re.escape("{role}"), r"(\w+)")
+    found = list(re.finditer(pattern, rendered))
+    return [
+        (m.group(1), m.end(), found[i + 1].start() if i + 1 < len(found) else len(rendered))
+        for i, m in enumerate(found)
+    ]
+
+
+def _expected_turns(messages: list[dict[str, Any]], profile: Any) -> list[tuple[str, list[int]]]:
+    """(role, message indices) per turn, as the profile lays the messages out."""
+    out: list[tuple[str, list[int]]] = []
+    for index, message in enumerate(messages):
+        role = message["role"]
+        if role == "tool":
+            if profile.group_tool_messages and out and messages[out[-1][1][-1]]["role"] == "tool":
+                out[-1][1].append(index)
+                continue
+            out.append((profile.tool_role, [index]))
+        else:
+            out.append((role, [index]))
+    return out
+
+
+def _calls_in(body: str, profile: Any) -> tuple[list[Any], str]:
+    """Decoded call objects in an assistant body, and the body with the call blocks removed."""
+    calls, rest, at = [], [], 0
+    while True:
+        start = body.find(profile.call_open, at)
+        if start < 0:
+            rest.append(body[at:])
+            break
+        end = body.find(profile.call_close, start + len(profile.call_open))
+        if end < 0:
+            rest.append(body[at:])
+            break
+        rest.append(body[at:start])
+        inner = body[start + len(profile.call_open) : end]
+        try:
+            calls.append(json.loads(inner))
+        except ValueError:
+            calls.append({"__undecodable__": inner[:200]})
+        at = end + len(profile.call_close)
+    return calls, "".join(rest)
+
+
+def _schema_defects(body: str, tools: list[dict[str, Any]]) -> list[str]:
+    decoded = [value for _, value in json_objects(body)]
+    defects = []
+    functions = [tool["function"] for tool in tools]
+    for tool in tools:
+        name = tool["function"]["name"]
+        full = sum(strict_equal(v, tool) for v in decoded)
+        bare = sum(strict_equal(v, tool["function"]) for v in decoded) - full
+        count = full or bare
+        if count == 0:
+            named = any(
+                v.get("name") == name
+                or (isinstance(v.get("function"), dict) and v["function"].get("name") == name)
+                for v in decoded
+            )
+            defects.append(
+                f"tool_schema_altered:{name}" if named else f"tool_schema_missing:{name}"
+            )
+        elif count > 1:
+            defects.append(f"tool_schema_duplicated:{name}:{count}")
+    for value in decoded:
+        schema_like = "name" in value and ("description" in value or "parameters" in value)
+        if schema_like and not any(strict_equal(value, f) for f in functions):
+            defects.append(f"tool_schema_extra:{value.get('name')}")
+    return sorted(set(defects))
+
+
+def check_contract(
+    rendered: str | None,
+    messages: list[dict[str, Any]],
+    tools: list[dict[str, Any]],
+    records: dict[int, serialize.Record] | None,
+    fmt: str | dict[int, str],
+    payload: str | None = None,
+    payload_index: int | None = None,
+    profile: str = "qwen3",
+) -> list[str]:
+    """Defects against the measurement contract for one rendered prompt; [] if none.
+
+    ``fmt`` is one format for every tool message, or a format per tool-message index (for
+    a carrier-only intervention). ``records=None`` skips the record items (K5's record
+    equality and K7) for stored prompts whose records cannot be recovered; the skip must be
+    reported. ``profile`` names the pinned template's layout
+    (``contract.PROFILES``): tool results in a user turn are legitimate where the template
+    puts them there.
+    """
+    from prompt_injection_eval.pilot.contract import PROFILES
+
+    if rendered is None:
+        return [PROMPT_NOT_RETURNED]
+    p = PROFILES[profile]
+    formats = (
+        fmt
+        if isinstance(fmt, dict)
+        else {i: fmt for i, m in enumerate(messages) if m["role"] == "tool"}
+    )
+    defects: list[str] = []
+
+    turns = _turns(rendered, p)
+    header = p.turn_start.format(role=turns[0][0]) if turns else ""
+    if not turns or not rendered.startswith(header):
+        defects.append("text_before_first_turn")
+    # The last header must be the assistant's, followed by exactly the rest of the
+    # generation header (for Qwen3, the empty think block) and nothing else.
+    tail = p.generation_header[len(p.turn_start.format(role="assistant")) :]
+    if not (turns and turns[-1][0] == "assistant" and rendered[turns[-1][1] :] == tail):
+        defects.append("generation_header_missing")
+    body_turns = turns[:-1] if "generation_header_missing" not in defects else turns
+    bodies = []
+    for position, (role, start, end) in enumerate(body_turns):
+        text = rendered[start:end]
+        if not text.endswith(p.turn_end):
+            defects.append(f"turn_not_closed:{position}:{role}")
+            bodies.append((role, text))
+        else:
+            bodies.append((role, text[: -len(p.turn_end)]))
+
+    expected = _expected_turns(messages, p)
+    if [r for r, _ in expected] != [r for r, _ in bodies]:
+        defects.append(
+            "role_sequence:"
+            + ",".join(r for r, _ in expected)
+            + "!="
+            + ",".join(r for r, _ in bodies)
+        )
+        return sorted(set(defects))
+
+    for (_, indices), (_, body) in zip(expected, bodies, strict=True):
+        first = messages[indices[0]]
+        if first["role"] == "system":
+            if not body.lstrip().startswith(first["content"].strip()):
+                defects.append("system_text_altered")
+            defects += _schema_defects(body, tools)
+        elif first["role"] == "user":
+            if body.strip() != first["content"].strip():
+                defects.append(f"user_message_altered:{indices[0]}")
+        elif first["role"] == "assistant":
+            found, rest = _calls_in(body, p)
+            sent = []
+            for call in first.get("tool_calls") or []:
+                arguments = call["function"]["arguments"]
+                if isinstance(arguments, str):
+                    arguments = json.loads(arguments)
+                sent.append({"name": call["function"]["name"], "arguments": arguments})
+            got = [{"name": c.get("name"), "arguments": c.get("arguments")} for c in found]
+            if len(got) != len(sent):
+                defects.append(f"call_count:{indices[0]}:{len(got)}!={len(sent)}")
+            elif not all(strict_equal(g, s) for g, s in zip(got, sent, strict=True)):
+                same_set = sorted(map(json.dumps, got)) == sorted(map(json.dumps, sent))
+                kind = "call_order" if same_set else "call_altered"
+                defects.append(f"{kind}:{indices[0]}")
+            if rest.strip() != (first.get("content") or "").strip():
+                defects.append(f"assistant_text_altered:{indices[0]}")
+        else:  # a tool turn
+            blocks = [
+                p.tool_block_open + messages[i]["content"] + p.tool_block_close for i in indices
+            ]
+            want = p.tool_turn_prefix + p.tool_block_separator.join(blocks)
+            for i in indices:
+                content = messages[i]["content"]
+                if records is None:  # caller cannot supply records: item skipped, not passed
+                    continue
+                record = records.get(i)
+                if record is None or serialize.serialize(record, formats[i]) != content:
+                    defects.append(f"result_is_not_the_record:{i}")
+                elif formats[i] == "json":
+                    try:
+                        if not strict_equal(json.loads(content), record):
+                            defects.append(f"result_not_decodable:{i}")
+                    except ValueError:
+                        defects.append(f"result_not_decodable:{i}")
+            if body != want:
+                count = body.count(p.tool_block_open)
+                if count != len(indices):
+                    defects.append(f"result_count:{indices[0]}:{count}!={len(indices)}")
+                missing = [i for i, b in zip(indices, blocks, strict=True) if b not in body]
+                defects += [f"result_missing_or_altered:{i}" for i in missing]
+                if not missing and count == len(indices):
+                    defects.append(f"result_order_or_layout:{indices[0]}")
+            if payload is not None and payload_index in indices and records is not None:
+                record = records.get(payload_index) or {}
+                if not any(payload.strip() in s for s in _record_strings(record)):
+                    defects.append("payload_not_in_record")
+                else:
+                    block = blocks[indices.index(payload_index)]
+                    where = body.find(block)
+                    span = block if where >= 0 else ""
+                    if not _in_order(payload_in_format(payload, formats[payload_index]), span):
+                        defects.append("payload_not_in_prompt")
+    if payload is not None and payload_index is None:
+        defects.append("payload_has_no_carrier")
+    return sorted(set(defects))
