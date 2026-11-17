@@ -68,6 +68,11 @@ class Settings:
     think: bool | None = None
     max_rounds: int = 15
     timeout_seconds: float = 300.0
+    # Stage 1 (2026-11-17). With a template profile the contract check (delivery.check_contract)
+    # replaces the archived check, and composite formats ("json@text") and "quoted" are allowed.
+    # Left at their defaults, neither field enters a fingerprint, so pilot hashes are unchanged.
+    profile: str | None = None
+    study: str = STUDY
 
 
 class _Abort(Exception):
@@ -89,7 +94,7 @@ class _Setup:
 
 
 def _setup(spec: Spec) -> _Setup:
-    if spec.mode not in MODES or spec.fmt not in FORMATS:
+    if spec.mode not in MODES or not _known_format(spec.fmt):
         raise PilotError(f"Unknown mode or format in {spec}.")
     s = adapter.suite(spec.suite)
     if spec.mode in ("direct", "twin"):
@@ -113,7 +118,12 @@ def _setup(spec: Spec) -> _Setup:
         if spec.injection_task is None or spec.attack is None:
             raise PilotError("attack needs an attacker goal and an attack.")
         goal = s.injection_tasks[spec.injection_task]
-        payload = attacks.render(spec.attack, goal.GOAL)
+        if spec.attack.startswith("forged_"):
+            from prompt_injection_eval.pilot import stage1
+
+            payload = stage1.render(spec, goal.GOAL)
+        else:
+            payload = attacks.render(spec.attack, goal.GOAL)
         injections = dict.fromkeys(plan.vectors, payload)
     env = task.init_environment(adapter.environment(spec.suite, injections))
     prefix = []
@@ -144,7 +154,11 @@ def _static_inputs(spec: Spec, settings: Settings, setup: _Setup) -> dict[str, A
         "payload": setup.payload,
         "initial_state_sha256": adapter.state_sha256(setup.environment),
         "settings": {
-            k: v for k, v in asdict(settings).items() if k not in ("label", "timeout_seconds")
+            k: v
+            for k, v in asdict(settings).items()
+            if k not in ("label", "timeout_seconds")
+            and not (k == "profile" and v is None)
+            and not (k == "study" and v == STUDY)
         },
     }
 
@@ -166,8 +180,28 @@ def _reference_state(setup: _Setup, spec: Spec) -> str:
     return adapter.state_sha256(fresh.environment)
 
 
+def _known_format(fmt: str) -> bool:
+    if fmt in FORMATS:
+        return True
+    carrier, _, context = fmt.partition("@")
+    allowed = (*FORMATS, serialize.QUOTED)
+    return carrier in allowed and (context in allowed or (not context and "@" not in fmt))
+
+
+def tool_format(fmt: str, index: int, carrier: int | None) -> str:
+    """The representation of the tool message at ``index``: ``carrier@context`` formats put
+    the carrier (the result at the injection point) in one and every other result in the other."""
+    head, _, context = fmt.partition("@")
+    if not context:
+        return head
+    return head if index == carrier else context
+
+
 def to_wire(
-    messages: list[Any], records: dict[int, serialize.Record], fmt: str
+    messages: list[Any],
+    records: dict[int, serialize.Record],
+    fmt: str,
+    carrier: int | None = None,
 ) -> list[dict[str, Any]]:
     """AgentDojo messages as chat-completion messages, tool results in ``fmt``."""
     from agentdojo.types import get_text_content_as_str
@@ -181,7 +215,9 @@ def to_wire(
                     "role": "tool",
                     "tool_call_id": message["tool_call_id"],
                     "name": message["tool_call"].function,
-                    "content": serialize.serialize(records[index], fmt),
+                    "content": serialize.serialize(
+                        records[index], tool_format(fmt, index, carrier)
+                    ),
                 }
             )
             continue
@@ -241,6 +277,9 @@ def run(
     env = setup.environment
     pre = env.model_copy(deep=True)
     payload_index = 3 + 2 * setup.plan.index if setup.payload is not None and setup.plan else None
+    carrier_index = 3 + 2 * setup.plan.index if setup.plan and spec.mode in RESUMED else None
+    if spec.fmt not in FORMATS and settings.profile is None:
+        raise PilotError(f"Format {spec.fmt!r} needs a template profile (contract check).")
     records: dict[int, serialize.Record] = {}
     turns: list[dict[str, Any]] = []
     prompts: list[str | None] = []
@@ -249,7 +288,8 @@ def run(
     def formatter(result: Any) -> str:
         record = serialize.canonical(result)
         queue.append(record)
-        return serialize.serialize(record, spec.fmt)
+        # AgentDojo's own copy of the content; what the model sees is built by to_wire.
+        return serialize.serialize(record, tool_format(spec.fmt, -1, carrier_index))
 
     executor = ToolsExecutor(formatter)
 
@@ -276,7 +316,7 @@ def run(
     class Model(BasePipelineElement):
         def query(self, query, runtime, env, messages=(), extra_args=None):  # type: ignore[no-untyped-def]
             step = len(turns)
-            wire = to_wire(list(messages), records, spec.fmt)
+            wire = to_wire(list(messages), records, spec.fmt, carrier_index)
             timeout = settings.timeout_seconds
             if deadline is not None:
                 left = deadline - time.monotonic()
@@ -307,9 +347,26 @@ def run(
             meta = dict(response.provider_metadata or {})
             rendered = meta.get("rendered_prompt")
             rendered = rendered if isinstance(rendered, str) else None
-            defects = delivery.check(
-                rendered, wire, tools, records, spec.fmt, setup.payload, payload_index
-            )
+            if settings.profile is None:
+                defects = delivery.check(
+                    rendered, wire, tools, records, spec.fmt, setup.payload, payload_index
+                )
+            else:
+                formats = {
+                    i: tool_format(spec.fmt, i, carrier_index)
+                    for i, m in enumerate(wire)
+                    if m["role"] == "tool"
+                }
+                defects = delivery.check_contract(
+                    rendered,
+                    wire,
+                    tools,
+                    records,
+                    formats,
+                    setup.payload,
+                    payload_index,
+                    profile=settings.profile,
+                )
             calls, summaries, bad_json, unknown = [], [], 0, 0
             for position, call in enumerate(meta.get("tool_calls") or []):
                 name = call.get("name") or EMPTY_FUNCTION_NAME
@@ -380,7 +437,7 @@ def run(
             return query, runtime, env, [*messages, message], extra_args or {}
 
     trace: dict[str, Any] = {
-        "study": STUDY,
+        "study": settings.study,
         "unit_key": spec.key(),
         **asdict(spec),
         "condition": spec.condition(),
@@ -477,7 +534,7 @@ def run(
                 "hit_round_limit": bool(messages and messages[-1]["role"] != "assistant")
                 or bool(messages[-1].get("tool_calls")),
             },
-            "messages": to_wire(messages, records, spec.fmt),
+            "messages": to_wire(messages, records, spec.fmt, carrier_index),
             "timestamp": datetime.now(UTC).isoformat(timespec="seconds"),
         }
     )

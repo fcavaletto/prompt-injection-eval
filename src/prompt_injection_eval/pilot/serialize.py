@@ -53,12 +53,17 @@ def to_json(record: Record) -> str:
     return json.dumps(record, ensure_ascii=False)
 
 
+QUOTED = "quoted"  # Stage 1 only (docs/protocol-stage1.md); not a pilot format
+
+
 def serialize(record: Record, fmt: str) -> str:
     if fmt == "json":
         return to_json(record)
     if fmt == "text":
         return to_text(record)
-    raise PilotError(f"Unknown format {fmt!r}; expected one of {FORMATS}.")
+    if fmt == QUOTED:
+        return to_quoted(record)
+    raise PilotError(f"Unknown format {fmt!r}; expected one of {(*FORMATS, QUOTED)}.")
 
 
 def _literal(value: Any) -> str:
@@ -199,3 +204,91 @@ def round_trips(record: Record) -> bool:
         json.loads(to_json(record)) == record
         and from_text(to_text(record), shape(record)) == record
     )
+
+
+# ---- Labelled text with JSON-quoted string values (Stage 1) ------------------------------
+#
+# The same labels, indentation, scalar spellings and empty marker as ``to_text``. The only
+# change: every string value is written as a JSON string literal (quoted, with ``"``, ``\``
+# and control characters escaped, so a newline is the two characters ``\n``). A string
+# therefore always occupies one line and always starts with ``"``, and it can no longer be
+# read as a nested field or list item. The record can be read back without its shape,
+# except that an empty object and an empty list both print as ``(empty)``.
+
+
+def _quoted_emit(head: str, value: Any, depth: int, lines: list[str]) -> None:
+    pad = INDENT * depth
+    if isinstance(value, dict | list):
+        if not value:
+            lines.append(f"{pad}{head} {EMPTY}")
+            return
+        lines.append(f"{pad}{head}")
+        items = value.items() if isinstance(value, dict) else (("-", v) for v in value)
+        for key, item in items:
+            _quoted_emit(f"{key}:" if isinstance(value, dict) else "-", item, depth + 1, lines)
+    elif isinstance(value, str):
+        lines.append(f"{pad}{head} {json.dumps(value, ensure_ascii=False)}")
+    else:
+        lines.append(f"{pad}{head} {_literal(value)}")
+
+
+def to_quoted(record: Record) -> str:
+    if not record:
+        return EMPTY
+    lines: list[str] = []
+    for key, item in record.items():
+        _quoted_emit(f"{key}:", item, 0, lines)
+    return "\n".join(lines)
+
+
+def _quoted_scalar(rest: str) -> Any:
+    if rest.startswith('"'):
+        return json.loads(rest)
+    if rest == "none":
+        return None
+    if rest in ("true", "false"):
+        return rest == "true"
+    if rest == EMPTY:
+        return {}
+    value = json.loads(rest)
+    if not isinstance(value, int | float) or isinstance(value, bool):
+        raise PilotError(f"Not a scalar: {rest[:80]!r}")
+    return value
+
+
+def from_quoted(text: str) -> Record:
+    """Read ``to_quoted`` output back with no shape given. ``(empty)`` reads as ``{}``."""
+    if text == EMPTY:
+        return {}
+    lines = text.split("\n")
+    at = 0
+
+    def block(depth: int) -> Any:
+        nonlocal at
+        pad = INDENT * depth
+        first = lines[at][len(pad) :]
+        is_list = first == "-" or first.startswith("- ")
+        out: Any = [] if is_list else {}
+        while at < len(lines) and lines[at].startswith(pad) and not lines[at].startswith(pad + " "):
+            line = lines[at][len(pad) :]
+            if is_list:
+                if not (line == "-" or line.startswith("- ")):
+                    raise PilotError(f"Line {at + 1}: expected a list item.")
+                key, rest = None, line[2:] if line != "-" else None
+            else:
+                key, sep, rest_ = line.partition(":")
+                if not sep:
+                    raise PilotError(f"Line {at + 1}: expected a label.")
+                rest = rest_[1:] if rest_.startswith(" ") else (None if rest_ == "" else rest_)
+            at += 1
+            value = block(depth + 1) if rest is None else _quoted_scalar(rest)
+            if is_list:
+                out.append(value)
+            else:
+                out[key] = value
+        return out
+
+    record = block(0)
+    if at != len(lines) or not isinstance(record, dict):
+        raise PilotError(f"Unread text from line {at + 1}.")
+    return record

@@ -1,0 +1,76 @@
+{
+ "price_usd_per_hour": 2.69,
+ "price_source": "RunPod list-gpu-types, RTX PRO 6000 Blackwell Server Edition, Secure, read 2026-11-17",
+ "measured_from_pilot": {
+  "banking_instruction": 4.076388888888889,
+  "slack_instruction": 7.447619047619048,
+  "banking_one_line_proxy_for_forged": 2.5034722222222223,
+  "banking_clean": 2.0625,
+  "slack_clean": 4.785714285714286,
+  "throughput_calls_per_second": {
+   "min": 7.09,
+   "max": 8.21
+  },
+  "startup_minutes": 5.98
+ },
+ "stage1": {
+  "episodes": 858,
+  "low": {
+   "model_calls": 2145,
+   "calls_per_second": 7.1,
+   "inference_minutes": 5.0,
+   "pod_minutes": 33.0,
+   "usd": 1.49
+  },
+  "central": {
+   "model_calls": 4506,
+   "calls_per_second": 7.1,
+   "inference_minutes": 10.6,
+   "pod_minutes": 38.5,
+   "usd": 1.74
+  },
+  "high": {
+   "model_calls": 13230,
+   "calls_per_second": 3.55,
+   "inference_minutes": 62.1,
+   "pod_minutes": 123.1,
+   "usd": 5.56
+  }
+ },
+ "stage1_proposed_cap_usd": 8.0,
+ "adaptive": {
+  "central": {
+   "victim_episodes": 3024,
+   "victim_model_calls": 18144,
+   "attacker_proposals": 192,
+   "attacker_tokens_estimate": {
+    "input": 864000.0,
+    "output": 115200.0
+   },
+   "attacker_minutes": 5,
+   "pod_minutes": 94.1,
+   "usd": 4.25
+  },
+  "high": {
+   "victim_episodes": 3024,
+   "victim_model_calls": 48384,
+   "attacker_proposals": 192,
+   "attacker_tokens_estimate": {
+    "input": 864000.0,
+    "output": 115200.0
+   },
+   "attacker_minutes": 16,
+   "pod_minutes": 350.8,
+   "usd": 15.85
+  }
+ },
+ "adaptive_proposed_cap_usd": 18.0,
+ "assumptions": [
+  "two pod sessions per stage (one per batch, or search then held-out)",
+  "per session: startup + 1 min rendering check + 2 min idle + 5 min shutdown margin",
+  "central throughput = Granite's sustained Slack rate; high = half (a 2x slower host was observed)",
+  "high case: every attack and forged episode reaches the 15-round limit (16 calls)",
+  "high case adds 10% reruns and one failed start (15 min)",
+  "adaptive: attacker Qwen3-8B co-hosted on the same card; victim throughput 0.8x"
+ ]
+}

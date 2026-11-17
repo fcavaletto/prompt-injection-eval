@@ -120,7 +120,12 @@ class OpenAICompatProvider:
                 break
             except httpx.TimeoutException as exc:
                 return self._failure(request, "timeout", exc, started)
-            except httpx.ConnectError as exc:
+            except (httpx.ConnectError, httpx.RemoteProtocolError) as exc:
+                # RemoteProtocolError: a proxy closed a pooled connection before any
+                # response ("Server disconnected without sending a response"). Generation
+                # has no server-side effect, so the request is retried like a refused
+                # connection (bounded by _RETRIES). Added 2026-11-17 for Stage 1; the
+                # archived pilot recorded these as infra_error and reran them on resume.
                 if attempt < _RETRIES:
                     time.sleep(self.retry_wait_seconds * attempt)
                     continue

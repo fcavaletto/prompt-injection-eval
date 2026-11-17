@@ -239,3 +239,25 @@ def test_tool_choice_auto_and_parsed_calls_are_recorded() -> None:
     assert response.text == "" and response.error_type is None
     assert response.provider_metadata is not None
     assert response.provider_metadata["tool_calls"] == [{"name": "Grant", "arguments": "{}"}]
+
+
+def test_a_dropped_pooled_connection_is_retried_then_reported() -> None:
+    """A proxy closing a pooled connection (RemoteProtocolError) is retried, bounded."""
+    calls = {"n": 0}
+
+    def flaky(request: httpx.Request) -> httpx.Response:
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise httpx.RemoteProtocolError("Server disconnected without sending a response.")
+        return httpx.Response(200, json=_completion("Fine."))
+
+    response = _provider(flaky).generate(_request())
+    assert response.error_type is None and response.text == "Fine." and calls["n"] == 2
+
+    def always(request: httpx.Request) -> httpx.Response:
+        calls["n"] += 1
+        raise httpx.RemoteProtocolError("Server disconnected without sending a response.")
+
+    calls["n"] = 0
+    failed = _provider(always).generate(_request())
+    assert failed.error_type == "connection" and calls["n"] == 3
