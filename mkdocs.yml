@@ -24,6 +24,9 @@ nav:
   - Plans:
       - Stage 1 protocol (current): protocol-stage1.md
       - Adaptive follow-up: protocol-adaptive.md
+      - OpenRouter screen: protocol-openrouter.md
+      - Spending proposal (2026-11-17): spending-proposal-2026-11-17.md
+      - Human-review packet: human-review-packet.md
   - Methods:
       - Measurement contract: measurement-contract.md
       - Pilot design: pilot-design.md

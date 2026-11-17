@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **Launch package (2026-11-17, offline; nothing run, nothing paid).**
+  - **Stage 1:** `pie stage1 plan/run/report` with analysis and progression rules; per-round rescoring by verified replay; a frozen 858-line manifest. Registered as Amendment 4 at `3e3e3dd`.
+  - **Scoring:** C25 (a trace-scored goal counted unexecuted calls), and new studies score executed calls only.
+  - **OpenRouter screen:** adapter with pinned routing and a spend guard, a request-level delivery check, and a 5-case, 60-episode design. Mocked tests only.
+  - **Records:** population reconciliation for the prompt checks; a threat-model table for the forged-data pathways; a consolidated spending proposal; a human-review packet with concealed verdicts.
+
 - **Offline review package (2026-11-17).** No model was called and nothing was rented.
   - **Claims:** a claim–evidence table (`docs/claim-evidence.md`) and corrections C18 to C24.
   - **Exploratory tables:** the pilot's omitted tables from one entry point (`scripts/pilot_supplementary.py`): banking attack × format matrix, one-line twin contrasts, joint outcomes, per-goal effects, round-limit and token summaries, clustered repeatability. The registered figures re-derive exactly.

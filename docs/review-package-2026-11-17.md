@@ -167,3 +167,42 @@ The [adaptive follow-up](protocol-adaptive.md) keeps same-payload crossover (S) 
 2. Authorize Stage 1 spending, up to the proposed $8, after L4 to L8.
 3. Arrange the independent human review.
 4. Merge this branch, which was not done.
+
+## 9. Addendum: launch package (later on 2026-11-17)
+
+Still offline: nothing run, nothing paid. The configuration (`src/`, `data/`) is frozen at `3e3e3dd`; later commits do not touch it.
+
+**Stage 1, ready to run.**
+
+- `pie stage1 plan/run/report`, with analysis and progression rules.
+- Registered as [Amendment 4](preregistration.md). Its manifest is `data/stage1/manifest.jsonl`: 858 lines, SHA-256 `596f848d…e261`.
+- Primary contrasts P1 to P3, secondary S1 to S8 with U, B and F, exploratory per-round measures.
+- Batches stay inside their pair.
+- Data roles: Stage 1's pairs become development data, and `held-out-evaluation-v1` (workspace and travel) is untouched.
+
+**Per-round rescoring.**
+
+- Rounds are defined as a response plus its tool-call batch, with a per-call variant.
+- States come only from replaying recorded calls, never from narration. All 4,062 archived attack episodes verify by final-state hash.
+- "Not successful within the observed budget" is kept apart from "would never succeed".
+
+**Two scoring findings.**
+
+- **C25:** three Granite episodes were scored with unexecuted calls. New runs score executed calls only.
+- **H19:** goal predicates can miss real unauthorized actions. One episode paid the attacker $1,100 and was scored "not attacked".
+
+**Reporting.**
+
+- Prompt-verification populations are reconciled ([contract](measurement-contract.md) §6): 21,321 rest on reconstruction, and 787 on retained prompts.
+- Mutation results are stated as evidence against the tested fault classes only.
+- Forged-data pathways have a threat-model table with reachability and validity judged separately ([Stage 1](protocol-stage1.md) §4).
+
+**OpenRouter screen.**
+
+- [Protocol](protocol-openrouter.md). Identifiers, endpoints, parameters and prices come from current metadata.
+- 5 eligible cases, not 24, so 60 episodes plus 4 calibration.
+- The adapter pins routing, guards spending, records everything except credentials, and verifies delivery at request level. It is tested offline with mocks.
+
+**Spending.** One [proposal](spending-proposal-2026-11-17.md) with three gates: $8 (Stage 1), $5 (screen) and $18 (adaptive, conditional).
+
+**Review.** A [human-review packet](human-review-packet.md) with concealed expected verdicts; answers SHA-256 `36ba20b5…f0ed`. No one has been contacted.

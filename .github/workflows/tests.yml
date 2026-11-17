@@ -43,4 +43,4 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev,pilot]"
       - name: Pilot tests
-        run: python -m pytest tests/test_pilot.py tests/test_pilot_analysis.py tests/test_pilot_exploratory.py tests/test_pilot_serialize.py tests/test_wp7.py tests/test_pilot_supplementary.py tests/test_checker_contract.py tests/test_stage1.py --no-cov
+        run: python -m pytest tests/test_pilot.py tests/test_pilot_analysis.py tests/test_pilot_exploratory.py tests/test_pilot_serialize.py tests/test_wp7.py tests/test_pilot_supplementary.py tests/test_checker_contract.py tests/test_stage1.py tests/test_stage1_analysis.py tests/test_openrouter.py --no-cov

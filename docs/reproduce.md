@@ -168,7 +168,13 @@ HF_HUB_OFFLINE=1 python scripts/build_checker_corpus.py
 # Stage 1 design and cost (nothing is run)
 python -c "import json; from prompt_injection_eval.pilot import stage1; print(json.dumps(stage1.design()['counts']))"
 python scripts/cost_stage1.py --price <USD per hour, read today> --output /tmp/cost.json
-pytest tests/test_pilot_supplementary.py tests/test_checker_contract.py tests/test_stage1.py
+python scripts/pilot_rescore.py results-published/pilot-2026-11-16 --output /tmp/rescoring
+pie stage1 plan --output-dir /tmp/stage1-plan          # must equal data/stage1/
+pie stage1 run --batch 0 --provider scripted --scripted-policy obedient --output-dir /tmp/s1/batch-0
+pie stage1 run --batch 1 --provider scripted --scripted-policy obedient --output-dir /tmp/s1/batch-1
+pie stage1 report --batch-dir /tmp/s1/batch-0 --batch-dir /tmp/s1/batch-1 --output-dir /tmp/s1/report
+pie screen plan --output-dir /tmp/screen-plan           # must equal data/screen/
+pytest tests/test_pilot_supplementary.py tests/test_checker_contract.py tests/test_stage1.py tests/test_stage1_analysis.py tests/test_openrouter.py
 ```
 
 ## Without a model

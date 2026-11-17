@@ -176,3 +176,21 @@ def test_composite_formats_need_the_contract_check() -> None:
     spec = episode.Spec("banking", "attack", "json@text", user, goal, attacks.BASELINE, 0)
     with pytest.raises(Exception, match="profile"):
         episode.run(spec, ScriptedProvider("benign"), episode.Settings(model="m", label="l"))
+
+
+def test_the_committed_manifest_is_the_frozen_schedule() -> None:
+    from dataclasses import asdict
+
+    lines = [
+        json.loads(x)
+        for x in (ROOT / "data" / "stage1" / "manifest.jsonl").read_text().splitlines()
+    ]
+    expected = [
+        {"batch": b, "position": i, "family": stage1.family(u), **asdict(u)}
+        for b in (0, 1)
+        for i, u in enumerate(stage1.schedule(b))
+    ]
+    assert lines == expected and len(lines) == 858
+    roles = stage1.data_roles()
+    assert roles[stage1.HELD_OUT]["suites"] == ["workspace", "travel"]
+    assert not {u.suite for u in stage1.units()} & {"workspace", "travel"}

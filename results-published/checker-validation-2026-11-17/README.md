@@ -38,7 +38,7 @@ Detections = rejects of mutations expected to be rejected. False alarms = reject
 
 - **The archived pilot check could not have detected some defect classes.** It did not check roles or turn structure. It accepted duplicated schemas, calls and results, `1` for `true` and `1.0`, and a missing generation header.
 - **These gaps do not invalidate the archived pilot outcomes.**
-  - All 21,321 turns of scored pilot episodes matched a local rendering with the pinned template by SHA-256 ([supplementary tables](../pilot-2026-11-16/supplementary-2026-11-17/README.md), section 7). Any of these defects would have changed the hash.
+  - All 21,321 turns of scored pilot episodes matched, by SHA-256, a local rendering of the stored conversation with the pinned template; that is a reconstruction (see the [measurement contract](../../docs/measurement-contract.md), section 6) ([supplementary tables](../pilot-2026-11-16/supplementary-2026-11-17/README.md), section 7). Any of these defects would have changed the hash.
   - The 787 kept prompts pass the repaired check.
   - So the pilot's delivery claim rests on hash equality with the pinned template, and the contract check confirms it where full prompts were kept.
   - What the hash cannot rule out is a template that itself mis-renders. The contract check guards against that only for the profiles in the specification.
@@ -50,6 +50,7 @@ Detections = rejects of mutations expected to be rejected. False alarms = reject
   - the order of the parts.
 
   It does not decode schemas for equality, and it certifies nothing beyond the one fixture.
+- **Mutation counts are evidence against the tested fault classes, not proof of completeness.** 122 of 122 means every constructed defect in these classes was detected. A defect outside them, or another instance of one, could pass.
 - **Coverage is what was tested:** these mutation classes, these two templates and the scripted stand-in, one history. No universal semantic fidelity is claimed. In particular, nothing here addresses whether a *reader* can separate data from structure; free text cannot always do so (contract, section 4).
 
 ## Reproduce

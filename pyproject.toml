@@ -92,6 +92,7 @@ select = ["E", "F", "I", "UP", "B"]
 "scripts/wp7_agentdojo_traces.py" = ["E501"]
 "scripts/pilot_rescore.py" = ["E501"]
 "scripts/cost_screen.py" = ["E501"]
+"scripts/build_review_packet.py" = ["E501"]
 "notebooks/*.ipynb" = ["E501"]
 
 [tool.pytest.ini_options]

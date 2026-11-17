@@ -107,10 +107,31 @@ to_text({"a": "5"})           ==  to_text({"a": 5})
 
 ## 5. Coverage claimed after validation
 
-The checkers are claimed to detect the mutation classes above, on these histories and profiles, with the counts reported. Nothing more:
+The mutation results (122 of 122 constructed defects detected, 0 of 24 valid variants rejected) are **evidence that the checker detects the fault classes tested**: these classes, these histories, these templates. They do not show that the checker is complete. A fault outside these classes, or a different instance of one of them, may go undetected. Nothing more is claimed. In particular, not:
 
 - not other templates;
 - not other harnesses;
 - not attacks that write chat-control tokens into a payload;
 - not hosted renderers;
 - not semantic equivalence.
+
+## 6. Populations: which checker covers what, and what rests on reconstruction
+
+Added 2026-11-17. "Turns" are model requests in the pilot's new phases: Qwen's selection, Slack controls and evaluation, and all four of Granite's phases.
+
+| Population | Count | Checker that covers it | Kind of evidence |
+| --- | ---: | --- | --- |
+| Turns recorded in scored (final) traces | 21,321 | the archived `delivery.check` at run time; SHA-256 of the server's prompt against a local rendering rebuilt from the stored conversation (`verify_pilot_prompts.py`) | the run-time check saw the real prompt. The hash comparison is a **reconstruction**: it needs the stored history and the pinned template |
+| Turns recorded in superseded `infra_error` traces, history sufficient | 6 | the same | reconstruction; these episodes were never scored |
+| Turns recorded in superseded traces, history insufficient | 11 | the archived `delivery.check` at run time only | not reconstructible: the stored conversation ends at the abort |
+| Aborted requests | 6 | none | no prompt was returned, and none is recorded as a turn |
+| **Published "21,327 match by hash"** | 21,321 + 6 | | reconstruction, all of it |
+| Full server prompts retained | 787: 580 pilot, 145 F1, 62 smoke; all from scored traces | `check_contract` on the retained text itself (`kept_prompts_contract.json`). The 404 text-format prompts were checked without the record items | **retained prompt evidence** |
+| Mutation corpus | 146 constructed cases from 1 retained request | both checkers | synthetic: evidence about fault classes, not about the pilot's requests |
+
+**Which conclusions rest on which evidence:**
+
+- **"Every scored turn was delivered as the pinned template renders the stored conversation."** This rests on reconstruction plus hash equality, for all 21,321 turns. The server's prompt text was kept for only 580 of them.
+- **"The retained prompts meet the contract: roles, multiplicity, strict types, generation header."** This rests on the retained text, for 787 prompts.
+- **"Every scored turn meets the contract."** This is an **inference**, not an observation. It combines two things: hash equality with the local rendering, and the fact that the pinned templates render conversations in contract-conforming layouts. That fact was checked on the corpus base renderings and the 787 retained prompts, not on every turn. The archived run-time check did not test roles or multiplicity (C19), so it cannot supply the missing part.
+- **No conclusion rests on the 11 unreconstructible turns or the 6 aborted requests.** None of those belongs to a scored episode.
