@@ -100,8 +100,11 @@ def run_cmd(
         raise typer.Exit(code=3)
 
 
-def report(batch_dirs: list[Path], output_dir: Path) -> dict[str, Any]:
-    """Every Amendment 4 quantity from stored traces. No model call."""
+MANIFEST = Path("data/stage1/manifest.jsonl")
+
+
+def report(batch_dirs: list[Path], output_dir: Path, manifest: Path = MANIFEST) -> dict[str, Any]:
+    """Every Amendment 4 quantity from stored traces, against the frozen manifest. No model call."""
     from prompt_injection_eval.pilot import rescore, stage1
     from prompt_injection_eval.pilot import stage1_analysis as sa
     from prompt_injection_eval.pilot.analysis import latest
@@ -109,10 +112,10 @@ def report(batch_dirs: list[Path], output_dir: Path) -> dict[str, Any]:
 
     rows = [r for d in batch_dirs for r in read_traces(d / "traces.jsonl")]
     final = list(latest(rows).values())
-    planned = [u for b in (0, 1) for u in stage1.schedule(b)]
+    planned = sa.load_manifest(manifest)
     instruction = [r for r in rows if r.get("attack") in stage1.INSTRUCTION_TWINS]
-    estimates = sa.contrasts(instruction, planned_cases=24)
-    util = sa.utility(rows)
+    estimates = sa.contrasts(instruction, planned=sa.planned_pairs(planned))
+    ctrl = sa.controls(rows, planned)
     batch = sa.batches(instruction)
     forged = sa.forged(rows)
     accounting = sa.accounting(planned, rows)
@@ -131,7 +134,8 @@ def report(batch_dirs: list[Path], output_dir: Path) -> dict[str, Any]:
             "verification": "contract check on the prompt the server returned (template profile)",
         },
         "contrasts": [e.row() for e in estimates],
-        "utility": util,
+        "controls": ctrl,
+        "security_utility": sa.security_utility(rows, ctrl),
         "batches": batch,
         "forged": forged,
         "termination": sa.termination(rows),
@@ -141,21 +145,22 @@ def report(batch_dirs: list[Path], output_dir: Path) -> dict[str, Any]:
             "state_verified": sum(r.verified for r in rescored),
             "archived_disagrees": sum(r.archived_agrees is False for r in rescored),
         },
-        "progression": sa.progression(estimates, util, batch, forged, delivery_ok),
+        "progression": sa.progression(estimates, ctrl, batch, forged, delivery_ok),
     }
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "report.json").write_text(json.dumps(out, indent=1, default=str) + "\n")
     lines = [
         "# Stage 1 report",
         "",
-        "| Contrast | Tier | Pairs | Estimate | 95% interval | Threshold |",
-        "|---|---|---:|---:|---|---:|",
+        "| Contrast | Tier | Pairs complete in both batches | Estimate | 95% interval | Missing-outcome bounds | Threshold |",
+        "|---|---|---:|---:|---|---|---:|",
     ]
     for e in out["contrasts"]:
         iv = e["interval_pts"]
         lines.append(
-            f"| {e['name']} | {e['tier']} | {e['cases']}/{e['planned_cases']} | {e['estimate_pts']} | "
-            f"{'' if iv is None else f'{iv[0]} to {iv[1]}'} | {e['threshold_pts']} |"
+            f"| {e['name']} | {e['tier']} | {e['cases_complete_in_all_batches']}/{e['planned_cases']} | {e['estimate_pts']} | "
+            f"{'' if iv is None else f'{iv[0]} to {iv[1]}'} | "
+            f"{e['missing_outcome_bounds_pts'][0]} to {e['missing_outcome_bounds_pts'][1]} | {e['threshold_pts']} |"
         )
     lines += ["", "## Progression (Amendment 4)", ""]
     lines += [
@@ -170,7 +175,8 @@ def report(batch_dirs: list[Path], output_dir: Path) -> dict[str, Any]:
 def report_cmd(
     batch_dir: list[Path] = typer.Option(..., "--batch-dir"),
     output_dir: Path = typer.Option(..., "--output-dir"),
+    manifest: Path = typer.Option(MANIFEST, "--manifest"),
 ) -> None:
     """Write report.json and report.md for the given batch directories."""
-    out = report(batch_dir, output_dir)
+    out = report(batch_dir, output_dir, manifest)
     typer.echo(json.dumps(out["progression"], indent=1))

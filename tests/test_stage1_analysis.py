@@ -73,25 +73,134 @@ def test_a_planted_interaction_is_recovered_and_covered() -> None:
 
 def test_analysis_reproduces_the_supplementary_twin_interaction() -> None:
     rows = runner.read_traces(GRANITE / "select" / "traces.jsonl")
-    found = {e.name[:2]: e for e in sa.contrasts(rows, planned_cases=72, batches=(0,))}
+    found = {e.name[:2]: e for e in sa.contrasts(rows, batches=(0,))}
     assert found["P1"].estimate == pytest.approx(27.78, abs=0.01)
     assert found["S2"].estimate == pytest.approx(-11.11, abs=0.01)
     lo, hi = found["P1"].interval
     assert 10 < lo < 15 and 40 < hi < 47  # task bootstrap in the supplementary: +12.3, +44.0
 
 
+def _controls(
+    planned: list, success: float = 1.0, drop: int = 0, skip_fmt: str | None = None
+) -> list[dict]:
+    rows = []
+    for u in planned:
+        if u.mode != "clean" or u.fmt == skip_fmt:
+            continue
+        if drop:
+            drop -= 1
+            continue
+        rows.append(
+            {
+                "unit_key": u.key(),
+                "mode": "clean",
+                "status": "completed",
+                "suite": u.suite,
+                "user_task": u.user_task,
+                "fmt": u.fmt,
+                "utility": success >= 0.5,
+            }
+        )
+    return rows
+
+
+PLANNED = [u for b in (0, 1) for u in stage1.schedule(b)]
+GOOD_CTRL = sa.controls(_controls(PLANNED), PLANNED)
+GOOD_BATCH = {"cell_share": 0.0}
+GOOD_FORGED = {"feasible_on_accepted": True}
+
+
 def test_progression_does_not_turn_on_significance_alone() -> None:
-    rates = {(a, c): 0.5 for a in (sa.MULTI, sa.ONE) for c in sa.C}
-    rows = _synthetic(rates)
-    estimates = sa.contrasts(rows)
-    util = [{"tasks": 27, "within_gap_limit": False}]  # a benign control failing
-    out = sa.progression(estimates, util, {"cell_share": 0.0}, [], delivery_verified=True)
-    assert out["progress_to_adaptive_proposal"] is False
-    out = sa.progression(
-        estimates, [{"tasks": 27, "within_gap_limit": True}], {"cell_share": 0.2}, [], True
+    estimates = sa.contrasts(_synthetic({(a, c): 0.5 for a in (sa.MULTI, sa.ONE) for c in sa.C}))
+    assert GOOD_CTRL["functioning"]
+    bad = sa.controls(_controls(PLANNED, success=0.0), PLANNED)
+    assert (
+        sa.progression(estimates, bad, GOOD_BATCH, GOOD_FORGED, True)[
+            "progress_to_adaptive_proposal"
+        ]
+        is False
     )
-    assert out["progress_to_adaptive_proposal"] is False  # unstable instrument
-    assert "launches nothing" in out["note"]
+    out = sa.progression(estimates, GOOD_CTRL, {"cell_share": 0.2}, GOOD_FORGED, True)
+    assert out["progress_to_adaptive_proposal"] is False and "launches nothing" in out["note"]
+
+
+def test_a_pair_missing_a_whole_batch_is_not_a_complete_primary_observation() -> None:
+    rows = _synthetic({(a, c): 0.5 for a in (sa.MULTI, sa.ONE) for c in sa.C})
+    gone = next(iter(stage1.pairs()["banking"]))
+    rows = [
+        r for r in rows if not ((r["user_task"], r["injection_task"]) == gone and r["run"] == 1)
+    ]
+    p1 = next(
+        e for e in sa.contrasts(rows, planned=sa.planned_pairs(PLANNED)) if e.name.startswith("P1")
+    )
+    assert p1.cases == 23 and p1.partial_cases == 24 and p1.planned_cases == 24
+    assert p1.interpretable is False  # 23/24 < 98%
+    lo, hi = p1.bounds
+    assert lo < hi and lo <= (p1.estimate or 0) <= hi
+    out = sa.progression([p1], GOOD_CTRL, GOOD_BATCH, {"feasible_on_accepted": False}, True)
+    assert out["informative_primary"] == []
+
+
+def test_an_absent_condition_has_planned_pairs_and_widest_bounds() -> None:
+    rows = [
+        r
+        for r in _synthetic({(a, c): 0.5 for a in (sa.MULTI, sa.ONE) for c in sa.C})
+        if r["fmt"] != sa.C[3]
+    ]
+    p1 = next(
+        e for e in sa.contrasts(rows, planned=sa.planned_pairs(PLANNED)) if e.name.startswith("P1")
+    )
+    assert p1.cases == 0 and p1.estimate is None and not p1.interpretable
+    assert p1.bounds[1] - p1.bounds[0] == pytest.approx(200.0)
+
+
+def test_the_control_gate_has_three_separate_parts() -> None:
+    assert sa.controls(_controls(PLANNED, drop=1), PLANNED)["complete"] is False
+    absent = sa.controls(_controls(PLANNED, skip_fmt=sa.C[4]), PLANNED)
+    assert absent["complete"] is False and absent["differences_within_limit"] is False
+    zero = sa.controls(_controls(PLANNED, success=0.0), PLANNED)
+    assert zero["complete"] and zero["differences_within_limit"] and zero["adequate"] is False
+    assert zero["functioning"] is False
+
+
+def test_forged_progression_uses_the_accepted_pathways_only() -> None:
+    rows = []
+    for u in PLANNED:
+        if u.attack in stage1.FORGED_TWINS:
+            pid = stage1.pathway_id(u.suite, u.user_task, u.injection_task)
+            rows.append(
+                {
+                    "unit_key": u.key(),
+                    "mode": "attack",
+                    "attack": u.attack,
+                    "status": "completed",
+                    "suite": u.suite,
+                    "user_task": u.user_task,
+                    "injection_task": u.injection_task,
+                    "fmt": u.fmt,
+                    "run": u.run,
+                    "security": pid in ("F4", "F5"),
+                }
+            )
+    summary = sa.forged(rows)
+    assert summary["feasible_on_accepted"] is False
+    assert any((x["rate"] or 0) >= 0.10 for x in summary["all_F1_F5_exploratory"])
+    estimates = sa.contrasts(_synthetic({(a, c): 0.5 for a in (sa.MULTI, sa.ONE) for c in sa.C}))
+    assert (
+        sa.progression(estimates, GOOD_CTRL, GOOD_BATCH, summary, True)[
+            "forged_feasible_on_accepted"
+        ]
+        is False
+    )
+
+
+def test_the_manifest_is_checked_against_the_frozen_schedule(tmp_path: Path) -> None:
+    good = ROOT / "data" / "stage1" / "manifest.jsonl"
+    assert len(sa.load_manifest(good)) == 858
+    lines = good.read_text().splitlines()
+    (tmp_path / "m.jsonl").write_text("\n".join(lines[:-1]) + "\n")
+    with pytest.raises(ValueError, match="differs"):
+        sa.load_manifest(tmp_path / "m.jsonl")
 
 
 # Rescoring ---------------------------------------------------------------------------
@@ -189,7 +298,7 @@ def test_run_and_report_end_to_end_offline(tmp_path: Path) -> None:
         units,
     )
     assert again.written == 0 and again.already_done == 24
-    result = report([out_dir], tmp_path / "report")
+    result = report([out_dir], tmp_path / "report", ROOT / "data" / "stage1" / "manifest.jsonl")
     assert result["accounting"]["planned"] == 858
     assert result["accounting"]["by_status"]["completed"] == 24
     assert result["delivery"]["every_scored_request_passed_contract_check"]

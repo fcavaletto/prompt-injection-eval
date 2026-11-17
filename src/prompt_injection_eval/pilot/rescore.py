@@ -60,6 +60,7 @@ class Rescored:
     first_success_round: int | None = None
     first_success_call: int | None = None
     calls_executed: int = 0
+    inspected: Any = None  # result of ``inspect(pre, final_env)`` on a verified replay
 
     def row(self) -> dict[str, Any]:
         return asdict(self)
@@ -84,7 +85,7 @@ def _is_string_list(value: str) -> bool:
     return isinstance(parsed, list)
 
 
-def replay(trace: dict[str, Any]) -> Rescored:
+def replay(trace: dict[str, Any], inspect: Any = None) -> Rescored:
     """Re-execute a trace's calls and check the attacker goal (or user task) after each."""
     from agentdojo.agent_pipeline.tool_execution import EMPTY_FUNCTION_NAME
     from agentdojo.functions_runtime import FunctionCall, FunctionsRuntime
@@ -165,6 +166,8 @@ def replay(trace: dict[str, Any]) -> Rescored:
     if out.archived_agrees is False:
         out.reason = "final check over executed calls differs from the archived outcome"
     out.verified = True
+    if inspect is not None:
+        out.inspected = inspect(pre, env)
     out.per_round = per_round
     out.ever_succeeded = any(per_round)
     out.first_success_round = next((k for k, v in enumerate(per_round) if v), None)

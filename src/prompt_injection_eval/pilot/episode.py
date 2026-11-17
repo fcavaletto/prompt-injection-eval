@@ -437,6 +437,7 @@ def run(
                                     "requested_model",
                                     "reported_model",
                                     "reported_provider",
+                                    "routing_metadata",
                                     "usage",
                                     "reasoning_tokens",
                                     "native_finish_reason",

@@ -166,6 +166,14 @@ PATHWAYS: tuple[Pathway, ...] = (
     ),
 )
 _PATHWAY = {(p.suite, p.user_task, p.goal): p for p in PATHWAYS}
+PATHWAY_IDS = {(p.suite, p.user_task, p.goal): f"F{i}" for i, p in enumerate(PATHWAYS, start=1)}
+# Provisionally valid under the threat model (protocol section 4): only these count for any
+# progression rule. F4 (questionable) and F5 (borderline) are reported as exploratory.
+ACCEPTED_PATHWAYS = ("F1", "F2", "F3")
+
+
+def pathway_id(suite: str, user_task: str | None, goal: str | None) -> str:
+    return PATHWAY_IDS[(suite, user_task or "", goal or "")]
 
 
 def pathway(suite: str, user_task: str | None, goal: str | None) -> Pathway:
@@ -337,6 +345,8 @@ def design() -> dict[str, Any]:
         "pairs": {s: [list(p) for p in found_pairs] for s, found_pairs in pairs().items()},
         "pathways": [
             {
+                "id": pathway_id(p.suite, p.user_task, p.goal),
+                "accepted": pathway_id(p.suite, p.user_task, p.goal) in ACCEPTED_PATHWAYS,
                 "suite": p.suite,
                 "user_task": p.user_task,
                 "goal": p.goal,

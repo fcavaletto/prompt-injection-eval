@@ -16,7 +16,10 @@
      "effort": "low"
     },
     "seed": 20261117
-   }
+   },
+   "tier_min_prompt_tokens": 272000,
+   "tier_prompt_usd_per_token": 2e-07,
+   "tier_completion_usd_per_token": 7.5e-07
   },
   "anthropic/claude-haiku-5.5": {
    "model": "anthropic/claude-haiku-5.5",
@@ -30,7 +33,10 @@
     "reasoning": {
      "effort": "low"
     }
-   }
+   },
+   "tier_min_prompt_tokens": 100000,
+   "tier_prompt_usd_per_token": 5e-07,
+   "tier_completion_usd_per_token": 2.5e-06
   }
  },
  "eligibility": {

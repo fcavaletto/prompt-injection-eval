@@ -15,9 +15,11 @@ Measurement rules, each enforced here and tested offline with mocked responses:
 - **Distinct failure outcomes.** API errors, budget refusals, and model or provider
   mismatches are ``error_type`` values; a malformed tool call is a model output, not an API
   failure, and is counted by the episode.
-- **A hard spending cap.** ``SpendGuard`` reserves each attempt's worst-case cost before it
-  is sent and settles it with the reported cost afterwards, so concurrent requests cannot
-  exceed the cap.
+- **Spending.** A durable ``SpendLedger`` reserves each attempt's bounded cost before it is
+  sent and keeps it charged until the API reports the attempt's cost; a dedicated key with a
+  service-side credit limit no larger than the cap is required (``preflight``), and the key's
+  reported usage is reconciled against the ledger (``reconcile``). The local bound is stated,
+  not proved: see ``worst_case_usd``.
 - **Delivery is verified at request level only.** The provider's internal rendering of the
   conversation is not observable; no rendered prompt is returned or claimed.
 """
@@ -25,9 +27,7 @@ Measurement rules, each enforced here and tested offline with mocked responses:
 from __future__ import annotations
 
 import json
-import math
 import os
-import threading
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -36,6 +36,7 @@ import httpx
 
 from prompt_injection_eval.privacy import sanitize_text
 from prompt_injection_eval.providers.base import GenerationRequest, GenerationResponse
+from prompt_injection_eval.providers.spend_ledger import SpendLedger
 
 API_KEY_ENV = "OPENROUTER_API_KEY"
 BASE_URL = "https://openrouter.ai/api/v1"
@@ -58,6 +59,11 @@ class Endpoint:
     completion_usd_per_token: float
     supported: tuple[str, ...]
     params: dict[str, Any] = field(default_factory=dict)  # frozen, all in ``supported``
+    # Long-prompt price tier from the endpoint metadata: above this many prompt tokens the
+    # higher prices apply. The bound prices with the higher tier whenever it could apply.
+    tier_min_prompt_tokens: int = 0
+    tier_prompt_usd_per_token: float = 0.0
+    tier_completion_usd_per_token: float = 0.0
 
 
 ENDPOINTS: dict[str, Endpoint] = {
@@ -81,6 +87,9 @@ ENDPOINTS: dict[str, Endpoint] = {
             "reasoning_effort",
         ),
         params={"max_tokens": 4096, "reasoning": {"effort": "low"}, "seed": 20261117},
+        tier_min_prompt_tokens=272000,
+        tier_prompt_usd_per_token=2.0e-7,
+        tier_completion_usd_per_token=7.5e-7,
     ),
     "anthropic/claude-haiku-5.5": Endpoint(
         model="anthropic/claude-haiku-5.5",
@@ -102,51 +111,34 @@ ENDPOINTS: dict[str, Endpoint] = {
             "reasoning_effort",
         ),
         params={"max_tokens": 4096, "reasoning": {"effort": "low"}},
+        tier_min_prompt_tokens=100000,
+        tier_prompt_usd_per_token=5.0e-7,
+        tier_completion_usd_per_token=2.5e-6,
     ),
 }
 
 
-class SpendGuard:
-    """A cap in USD and on calls. Reserve the worst case before sending; settle after."""
-
-    def __init__(self, cap_usd: float, max_calls: int) -> None:
-        self.cap_usd = cap_usd
-        self.max_calls = max_calls
-        self.spent = 0.0
-        self.reserved = 0.0
-        self.calls = 0
-        self._lock = threading.Lock()
-
-    def reserve(self, worst_usd: float) -> bool:
-        with self._lock:
-            if (
-                self.calls >= self.max_calls
-                or self.spent + self.reserved + worst_usd > self.cap_usd
-            ):
-                return False
-            self.reserved += worst_usd
-            self.calls += 1
-            return True
-
-    def settle(self, reserved_usd: float, actual_usd: float) -> None:
-        with self._lock:
-            self.reserved -= reserved_usd
-            self.spent += actual_usd
-
-    def state(self) -> dict[str, float]:
-        with self._lock:
-            return {"spent_usd": self.spent, "reserved_usd": self.reserved, "calls": self.calls}
+# Tokens a provider may add around the request (tool-use instructions, role framing). Not
+# documented by OpenRouter; a stated allowance, not a measured maximum.
+PROVIDER_OVERHEAD_TOKENS = 4096
 
 
 def worst_case_usd(body: dict[str, Any], endpoint: Endpoint) -> float:
-    """An upper bound on one attempt's cost: at least 1 token per 2 characters of input."""
-    prompt_tokens = math.ceil(
-        len(json.dumps(body["messages"]) + json.dumps(body.get("tools", []))) / 2
-    )
-    return (
-        prompt_tokens * endpoint.prompt_usd_per_token
-        + body["max_tokens"] * endpoint.completion_usd_per_token
-    )
+    """The reservation for one attempt.
+
+    Input: the UTF-8 byte length of the whole request body (byte-level BPE tokenizers emit
+    at most one token per byte of text) plus ``PROVIDER_OVERHEAD_TOKENS``. Output: ``max_tokens``,
+    which OpenRouter documents as covering reasoning and visible output "on most providers".
+    Both models' tokenizers and the providers' added framing are not documented, so this is
+    a conservative bound, not a proof. The long-prompt price tier is used if it could apply.
+    """
+    prompt_tokens = len(json.dumps(body, ensure_ascii=False).encode()) + PROVIDER_OVERHEAD_TOKENS
+    out = int(body["max_tokens"])
+    price_in, price_out = endpoint.prompt_usd_per_token, endpoint.completion_usd_per_token
+    if endpoint.tier_min_prompt_tokens and prompt_tokens >= endpoint.tier_min_prompt_tokens:
+        price_in = max(price_in, endpoint.tier_prompt_usd_per_token)
+        price_out = max(price_out, endpoint.tier_completion_usd_per_token)
+    return prompt_tokens * price_in + out * price_out
 
 
 def _wire_message(message: dict[str, Any]) -> dict[str, Any]:
@@ -183,7 +175,7 @@ class OpenRouterProvider:
 
     def __init__(
         self,
-        guard: SpendGuard,
+        ledger: SpendLedger,
         api_key: str | None = None,
         client: httpx.Client | None = None,
         retry_wait_seconds: float = 2.0,
@@ -195,7 +187,7 @@ class OpenRouterProvider:
             )
         self._client = client or httpx.Client(base_url=BASE_URL)
         self._headers = {"Authorization": f"Bearer {key}", "X-OpenRouter-Metadata": "enabled"}
-        self.guard = guard
+        self.ledger = ledger
         self.retry_wait_seconds = retry_wait_seconds
 
     def body(self, request: GenerationRequest) -> dict[str, Any]:
@@ -232,17 +224,12 @@ class OpenRouterProvider:
         data: Any = None
         for attempt in range(1, _RETRIES + 1):
             worst = worst_case_usd(body, endpoint)
-            if not self.guard.reserve(worst):
+            rid = self.ledger.reserve(worst, note=request.model)
+            if rid is None:
                 attempts.append({"attempt": attempt, "outcome": "budget_exhausted"})
                 return self._failure(
-                    request,
-                    body,
-                    attempts,
-                    "budget_exhausted",
-                    "spending cap or call cap reached",
-                    started,
+                    request, body, attempts, "budget_exhausted", "cap, call cap or halt", started
                 )
-            actual = 0.0
             try:
                 response = self._client.post(
                     "/chat/completions",
@@ -250,63 +237,102 @@ class OpenRouterProvider:
                     headers=self._headers,
                     timeout=request.timeout_seconds,
                 )
-                record = {"attempt": attempt, "status": response.status_code}
-                if response.status_code in _RETRY_STATUS:
-                    attempts.append(
-                        record
-                        | {
-                            "outcome": "retryable_status",
-                            "body": sanitize_text(response.text[:300]),
-                        }
-                    )
-                    if attempt < _RETRIES:
-                        time.sleep(self.retry_wait_seconds * attempt)
-                        continue
-                    return self._failure(
-                        request,
-                        body,
-                        attempts,
-                        "http_status",
-                        f"HTTP {response.status_code}",
-                        started,
-                    )
-                if response.status_code >= 400:
-                    attempts.append(
-                        record
-                        | {"outcome": "http_error", "body": sanitize_text(response.text[:300])}
-                    )
-                    return self._failure(
-                        request,
-                        body,
-                        attempts,
-                        "http_status",
-                        f"HTTP {response.status_code}",
-                        started,
-                    )
-                data = response.json()
-                actual = _cost(data, endpoint)
-                attempts.append(record | {"outcome": "ok", "cost_usd": actual})
-                break
-            except (httpx.ConnectError, httpx.RemoteProtocolError) as exc:
+            except httpx.ConnectError as exc:
+                # The connection was refused: nothing was sent, so nothing can be billed.
+                self.ledger.release(rid, f"connect error before sending: {type(exc).__name__}")
                 attempts.append(
-                    {"attempt": attempt, "outcome": "connection", "error": type(exc).__name__}
+                    {"attempt": attempt, "outcome": "connection_refused", "reservation": rid}
                 )
                 if attempt < _RETRIES:
                     time.sleep(self.retry_wait_seconds * attempt)
                     continue
                 return self._failure(request, body, attempts, "connection", str(exc), started)
-            except httpx.TimeoutException as exc:
-                attempts.append({"attempt": attempt, "outcome": "timeout"})
-                return self._failure(request, body, attempts, "timeout", str(exc), started)
-            except ValueError as exc:
-                attempts.append({"attempt": attempt, "outcome": "invalid_json"})
-                return self._failure(
-                    request, body, attempts, "invalid_provider_json", str(exc), started
+            except (httpx.TimeoutException, httpx.RemoteProtocolError, httpx.ReadError) as exc:
+                # Sent, possibly processed and billed: stays charged until reconciled.
+                self.ledger.mark_unresolved(rid, f"{type(exc).__name__} after sending")
+                kind = "timeout" if isinstance(exc, httpx.TimeoutException) else "connection"
+                attempts.append({"attempt": attempt, "outcome": kind, "reservation": rid})
+                if kind == "connection" and attempt < _RETRIES:
+                    time.sleep(self.retry_wait_seconds * attempt)
+                    continue
+                return self._failure(request, body, attempts, kind, str(exc), started)
+            record = {"attempt": attempt, "status": response.status_code, "reservation": rid}
+            try:
+                data = response.json()
+            except ValueError:
+                data = None
+            cost = _reported_cost(data)
+            if cost is None:
+                self.ledger.mark_unresolved(rid, f"no reported cost (HTTP {response.status_code})")
+            else:
+                self.ledger.settle(rid, cost, f"usage.cost, HTTP {response.status_code}")
+            record["cost_usd"] = cost
+            if response.status_code in _RETRY_STATUS:
+                attempts.append(
+                    record
+                    | {"outcome": "retryable_status", "body": sanitize_text(response.text[:300])}
                 )
-            finally:
-                # Failed attempts are settled at zero only if the API reported no cost.
-                self.guard.settle(worst, actual)
+                if attempt < _RETRIES:
+                    time.sleep(self.retry_wait_seconds * attempt)
+                    continue
+                return self._failure(
+                    request, body, attempts, "http_status", f"HTTP {response.status_code}", started
+                )
+            if response.status_code >= 400:
+                attempts.append(
+                    record | {"outcome": "http_error", "body": sanitize_text(response.text[:300])}
+                )
+                return self._failure(
+                    request, body, attempts, "http_status", f"HTTP {response.status_code}", started
+                )
+            if data is None:
+                attempts.append(record | {"outcome": "invalid_json"})
+                return self._failure(
+                    request, body, attempts, "invalid_provider_json", "not JSON", started
+                )
+            attempts.append(record | {"outcome": "ok"})
+            break
         return self._parse(request, endpoint, body, data, attempts, started)
+
+    # -- service-side limit -----------------------------------------------------------
+
+    def key_info(self) -> dict[str, Any]:
+        """GET /key: usage, limit and limit_remaining for this key, in USD."""
+        response = self._client.get("/key", headers=self._headers, timeout=30.0)
+        response.raise_for_status()
+        data = response.json().get("data") or {}
+        return {k: data.get(k) for k in ("usage", "limit", "limit_remaining", "limit_reset")}
+
+    def preflight(self) -> list[str]:
+        """The key must carry a service-side credit limit no larger than the ledger's cap."""
+        info = self.key_info()
+        problems = []
+        if info["limit"] is None:
+            problems.append(
+                "the key has no credit limit; create a dedicated key limited to the cap"
+            )
+        elif float(info["limit"]) > self.ledger.cap_usd + 1e-9:
+            problems.append(
+                f"the key's limit {info['limit']} exceeds the cap {self.ledger.cap_usd}"
+            )
+        if info["limit_reset"] not in (None, "never"):
+            problems.append(
+                f"the key's limit resets ({info['limit_reset']}); use a non-resetting limit"
+            )
+        if not problems:
+            self.ledger.record_baseline({"key_usage": info["usage"], "key_limit": info["limit"]})
+        return problems
+
+    def reconcile(self) -> dict[str, Any]:
+        """Compare the key's usage since the baseline with what the ledger has committed."""
+        info = self.key_info()
+        base = self.ledger.baseline or {}
+        used = float(info["usage"] or 0.0) - float(base.get("key_usage") or 0.0)
+        committed = self.ledger.committed()
+        ok = used <= committed + 1e-6
+        if not ok:
+            self.ledger.halt(f"key usage {used:.6f} exceeds the ledger's committed {committed:.6f}")
+        return {"key_usage_since_baseline": used, "ledger_committed": committed, "consistent": ok}
 
     def _parse(
         self,
@@ -325,9 +351,10 @@ class OpenRouterProvider:
             "requested_model": endpoint.model,
             "expected_canonical": endpoint.canonical,
             "reported_model": data.get("model") if isinstance(data, dict) else None,
-            "reported_provider": data.get("provider") if isinstance(data, dict) else None,
+            "reported_provider": served_provider(data),
+            "routing_metadata": data.get("openrouter_metadata") if isinstance(data, dict) else None,
             "delivery_verification": VERIFICATION,
-            "spend": self.guard.state(),
+            "spend": self.ledger.state(),
         }
         choices = data.get("choices") if isinstance(data, dict) else None
         choice = choices[0] if isinstance(choices, list) and choices else None
@@ -417,7 +444,7 @@ class OpenRouterProvider:
                 "sent_request": body,
                 "attempts": attempts,
                 "delivery_verification": VERIFICATION,
-                "spend": self.guard.state(),
+                "spend": self.ledger.state(),
             },
         )
 
@@ -438,13 +465,31 @@ class OpenRouterProvider:
         }
 
 
-def _cost(data: Any, endpoint: Endpoint) -> float:
-    """Reported cost if present; otherwise priced from tokens (reasoning counted as output)."""
-    usage: dict[str, Any] = (
-        data["usage"] if isinstance(data, dict) and isinstance(data.get("usage"), dict) else {}
-    )
-    if isinstance(usage.get("cost"), int | float):
-        return float(usage["cost"])
-    return (usage.get("prompt_tokens") or 0) * endpoint.prompt_usd_per_token + (
-        usage.get("completion_tokens") or 0
-    ) * endpoint.completion_usd_per_token
+def served_provider(data: Any) -> str | None:
+    """The provider that served the request: the top-level ``provider`` field when present,
+    else the selected endpoint in the routing metadata (requested with the metadata header).
+    None when neither is present: identity is then unobserved, which calibration rejects."""
+    if not isinstance(data, dict):
+        return None
+    if isinstance(data.get("provider"), str):
+        return str(data["provider"])
+    meta = data.get("openrouter_metadata")
+    endpoints = meta.get("endpoints") if isinstance(meta, dict) else None
+    available = endpoints.get("available") if isinstance(endpoints, dict) else None
+    for entry in available or []:
+        if (
+            isinstance(entry, dict)
+            and entry.get("selected")
+            and isinstance(entry.get("provider"), str)
+        ):
+            return str(entry["provider"])
+    return None
+
+
+def _reported_cost(data: Any) -> float | None:
+    """The cost the API reported for this attempt, or None. Never inferred from tokens."""
+    usage = data.get("usage") if isinstance(data, dict) else None
+    cost = usage.get("cost") if isinstance(usage, dict) else None
+    if isinstance(cost, int | float) and not isinstance(cost, bool) and cost >= 0:
+        return float(cost)
+    return None
