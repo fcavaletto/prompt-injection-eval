@@ -205,4 +205,16 @@ Still offline: nothing run, nothing paid. The configuration (`src/`, `data/`) is
 
 **Spending.** One [proposal](spending-proposal-2026-11-17.md) with three gates: $8 (Stage 1), $5 (screen) and $18 (adaptive, conditional).
 
-**Review.** A [human-review packet](human-review-packet.md) with concealed expected verdicts; answers SHA-256 `36ba20b5…f0ed`. No one has been contacted.
+**Review.** A [human-review packet](human-review-packet.md) with concealed expected verdicts; answers SHA-256 `d7c6b120…7146` (regenerated on 2026-11-17 to add the F2 note). No one has been contacted.
+
+## 10. Pre-data repairs after review (later on 2026-11-17)
+
+The configuration is refrozen at `1044221`; see the clarification to [Amendment 4](preregistration.md). The manifest is unchanged.
+
+- **Spending:** a durable ledger, a required service-side key limit, and reconciliation against the key's usage ([screen protocol](protocol-openrouter.md) §6). The bound is stated, not proven.
+- **Calibration:** must verify before any screen request, on every launch.
+- **Version check:** described accurately. It cannot prove the underlying model is unchanged.
+- **Stage 1 analysis:** primary pairs complete in both batches; planned populations from the manifest; missing-outcome bounds; the controls gate split into complete, adequate (at least 15/27) and comparable; forged progression on F1–F3 only.
+- **Screen report:** differences on matched cases only.
+- **Corrected C25 values** beside the archived ones; **H19's** exploratory payment outcome beside the exact goal.
+- **Human-review packet:** regenerated with the F2 authorization note and the candidate framing. Answers SHA-256 `d7c6b120…7146`.

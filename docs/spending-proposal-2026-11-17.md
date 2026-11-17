@@ -5,7 +5,7 @@
 | Stage | Proposed cap | Status | Central / high estimate | Enforcement |
 | --- | ---: | --- | --- | --- |
 | Granite Stage 1 ([protocol](protocol-stage1.md), Amendment 4) | **$8** | Awaiting approval | $1.74 / $5.56 | in-pod expiry deletes the pod; client deadlines; one pod session per batch |
-| OpenRouter feasibility screen, calibration included ([protocol](protocol-openrouter.md)) | **$5** | Awaiting approval | $0.14 / $3.74 | `SpendGuard`: worst case reserved before every attempt; cumulative across invocations; 1,200-call cap; `max_tokens` 4096; `max_price` routing ceiling |
+| OpenRouter feasibility screen, calibration included ([protocol](protocol-openrouter.md)) | **$5** | Awaiting approval | $0.14 / $3.74 | durable ledger (reserve before sending, charged until reconciled, crash-safe, single process); a required service-side key limit no larger than $5; key-usage reconciliation; 1,200-call cap; `max_tokens` 4096; `max_price` routing ceiling |
 | Adaptive follow-up ([protocol](protocol-adaptive.md)) | **$18** | Conditional; needs a later approval | $4.25 / $15.85 | in-pod expiry; designed in detail only after Stage 1's progression decision is written down |
 
 **Budget.**
@@ -51,11 +51,12 @@
 - **Retries:** up to three attempts per call.
 - **Calibration:** 4 episodes.
 
-**In-flight requests cannot exceed the cap.**
+**Enforcement, and its limits** ([screen protocol](protocol-openrouter.md) §6):
 
-- Before each attempt is sent, its worst case is reserved: input at 1 token per 2 characters, output at `max_tokens`.
-- A request that would cross the cap is refused before sending, as `budget_exhausted`.
-- Reported costs settle each reservation, and the cap counts cost already recorded in earlier traces.
+- **Local ledger.** Every attempt is reserved durably before it is sent, and stays charged until the API reports its cost. Timeouts, errors and missing usage stay charged. A crash leaves the reservations charged, and only one process can spend at a time.
+- **The reservation bound** (request bytes plus a framing allowance; `max_tokens` for output) is conservative but not proven. A cost above it halts spending.
+- **Backstop:** a dedicated OpenRouter key with a credit limit of at most $5, checked before launch and reconciled after each phase.
+- **What cannot be proven.** The local ledger cannot prove a hard cap. The service-side key limit is the backstop, and whether one in-flight request can overshoot it is not documented.
 
 ## Launch order, if approved
 

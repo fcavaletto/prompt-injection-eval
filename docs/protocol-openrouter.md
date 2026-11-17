@@ -21,10 +21,11 @@ Read from `GET /api/v1/models` and `GET /api/v1/models/{id}/endpoints` on 2026-1
 - Only Luna's endpoint lists `seed`. A seed does not guarantee determinism, and Haiku has none. Repeat behaviour is therefore unknown, and the screen has one run per cell.
 - The reasoning effort and output limit are frozen. Reasoning tokens count against `max_tokens` and are costed as output.
 
-**Remaining version ambiguity.**
+**Version ambiguity.**
 
-- OpenRouter accepts the undated ids. A dated request id was not verified to be accepted.
-- The adapter therefore sends the undated id, checks the returned `model` against both the id and the dated slug, and stops the episode with `endpoint_mismatch` if neither matches. A silent upgrade of the alias would be caught, not absorbed.
+- OpenRouter's documentation shows only the `id` (here undated) as a request model, and does not state whether a dated `canonical_slug` is accepted. The screen therefore sends the undated id. It does not test the dated slug with a paid call.
+- **What the response check can show.** The response's `model` is checked against the id and the dated slug read on 2026-11-17, and a mismatch stops the episode (`endpoint_mismatch`).
+- **What it cannot show.** If the service reports the alias or the same dated slug while serving a changed model underneath, the check cannot see that. The underlying version is therefore not proven to stay unchanged, and silent changes are not guaranteed to be detected.
 - A `~anthropic/claude-haiku-latest` alias exists and is not used.
 
 **Routing controls, explicit in every request** (`providers/openrouter.py`):
@@ -105,15 +106,18 @@ A malformed tool call (non-JSON arguments, unknown tool) is a model output: it c
 - Actual environment-state changes are scored with AgentDojo's checks, on executed calls only.
 - Attack episodes are also replayed and verified against the recorded final-state hash.
 
-**Calibration first.**
+**Calibration first, on every launch.**
 
 - The two calibration episodes per model must complete with the pinned provider and model reported, usage cost present, and no request-level defect.
-- If calibration fails (including a 404 because `data_collection: deny` leaves no endpoint), the screen stops and the failure is reported. No routing setting is relaxed without a new decision.
+- Before any screen request, on every launch including resumes, `verify_calibration` reads the stored calibration traces and requires, for every call: completion, a clean request-level check, the pinned provider (from the response or its routing metadata), the expected model, and a reported cost. If any part fails, no screen request is made (tested with failing fixtures).
+- If calibration fails (including a 404 because `data_collection: deny` leaves no endpoint), the failure is reported. No routing setting is relaxed without a new decision.
 
 ## 5. Analysis (descriptive)
 
-Per model:
+Per model, on **matched cases only** (a case counts for a difference only if both representations completed; missing counterparts are listed):
 
+- case-level outcomes;
+- the provisionally accepted F1–F3 and all five (F4 and F5 exploratory), reported separately;
 - successes over completed episodes, per family and representation;
 - text minus JSON per family, and the instruction-minus-forged difference of those differences;
 - benign utility per representation;
@@ -132,11 +136,24 @@ From `scripts/cost_screen.py` (`data/screen/cost_estimate.json`). Each call rese
 | High | every episode reaches 16 calls, 2,048 output tokens per call, 10% retried | $3.74 |
 | Unbounded worst | 16 calls × 3 attempts, every call at 4,096 tokens | $26.32, **prevented** |
 
-**Cap: $5 including calibration**, enforced by `SpendGuard`:
+**Cap: $5 including calibration.** It is enforced in three layers, and none is claimed to be a proof on its own:
 
-- each attempt reserves its worst-case cost (input at 1 token per 2 characters, output at `max_tokens`) before it is sent;
-- the cap is cumulative across invocations, counting from the cost already recorded in the traces;
-- there is also a call cap of 1,200.
+1. **Durable local ledger** (`providers/spend_ledger.py`, `<root>/spend-ledger.jsonl`):
+   - each attempt's reservation is written and fsynced *before* it is sent;
+   - it is released only on evidence that nothing was sent (a refused connection), and settled only with the cost the API reported for it;
+   - timeouts, disconnects after sending, HTTP errors and responses without a usable cost stay charged at the reserved amount until reconciled. OpenRouter documents that non-streaming requests continue and are billed even if the client disconnects;
+   - a restart replays the ledger: reservations pending at a crash become charges, and the call count is restored;
+   - an exclusive `flock` stops a second process from spending the same allowance;
+   - a reported cost above its reservation halts all further spending.
+2. **The reservation bound, stated but not proven:**
+   - input tokens are taken as at most the UTF-8 bytes of the whole request body (byte-level tokenizers emit at most one token per byte) plus a 4,096-token allowance for provider-added framing;
+   - output is taken as at most `max_tokens`, which OpenRouter says covers reasoning and visible output "on most providers";
+   - the long-prompt price tier is used whenever it could apply;
+   - OpenRouter does not document a token bound or hidden framing tokens, so this is conservative, not proven.
+3. **Service-side backstop:**
+   - the launch preflight requires the key to carry a non-resetting credit limit no larger than the cap (`GET /api/v1/key`), which means using a dedicated key;
+   - the key's reported usage is reconciled against the ledger after calibration and after each model, and any excess halts the run;
+   - whether a key limit can be overshot by a request already in flight is not documented.
 
 ## 7. Commands (after approval only)
 
