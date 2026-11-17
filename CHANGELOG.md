@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **Offline review package (2026-11-17).** No model was called and nothing was rented.
+  - **Claims:** a claim–evidence table (`docs/claim-evidence.md`) and corrections C18 to C24.
+  - **Exploratory tables:** the pilot's omitted tables from one entry point (`scripts/pilot_supplementary.py`): banking attack × format matrix, one-line twin contrasts, joint outcomes, per-goal effects, round-limit and token summaries, clustered repeatability. The registered figures re-derive exactly.
+  - **Measurement contract** (`docs/measurement-contract.md`). Expected verdicts were committed before any checker changed.
+  - **Checkers:** `delivery.check_contract` (template profiles, roles, multiplicity, strict types) and `wp7.check(strict=True)`. Validated on a mutation corpus and on 787 kept real prompts. The archived checks are unchanged.
+  - **Stage 1 preparation:** a `quoted` representation, carrier/context formats in the episode runner, a frozen design (`pilot/stage1.py`, `data/stage1/design.json`), forged-data pathways checked against AgentDojo's own goal checks, a bounded retry for dropped pooled connections, and a cost model from measured throughput.
+  - **Protocols:** Stage 1 (`docs/protocol-stage1.md`, the current plan) and the adaptive follow-up (`docs/protocol-adaptive.md`). Neither is run.
+  - **Navigation:** shorter README; the previous README and home page are in `docs/history.md`; superseded plans are marked.
+
 - **Release-candidate revision (2026-11-16, offline).**
   - **Bounds:** missing-outcome bounds corrected to S/N to (S+M)/N with the complete-case estimate S/(N−M), labelled as conditional bounds and not confidence intervals (`wp7.missing_outcome_bounds`, regression tests).
   - **Wording:** code behaviour, observations and hypotheses separated.

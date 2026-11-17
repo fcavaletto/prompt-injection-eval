@@ -1,5 +1,7 @@
 # Proposal: confirmatory same-attack serialization study (UNREGISTERED)
 
+> **Superseded as a plan (2026-11-17).** The current plan is the [Stage 1 protocol](protocol-stage1.md). This page is kept as written for the record; its recommendation was made before the [claim–evidence table](claim-evidence.md) and the supplementary analyses.
+
 **Status: proposal, not registered, not authorized.** Written 2026-11-16, after the pilot. No episode on the reserved suites has been run, and no reserved-suite outcome has been looked at. Before it could run, this design would have to be registered as its own amendment, committed and pushed, with CI passing. The recommendation in [Next stage](next-stage-2026-11-16.md) is *not* to run it now; it is written so the decision can be made on a complete design.
 
 ## 1. Question and estimands

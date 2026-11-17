@@ -150,6 +150,27 @@ pie run --provider ollama --model deepseek-r1:14b --profile reasoning --dataset 
 
 The 0.2.0 rows were produced without `--num-ctx`. Rerunning the six smoke cases of `qwen2.5:7b` on 4 November 2026 returned byte-identical answers for all 18 units, with and without `--num-ctx 8192`.
 
+## The 2026-11-17 offline package
+
+No model and no GPU. Tokenizer files are needed only where marked.
+
+```bash
+pip install -e ".[dev,pilot]"
+# Supplementary pilot tables (exploratory); exits non-zero if a published figure does not reproduce
+python scripts/pilot_supplementary.py results-published/pilot-2026-11-16 \
+  --f1 results-published/pilot-f1-2026-11-16 --output /tmp/supplementary
+# Checker validation on the mutation corpus (add --verify-templates with tokenizer files)
+python scripts/validate_checkers.py --label check --output /tmp/checkers
+python scripts/recheck_kept_prompts.py results-published/pilot-2026-11-16 \
+  results-published/pilot-f1-2026-11-16 results-published/pilot-smoke-2026-11-15 --output /tmp/kept.json
+# Rebuild the corpus base cases (tokenizer files)
+HF_HUB_OFFLINE=1 python scripts/build_checker_corpus.py
+# Stage 1 design and cost (nothing is run)
+python -c "import json; from prompt_injection_eval.pilot import stage1; print(json.dumps(stage1.design()['counts']))"
+python scripts/cost_stage1.py --price <USD per hour, read today> --output /tmp/cost.json
+pytest tests/test_pilot_supplementary.py tests/test_checker_contract.py tests/test_stage1.py
+```
+
 ## Without a model
 
 ```bash

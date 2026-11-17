@@ -1,5 +1,7 @@
 # Research audit and next step
 
+> **Superseded as a plan (2026-11-17).** The current plan is the [Stage 1 protocol](protocol-stage1.md). This page is kept as written for the record; its recommendation was made before the [claim–evidence table](claim-evidence.md) and the supplementary analyses.
+
 *Note 2026-11-16: after the pilot, the novelty assessment and recommendation are updated in [Next stage, 2026-11-16](next-stage-2026-11-16.md), with two papers new to this project (Agent Data Injection, arXiv:2607.05120; AutoDojo, arXiv:2606.15057). The recommendation there is to conclude this line and release it as a methods and replication report after the free WP7 audit.*
 
 First written on 2026-11-14, after Studies A and B. **The pilot's design in section 3.4 is superseded by [Pilot design](pilot-design.md), which is registered as Amendment 2 and has a working harness.** **Revised on 2026-11-15** after the closest papers were read in full and a [rendering census](rendering-census.md) was run. Sections 2.3 onward are new; the 2026-11-14 text of those sections is in the repository history (commit `31b63c5`). The revision changes the recommendation: see section 3.

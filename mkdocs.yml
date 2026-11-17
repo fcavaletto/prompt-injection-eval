@@ -14,32 +14,44 @@ theme:
 
 nav:
   - Home: index.md
-  - Adaptive attacks: adaptive.md
-  - Where the document sits: placement.md
-  - Replication on InjecAgent: injecagent.md
-  - Corrections: corrections.md
-  - Research audit and next step: research-next-step.md
-  - Audit appendix: research-audit-2026-11.md
-  - Rendering census: rendering-census.md
-  - Pilot design: pilot-design.md
-  - Next stage (2026-11-16): next-stage-2026-11-16.md
-  - Proposal, unregistered: proposal-confirmatory-serialization.md
-  - WP7 harness audit: wp7-audit.md
-  - Report draft: report-draft.md
-  - Reviewer checklist: review-checklist.md
-  - Human validation protocol: annotation-protocol.md
-  - Pre-registration: preregistration.md
-  - Start here: learn.md
-  - Walkthrough: notebooks/01_walkthrough.ipynb
-  - Reading the results: notebooks/02_reading_the_results.ipynb
-  - Static results: results.md
-  - The case files: dataset.md
-  - Methodology: methodology.md
-  - Threat model: threat-model.md
-  - Scoring: scoring.md
-  - Related work: related-work.md
-  - Model selection: model-selection.md
-  - Reproduce: reproduce.md
+  - Current:
+      - Report draft: report-draft.md
+      - Claim–evidence table: claim-evidence.md
+      - Corrections: corrections.md
+      - Evidence index: evidence-index.md
+      - Review package (2026-11-17): review-package-2026-11-17.md
+      - Reviewer checklist: review-checklist.md
+  - Plans:
+      - Stage 1 protocol (current): protocol-stage1.md
+      - Adaptive follow-up: protocol-adaptive.md
+  - Methods:
+      - Measurement contract: measurement-contract.md
+      - Pilot design: pilot-design.md
+      - WP7 harness audit: wp7-audit.md
+      - Rendering census: rendering-census.md
+      - Pre-registration: preregistration.md
+      - Reproduce: reproduce.md
+  - History:
+      - Historical overview: history.md
+      - Adaptive attacks: adaptive.md
+      - Where the document sits: placement.md
+      - Replication on InjecAgent: injecagent.md
+      - Static results: results.md
+      - Research audit and next step (superseded): research-next-step.md
+      - Audit appendix: research-audit-2026-11.md
+      - Next stage (superseded): next-stage-2026-11-16.md
+      - Proposal, unregistered (superseded): proposal-confirmatory-serialization.md
+      - Human validation protocol: annotation-protocol.md
+  - Background:
+      - Start here: learn.md
+      - Walkthrough: notebooks/01_walkthrough.ipynb
+      - Reading the results: notebooks/02_reading_the_results.ipynb
+      - The case files: dataset.md
+      - Methodology: methodology.md
+      - Threat model: threat-model.md
+      - Scoring: scoring.md
+      - Related work: related-work.md
+      - Model selection: model-selection.md
 
 plugins:
   - search

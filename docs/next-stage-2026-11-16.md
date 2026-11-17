@@ -1,5 +1,7 @@
 # Next stage after the pilot (2026-11-16)
 
+> **Superseded as a plan (2026-11-17).** The current plan is the [Stage 1 protocol](protocol-stage1.md). This page is kept as written for the record; its recommendation was made before the [claim–evidence table](claim-evidence.md) and the supplementary analyses.
+
 Offline. No pod was rented and no model was called for this page. New analyses of existing results are **exploratory**. Proposals are **unregistered**. The completed pilot, its registered analyses and its pre-registered reading are unchanged; corrections are dated notes ([Corrections](corrections.md) C11 to C13).
 
 ## 1. What the pilot shows, tightened

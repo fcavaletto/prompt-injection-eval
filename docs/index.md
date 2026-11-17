@@ -1,20 +1,26 @@
 # Prompt Injection Eval
 
-Prompt-level defenses against indirect prompt injection look strong on a fixed set of attack documents. This project measures whether they hold against an attacker who has read the defense.
+A measurement harness for indirect prompt injection in tool-using agents. Every request is checked for what reaches the model.
 
-They do not. On 59 held-out documents, with one attempt each and no feedback, a strategy tuned on other documents succeeds 50 to 57 times against a generic "untrusted data" rule, where the static attacks succeeded 1 to 7 times. Against datamarking it succeeds 40/59 on Qwen3-4B, 47/59 on Qwen3-14B, and 22/59 on gpt-oss-20b, where the static attacks succeeded 1 to 3 times. One round of patching the template takes Qwen3-4B from 40/59 to 26/59.
+**Status, 2026-11-17: a research checkpoint, not a release.** The report is a draft, independent human review is pending, and the next study is designed but not run.
 
-Where the document sits matters too. On [ten open models](placement.md) at full precision and this project's synthetic documents, a document delivered as a raw tool result is easier to inject through than the same document in the user message under the same security rule, on every model: the plain override succeeds 43/59 on Qwen3-32B instead of 4/59. A [pre-registered replication on InjecAgent](injecagent.md) found the effect only in the Qwen3 family. JSON-encoding the tool message takes much of that back, which also explains an apparent gpt-oss exception reported in 0.5.0. With the rule in place, an adaptive strategy still succeeds on 45 to 58 of 59 in either placement, on every model.
+## Read in this order
 
-!!! warning "Corrections, 2026-11-15"
-    The paragraph above overstates the placement result. Two of the ten models were run with chat templates that hid the tool call from them, two more cannot be checked, and "on every model" should be read with those limits. On InjecAgent, one model was never shown the tools at all. See [Corrections](corrections.md), entries C1 to C6 and C9. No result on this site has been validated by a human rater.
+1. [Report draft](report-draft.md): what reaches the model, and whether tool-output serialization changes injection success.
+2. [Claim–evidence table](claim-evidence.md): every current headline, its status (confirmed, conditional, unsupported, unresolved) and its evidence.
+3. [Corrections](corrections.md): C1 to C24.
+4. [Evidence index](evidence-index.md): where the evidence lives and what checks it.
+5. [Pre-registration](preregistration.md) and [reproduction guide](reproduce.md).
 
-![Attack success on the 59 held-out seeds, by model and defense](assets/static_vs_adaptive.png)
+## Plans
 
-- [Adaptive attacks](adaptive.md) is the main result: method, tables, ablation, the result without the blank character, quiet attacks, transfer, the patch round, the tool-result placement, and limits.
-- [Where the document sits](placement.md) reruns the protocol on ten models from five developers and corrects one earlier claim.
-- [Does the placement effect replicate?](injecagent.md) tests it on the InjecAgent benchmark, pre-registered. It replicates only in the Qwen3 family.
-- [Static results](results.md) is the earlier study the adaptive one re-examines: 105 cases, three prompt conditions, four local models.
-- If you are new to this problem, start with the [guide](learn.md). It takes about twenty minutes and needs no install. The [walkthrough notebook](notebooks/01_walkthrough.ipynb) then runs the same ideas on a mock model.
+- **Current plan: the [Stage 1 protocol](protocol-stage1.md)**. It asks why JSON resisted AgentDojo's attack, and whether a forged-data attack is affected. It is not run and not authorized. The [adaptive follow-up](protocol-adaptive.md) comes after it and is costed separately.
+- **Superseded plans,** kept for the record: [Research audit and next step](research-next-step.md) (2026-11-14/15), [Next stage](next-stage-2026-11-16.md) (2026-11-16), and the [unregistered confirmatory proposal](proposal-confirmatory-serialization.md) (2026-11-16).
 
-These are small quantized local models, 24 hand-written strategies, and synthetic documents. The numbers are a lower bound on the attacker and say nothing about deployed systems.
+## Methods
+
+[Measurement contract](measurement-contract.md) · [Pilot design](pilot-design.md) · [WP7 harness audit](wp7-audit.md) · [Rendering census](rendering-census.md)
+
+## History
+
+The earlier studies (static benchmark, adaptive attacker, placement, InjecAgent) and the previous front page are in the [historical overview](history.md). Their claims carry the corrections listed above, and none of the current findings rests on their text-based scorer.

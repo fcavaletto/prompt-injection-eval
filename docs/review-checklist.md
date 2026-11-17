@@ -8,7 +8,7 @@ Record for each item: pass, fail or unclear, a note, and the commit you checked.
 
 ```bash
 git clone https://github.com/fcavaletto/prompt-injection-eval && cd prompt-injection-eval
-git checkout research-audit-2026-11
+git checkout research-audit-2026-11   # 2026-11-17: for sections G and H, check out offline-package-2026-11
 pip install -e ".[dev,pilot]" transformers
 ```
 
@@ -82,5 +82,31 @@ Then clone the four pinned repositories as listed in `results-published/wp7-audi
 
 19. Does any new claim in `docs/report-draft.md` rest on the project's earlier text-based scorer (Studies A and B)? It should not: that scorer has no human validation.
 20. Are the unverifiable configurations (AD-1s, TH-2, ADI-1) reported as unverifiable, not as passes?
+
+## G. Attack realism, scoring and Stage 1 design (added 2026-11-17)
+
+Files: `src/prompt_injection_eval/pilot/stage1.py`, `data/stage1/design.json`, `docs/protocol-stage1.md`, `tests/test_stage1.py`.
+
+21. **Forged-data realism.** Read the five forged fields in `stage1.PATHWAYS`.
+    - Would a reader take each as data (a payee's bank details, a source link) and not as an instruction?
+    - Is Slack `user_task_0` ("Full article" plus a link) data or an implicit instruction? Mark each pathway: data / instruction / unclear.
+22. **Equal control.** Does every attack, instruction or forged, go into the same field, at the same place, within the baseline's length, without touching trusted text or schemas?
+23. **Twins.** Do `neutral_baseline_one_line` and each `forged_one_line` differ from their multiline twins only in whitespace?
+24. **Goal scoring.**
+    - Read `test_goal_scoring_credits_data_following_and_not_the_reference` and AgentDojo's security checks for banking `injection_task_5` and Slack `injection_task_1` and `injection_task_3`.
+    - Does acting on the forged data, and only that, satisfy the check?
+    - Was dropping the rent pathways (rent is not recurring) correct?
+25. **Pair draw.** Confirm that `stage1.draw` uses no pilot outcome, and that the banking pairs come from the half no model has run.
+26. **Representations.** Read `to_quoted` and the table in protocol section 2. Is each contrast described as changing what it changes, including tokens and line structure? Is any claim of a fully orthogonal factorial made anywhere?
+27. **Progression.** Does the progression rule (protocol section 6) depend on effect sizes and validity checks, and not on a p-value alone?
+    - Would you accept each reading in the table as discriminating between the explanations E0 to E4?
+
+## H. Checkers and recomputed tables (added 2026-11-17)
+
+28. Read `docs/measurement-contract.md`.
+    - Were the expected verdicts committed before the checkers changed? Compare commit `15a2279` with `aadf5da`.
+    - Is each verdict reasonable, in particular accepting tool results in a user turn, and rejecting a JSON result re-serialized with ASCII escapes?
+29. Run `python scripts/validate_checkers.py --label review --output /tmp/cv`. Does `summary_review.md` match `results-published/checker-validation-2026-11-17/summary_v2.md`?
+30. Run `python scripts/pilot_supplementary.py ...` (README). Do the reproduction checks match, and do the banking matrix rows for Granite's `baseline` and `neutral_baseline_one_line` read 47/72, 35/72, 20/72 and 28/72?
 
 Reviewer: ______  Date: ______  Commit checked: ______

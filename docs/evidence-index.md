@@ -1,0 +1,21 @@
+# Evidence index
+
+Where each body of evidence lives, what produced it, and what checks it. Raw results are never edited after they are written. Later analyses go into new, dated directories beside them. Links point to the repository, because evidence files are not part of the documentation site.
+
+**Status values:** *current* means a present claim rests on it. *Historical* means it backs only the corrected record of earlier studies.
+
+| Evidence | Contents | Produced by | Checked by | Status |
+| --- | --- | --- | --- | --- |
+| [`pilot-2026-11-16/`](https://github.com/fcavaletto/prompt-injection-eval/tree/main/results-published/pilot-2026-11-16) | Serialization pilot: traces, manifests, frozen attacks, registered reports, prompt verification, run record | `pie pilot` (Amendments 2 and 3) | `tests/test_pilot*.py`; `scripts/verify_pilot_prompts.py` | current, registered |
+| [`pilot-2026-11-16/exploratory/`](https://github.com/fcavaletto/prompt-injection-eval/tree/main/results-published/pilot-2026-11-16/exploratory) | Decomposition, interactions, clustered repeatability (2026-11-16) | `scripts/pilot_exploratory.py` | `tests/test_pilot_exploratory.py` | current, exploratory |
+| [`pilot-2026-11-16/supplementary-2026-11-17/`](https://github.com/fcavaletto/prompt-injection-eval/tree/main/results-published/pilot-2026-11-16/supplementary-2026-11-17) | Banking attack × format matrix, twin contrasts, joint outcomes, per-goal effects, round-limit and token summaries, clustered repeatability, prompt-verification scope | `scripts/pilot_supplementary.py` | `tests/test_pilot_supplementary.py`; re-derives the registered figures | current, exploratory |
+| [`pilot-f1-2026-11-16/`](https://github.com/fcavaletto/prompt-injection-eval/tree/main/results-published/pilot-f1-2026-11-16), [`pilot-smoke-2026-11-15/`](https://github.com/fcavaletto/prompt-injection-eval/tree/main/results-published/pilot-smoke-2026-11-15) | Feasibility stage F1 (Qwen's reused development controls) and smoke runs | `pie pilot` | `scripts/verify_control_reuse.py` | current (F1 controls), supporting |
+| [`checker-validation-2026-11-17/`](https://github.com/fcavaletto/prompt-injection-eval/tree/main/results-published/checker-validation-2026-11-17) | Checker results on the mutation corpus, before (`results_v1.json`) and after (`results_v2.json`) repair; contract check on 787 kept prompts | `scripts/validate_checkers.py`, `scripts/recheck_kept_prompts.py` | `tests/test_checker_contract.py` | current |
+| [`wp7-audit-2026-11-16/`](https://github.com/fcavaletto/prompt-injection-eval/tree/main/results-published/wp7-audit-2026-11-16) | Audit of other harnesses: requests, renderings, AgentDojo trace analysis | `scripts/wp7_audit.py`, `scripts/wp7_agentdojo_traces.py` | `tests/test_wp7.py`; strict re-check in `tests/test_checker_contract.py` | current |
+| [`rendering-census-2026-11-15/`](https://github.com/fcavaletto/prompt-injection-eval/tree/main/results-published/rendering-census-2026-11-15) | 26 templates rendering fixed conversations | `scripts/rendering_census.py` | `tests/test_rendering_census.py` | current (supports model eligibility) |
+| [`audit-2026-11-14/`](https://github.com/fcavaletto/prompt-injection-eval/tree/main/results-published/audit-2026-11-14) | Exploratory re-analysis of Studies A and B | `scripts/audit_exploratory.py` | — | historical |
+| `v03/` to `v08/`, `qwen2.5-7b/`, `deepseek-r1-14b/`, `compare/`, `variability/` | Static, adaptive, placement and InjecAgent studies, text-based scorer | `pie run`, `pie adaptive`, scripts in `scripts/` | `tests/test_adaptive.py` and others | historical; see [Corrections](corrections.md) |
+| [`spending-ledger.md`](https://github.com/fcavaletto/prompt-injection-eval/blob/main/results-published/spending-ledger.md) | Every paid resource, from billing records | manual, from RunPod billing reads | reconciliation table | current |
+| [`data/stage1/`](https://github.com/fcavaletto/prompt-injection-eval/tree/main/data/stage1) | Frozen Stage 1 design and cost estimate (nothing run) | `pilot/stage1.py`, `scripts/cost_stage1.py` | `tests/test_stage1.py` | plan, not evidence |
+
+Which claim rests on which evidence: [claim–evidence table](claim-evidence.md).
