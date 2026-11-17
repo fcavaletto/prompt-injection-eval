@@ -1,0 +1,2420 @@
+{
+ "label": "v1",
+ "checkers": [
+  "pilot_v1",
+  "wp7_v1"
+ ],
+ "summary": {
+  "pilot_v1": {
+   "valid": {
+    "cases": 24,
+    "should_accept": 24,
+    "false_alarms": 0
+   },
+   "role": {
+    "cases": 24,
+    "should_reject": 24,
+    "detected": 0
+   },
+   "schema": {
+    "cases": 16,
+    "should_reject": 16,
+    "detected": 16
+   },
+   "arguments": {
+    "cases": 20,
+    "should_reject": 20,
+    "detected": 12
+   },
+   "duplicates": {
+    "cases": 12,
+    "should_reject": 12,
+    "detected": 0
+   },
+   "order": {
+    "cases": 12,
+    "should_reject": 12,
+    "detected": 12
+   },
+   "association": {
+    "cases": 8,
+    "should_reject": 8,
+    "detected": 8
+   },
+   "truncation": {
+    "cases": 16,
+    "should_reject": 16,
+    "detected": 12
+   },
+   "payload": {
+    "cases": 14,
+    "should_reject": 14,
+    "detected": 14
+   }
+  },
+  "wp7_v1": {
+   "wp7-valid": {
+    "cases": 5,
+    "should_accept": 5,
+    "false_alarms": 0
+   },
+   "wp7": {
+    "cases": 20,
+    "should_reject": 20,
+    "detected": 0
+   }
+  }
+ },
+ "misses": [
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:R1",
+   "class": "role",
+   "mutation": "R1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:R2",
+   "class": "role",
+   "mutation": "R2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:R3",
+   "class": "role",
+   "mutation": "R3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:R4",
+   "class": "role",
+   "mutation": "R4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:R5",
+   "class": "role",
+   "mutation": "R5",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:R6",
+   "class": "role",
+   "mutation": "R6",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:A4",
+   "class": "arguments",
+   "mutation": "A4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:A5",
+   "class": "arguments",
+   "mutation": "A5",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:D1",
+   "class": "duplicates",
+   "mutation": "D1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:D2",
+   "class": "duplicates",
+   "mutation": "D2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:D3",
+   "class": "duplicates",
+   "mutation": "D3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:T2",
+   "class": "truncation",
+   "mutation": "T2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:R1",
+   "class": "role",
+   "mutation": "R1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:R2",
+   "class": "role",
+   "mutation": "R2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:R3",
+   "class": "role",
+   "mutation": "R3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:R4",
+   "class": "role",
+   "mutation": "R4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:R5",
+   "class": "role",
+   "mutation": "R5",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:R6",
+   "class": "role",
+   "mutation": "R6",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:A4",
+   "class": "arguments",
+   "mutation": "A4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:A5",
+   "class": "arguments",
+   "mutation": "A5",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:D1",
+   "class": "duplicates",
+   "mutation": "D1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:D2",
+   "class": "duplicates",
+   "mutation": "D2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:D3",
+   "class": "duplicates",
+   "mutation": "D3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:T2",
+   "class": "truncation",
+   "mutation": "T2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:R1",
+   "class": "role",
+   "mutation": "R1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:R2",
+   "class": "role",
+   "mutation": "R2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:R3",
+   "class": "role",
+   "mutation": "R3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:R4",
+   "class": "role",
+   "mutation": "R4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:R5",
+   "class": "role",
+   "mutation": "R5",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:R6",
+   "class": "role",
+   "mutation": "R6",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:A4",
+   "class": "arguments",
+   "mutation": "A4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:A5",
+   "class": "arguments",
+   "mutation": "A5",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:D1",
+   "class": "duplicates",
+   "mutation": "D1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:D2",
+   "class": "duplicates",
+   "mutation": "D2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:D3",
+   "class": "duplicates",
+   "mutation": "D3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:T2",
+   "class": "truncation",
+   "mutation": "T2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:R1",
+   "class": "role",
+   "mutation": "R1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:R2",
+   "class": "role",
+   "mutation": "R2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:R3",
+   "class": "role",
+   "mutation": "R3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:R4",
+   "class": "role",
+   "mutation": "R4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:R5",
+   "class": "role",
+   "mutation": "R5",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:R6",
+   "class": "role",
+   "mutation": "R6",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:A4",
+   "class": "arguments",
+   "mutation": "A4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:A5",
+   "class": "arguments",
+   "mutation": "A5",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:D1",
+   "class": "duplicates",
+   "mutation": "D1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:D2",
+   "class": "duplicates",
+   "mutation": "D2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:D3",
+   "class": "duplicates",
+   "mutation": "D3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:T2",
+   "class": "truncation",
+   "mutation": "T2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-1:W1",
+   "class": "wp7",
+   "mutation": "W1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-1:W2",
+   "class": "wp7",
+   "mutation": "W2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-1:W3",
+   "class": "wp7",
+   "mutation": "W3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-1:W4",
+   "class": "wp7",
+   "mutation": "W4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-2:W1",
+   "class": "wp7",
+   "mutation": "W1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-2:W2",
+   "class": "wp7",
+   "mutation": "W2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-2:W3",
+   "class": "wp7",
+   "mutation": "W3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-2:W4",
+   "class": "wp7",
+   "mutation": "W4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-3:W1",
+   "class": "wp7",
+   "mutation": "W1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-3:W2",
+   "class": "wp7",
+   "mutation": "W2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-3:W3",
+   "class": "wp7",
+   "mutation": "W3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-3:W4",
+   "class": "wp7",
+   "mutation": "W4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "IA-1:W1",
+   "class": "wp7",
+   "mutation": "W1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "IA-1:W2",
+   "class": "wp7",
+   "mutation": "W2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "IA-1:W3",
+   "class": "wp7",
+   "mutation": "W3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "IA-1:W4",
+   "class": "wp7",
+   "mutation": "W4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "TH-1:W1",
+   "class": "wp7",
+   "mutation": "W1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "TH-1:W2",
+   "class": "wp7",
+   "mutation": "W2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "TH-1:W3",
+   "class": "wp7",
+   "mutation": "W3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "TH-1:W4",
+   "class": "wp7",
+   "mutation": "W4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  }
+ ],
+ "rows": [
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:V1",
+   "class": "valid",
+   "mutation": "V1",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:V2",
+   "class": "valid",
+   "mutation": "V2",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:V3",
+   "class": "valid",
+   "mutation": "V3",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:V4",
+   "class": "valid",
+   "mutation": "V4",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:V5a",
+   "class": "valid",
+   "mutation": "V5a",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:V5b",
+   "class": "valid",
+   "mutation": "V5b",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:R1",
+   "class": "role",
+   "mutation": "R1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:R2",
+   "class": "role",
+   "mutation": "R2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:R3",
+   "class": "role",
+   "mutation": "R3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:R4",
+   "class": "role",
+   "mutation": "R4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:R5",
+   "class": "role",
+   "mutation": "R5",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:R6",
+   "class": "role",
+   "mutation": "R6",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:S1",
+   "class": "schema",
+   "mutation": "S1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "tool_schema_missing:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:S2",
+   "class": "schema",
+   "mutation": "S2",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "tool_schema_altered:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:S3",
+   "class": "schema",
+   "mutation": "S3",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "tool_schema_altered:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:S4",
+   "class": "schema",
+   "mutation": "S4",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "tool_schema_altered:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:A1",
+   "class": "arguments",
+   "mutation": "A1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:A2",
+   "class": "arguments",
+   "mutation": "A2",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:A3",
+   "class": "arguments",
+   "mutation": "A3",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:A4",
+   "class": "arguments",
+   "mutation": "A4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:A5",
+   "class": "arguments",
+   "mutation": "A5",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:D1",
+   "class": "duplicates",
+   "mutation": "D1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:D2",
+   "class": "duplicates",
+   "mutation": "D2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:D3",
+   "class": "duplicates",
+   "mutation": "D3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:O1",
+   "class": "order",
+   "mutation": "O1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money",
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:O2",
+   "class": "order",
+   "mutation": "O2",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money",
+    "call_altered_or_out_of_order:4:send_money",
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:O3",
+   "class": "order",
+   "mutation": "O3",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:2:read_file",
+    "result_out_of_order:3"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:X1",
+   "class": "association",
+   "mutation": "X1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_missing:6"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:X2",
+   "class": "association",
+   "mutation": "X2",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money",
+    "call_altered_or_out_of_order:4:send_money",
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:T1",
+   "class": "truncation",
+   "mutation": "T1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_out_of_order:7"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:T2",
+   "class": "truncation",
+   "mutation": "T2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:T3",
+   "class": "truncation",
+   "mutation": "T3",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_missing:3",
+    "call_missing:4:send_money",
+    "call_missing:4:send_money",
+    "call_missing:4:send_money",
+    "result_missing:5",
+    "result_missing:6"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:T4",
+   "class": "truncation",
+   "mutation": "T4",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "system_message_missing:0"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:P1",
+   "class": "payload",
+   "mutation": "P1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_missing:3"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:P2",
+   "class": "payload",
+   "mutation": "P2",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_missing:3"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:P3",
+   "class": "payload",
+   "mutation": "P3",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_reencoded:3"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-json:P4",
+   "class": "payload",
+   "mutation": "P4",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_missing:3"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:V1",
+   "class": "valid",
+   "mutation": "V1",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:V2",
+   "class": "valid",
+   "mutation": "V2",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:V3",
+   "class": "valid",
+   "mutation": "V3",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:V4",
+   "class": "valid",
+   "mutation": "V4",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:V5a",
+   "class": "valid",
+   "mutation": "V5a",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:V5b",
+   "class": "valid",
+   "mutation": "V5b",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:R1",
+   "class": "role",
+   "mutation": "R1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:R2",
+   "class": "role",
+   "mutation": "R2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:R3",
+   "class": "role",
+   "mutation": "R3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:R4",
+   "class": "role",
+   "mutation": "R4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:R5",
+   "class": "role",
+   "mutation": "R5",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:R6",
+   "class": "role",
+   "mutation": "R6",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:S1",
+   "class": "schema",
+   "mutation": "S1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "tool_schema_missing:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:S2",
+   "class": "schema",
+   "mutation": "S2",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "tool_schema_altered:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:S3",
+   "class": "schema",
+   "mutation": "S3",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "tool_schema_altered:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:S4",
+   "class": "schema",
+   "mutation": "S4",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "tool_schema_altered:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:A1",
+   "class": "arguments",
+   "mutation": "A1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:A2",
+   "class": "arguments",
+   "mutation": "A2",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:A3",
+   "class": "arguments",
+   "mutation": "A3",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:A4",
+   "class": "arguments",
+   "mutation": "A4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:A5",
+   "class": "arguments",
+   "mutation": "A5",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:D1",
+   "class": "duplicates",
+   "mutation": "D1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:D2",
+   "class": "duplicates",
+   "mutation": "D2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:D3",
+   "class": "duplicates",
+   "mutation": "D3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:O1",
+   "class": "order",
+   "mutation": "O1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money",
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:O2",
+   "class": "order",
+   "mutation": "O2",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money",
+    "call_altered_or_out_of_order:4:send_money",
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:O3",
+   "class": "order",
+   "mutation": "O3",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:2:read_file",
+    "result_out_of_order:3"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:X1",
+   "class": "association",
+   "mutation": "X1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_missing:6"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:X2",
+   "class": "association",
+   "mutation": "X2",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money",
+    "call_altered_or_out_of_order:4:send_money",
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:T1",
+   "class": "truncation",
+   "mutation": "T1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_out_of_order:7"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:T2",
+   "class": "truncation",
+   "mutation": "T2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:T3",
+   "class": "truncation",
+   "mutation": "T3",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_missing:3",
+    "call_missing:4:send_money",
+    "call_missing:4:send_money",
+    "call_missing:4:send_money",
+    "result_missing:5",
+    "result_missing:6"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:T4",
+   "class": "truncation",
+   "mutation": "T4",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "system_message_missing:0"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:P1",
+   "class": "payload",
+   "mutation": "P1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_missing:3"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:P2",
+   "class": "payload",
+   "mutation": "P2",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_missing:3"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:P3",
+   "class": "payload",
+   "mutation": "P3",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_reencoded:3"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-json:P4",
+   "class": "payload",
+   "mutation": "P4",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_missing:3"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:V1",
+   "class": "valid",
+   "mutation": "V1",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:V2",
+   "class": "valid",
+   "mutation": "V2",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:V3",
+   "class": "valid",
+   "mutation": "V3",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:V4",
+   "class": "valid",
+   "mutation": "V4",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:V5a",
+   "class": "valid",
+   "mutation": "V5a",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:V5b",
+   "class": "valid",
+   "mutation": "V5b",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:R1",
+   "class": "role",
+   "mutation": "R1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:R2",
+   "class": "role",
+   "mutation": "R2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:R3",
+   "class": "role",
+   "mutation": "R3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:R4",
+   "class": "role",
+   "mutation": "R4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:R5",
+   "class": "role",
+   "mutation": "R5",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:R6",
+   "class": "role",
+   "mutation": "R6",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:S1",
+   "class": "schema",
+   "mutation": "S1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "tool_schema_missing:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:S2",
+   "class": "schema",
+   "mutation": "S2",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "tool_schema_altered:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:S3",
+   "class": "schema",
+   "mutation": "S3",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "tool_schema_altered:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:S4",
+   "class": "schema",
+   "mutation": "S4",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "tool_schema_altered:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:A1",
+   "class": "arguments",
+   "mutation": "A1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:A2",
+   "class": "arguments",
+   "mutation": "A2",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:A3",
+   "class": "arguments",
+   "mutation": "A3",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:A4",
+   "class": "arguments",
+   "mutation": "A4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:A5",
+   "class": "arguments",
+   "mutation": "A5",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:D1",
+   "class": "duplicates",
+   "mutation": "D1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:D2",
+   "class": "duplicates",
+   "mutation": "D2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:D3",
+   "class": "duplicates",
+   "mutation": "D3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:O1",
+   "class": "order",
+   "mutation": "O1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money",
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:O2",
+   "class": "order",
+   "mutation": "O2",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money",
+    "call_altered_or_out_of_order:4:send_money",
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:O3",
+   "class": "order",
+   "mutation": "O3",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:2:read_file",
+    "result_out_of_order:3"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:X1",
+   "class": "association",
+   "mutation": "X1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_missing:6"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:X2",
+   "class": "association",
+   "mutation": "X2",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money",
+    "call_altered_or_out_of_order:4:send_money",
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:T1",
+   "class": "truncation",
+   "mutation": "T1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_out_of_order:7"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:T2",
+   "class": "truncation",
+   "mutation": "T2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:T3",
+   "class": "truncation",
+   "mutation": "T3",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_missing:3",
+    "call_missing:4:send_money",
+    "call_missing:4:send_money",
+    "call_missing:4:send_money",
+    "result_missing:5",
+    "result_missing:6"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:T4",
+   "class": "truncation",
+   "mutation": "T4",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "system_message_missing:0"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:P1",
+   "class": "payload",
+   "mutation": "P1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_missing:3"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:P2",
+   "class": "payload",
+   "mutation": "P2",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_missing:3"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "qwen3-text:P3",
+   "class": "payload",
+   "mutation": "P3",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_reencoded:3"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:V1",
+   "class": "valid",
+   "mutation": "V1",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:V2",
+   "class": "valid",
+   "mutation": "V2",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:V3",
+   "class": "valid",
+   "mutation": "V3",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:V4",
+   "class": "valid",
+   "mutation": "V4",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:V5a",
+   "class": "valid",
+   "mutation": "V5a",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:V5b",
+   "class": "valid",
+   "mutation": "V5b",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:R1",
+   "class": "role",
+   "mutation": "R1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:R2",
+   "class": "role",
+   "mutation": "R2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:R3",
+   "class": "role",
+   "mutation": "R3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:R4",
+   "class": "role",
+   "mutation": "R4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:R5",
+   "class": "role",
+   "mutation": "R5",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:R6",
+   "class": "role",
+   "mutation": "R6",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:S1",
+   "class": "schema",
+   "mutation": "S1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "tool_schema_missing:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:S2",
+   "class": "schema",
+   "mutation": "S2",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "tool_schema_altered:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:S3",
+   "class": "schema",
+   "mutation": "S3",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "tool_schema_altered:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:S4",
+   "class": "schema",
+   "mutation": "S4",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "tool_schema_altered:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:A1",
+   "class": "arguments",
+   "mutation": "A1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:A2",
+   "class": "arguments",
+   "mutation": "A2",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:A3",
+   "class": "arguments",
+   "mutation": "A3",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:A4",
+   "class": "arguments",
+   "mutation": "A4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:A5",
+   "class": "arguments",
+   "mutation": "A5",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:D1",
+   "class": "duplicates",
+   "mutation": "D1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:D2",
+   "class": "duplicates",
+   "mutation": "D2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:D3",
+   "class": "duplicates",
+   "mutation": "D3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:O1",
+   "class": "order",
+   "mutation": "O1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money",
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:O2",
+   "class": "order",
+   "mutation": "O2",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money",
+    "call_altered_or_out_of_order:4:send_money",
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:O3",
+   "class": "order",
+   "mutation": "O3",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:2:read_file",
+    "result_out_of_order:3"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:X1",
+   "class": "association",
+   "mutation": "X1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_missing:6"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:X2",
+   "class": "association",
+   "mutation": "X2",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "call_altered_or_out_of_order:4:send_money",
+    "call_altered_or_out_of_order:4:send_money",
+    "call_altered_or_out_of_order:4:send_money"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:T1",
+   "class": "truncation",
+   "mutation": "T1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_out_of_order:7"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:T2",
+   "class": "truncation",
+   "mutation": "T2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:T3",
+   "class": "truncation",
+   "mutation": "T3",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_missing:3",
+    "call_missing:4:send_money",
+    "call_missing:4:send_money",
+    "call_missing:4:send_money",
+    "result_missing:5",
+    "result_missing:6"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:T4",
+   "class": "truncation",
+   "mutation": "T4",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "system_message_missing:0"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:P1",
+   "class": "payload",
+   "mutation": "P1",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_missing:3"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:P2",
+   "class": "payload",
+   "mutation": "P2",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_missing:3"
+   ]
+  },
+  {
+   "checker": "pilot_v1",
+   "case": "granite4-text:P3",
+   "class": "payload",
+   "mutation": "P3",
+   "expected": "reject",
+   "verdict": "reject",
+   "defects": [
+    "result_reencoded:3"
+   ]
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-1:W0",
+   "class": "wp7-valid",
+   "mutation": "W0",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-1:W1",
+   "class": "wp7",
+   "mutation": "W1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-1:W2",
+   "class": "wp7",
+   "mutation": "W2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-1:W3",
+   "class": "wp7",
+   "mutation": "W3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-1:W4",
+   "class": "wp7",
+   "mutation": "W4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-2:W0",
+   "class": "wp7-valid",
+   "mutation": "W0",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-2:W1",
+   "class": "wp7",
+   "mutation": "W1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-2:W2",
+   "class": "wp7",
+   "mutation": "W2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-2:W3",
+   "class": "wp7",
+   "mutation": "W3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-2:W4",
+   "class": "wp7",
+   "mutation": "W4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-3:W0",
+   "class": "wp7-valid",
+   "mutation": "W0",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-3:W1",
+   "class": "wp7",
+   "mutation": "W1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-3:W2",
+   "class": "wp7",
+   "mutation": "W2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-3:W3",
+   "class": "wp7",
+   "mutation": "W3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "AD-3:W4",
+   "class": "wp7",
+   "mutation": "W4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "IA-1:W0",
+   "class": "wp7-valid",
+   "mutation": "W0",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "IA-1:W1",
+   "class": "wp7",
+   "mutation": "W1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "IA-1:W2",
+   "class": "wp7",
+   "mutation": "W2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "IA-1:W3",
+   "class": "wp7",
+   "mutation": "W3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "IA-1:W4",
+   "class": "wp7",
+   "mutation": "W4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "TH-1:W0",
+   "class": "wp7-valid",
+   "mutation": "W0",
+   "expected": "accept",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "TH-1:W1",
+   "class": "wp7",
+   "mutation": "W1",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "TH-1:W2",
+   "class": "wp7",
+   "mutation": "W2",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "TH-1:W3",
+   "class": "wp7",
+   "mutation": "W3",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  },
+  {
+   "checker": "wp7_v1",
+   "case": "TH-1:W4",
+   "class": "wp7",
+   "mutation": "W4",
+   "expected": "reject",
+   "verdict": "accept",
+   "defects": []
+  }
+ ],
+ "template_verification": {
+  "checked": 12,
+  "identical_to_pinned_template": 12,
+  "failures": []
+ }
+}
