@@ -28,6 +28,7 @@ These are custom-harness results on AgentDojo tasks with the agent resumed after
 
 - Every returned prompt passed the delivery check.
 - All 21,327 model turns of the new phases match a local rendering at the pinned revision by hash (`prompt_verification_*.json`), and every kept full prompt (580) is identical.
+  *Note 2026-11-17: precisely, all 21,321 turns of scored episodes; 6 of the 21,327 are turns of superseded traces, and 11 turns of superseded traces are not reconstructible ([corrections](../../docs/corrections.md) C21; [supplementary](supplementary-2026-11-17/README.md)).*
 - The verifier lists 11 turns of Qwen's selection as unverifiable. They belong to the five superseded `infra_error` traces, which store no assistant message for an aborted turn. All final traces verify.
 - Each model's one-request rendering check found the server's prompt identical to the local rendering.
 - Same image digest as F1 (`sha256:d825baf9…`) on both pods.

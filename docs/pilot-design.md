@@ -35,6 +35,8 @@ Three things that must not be confused:
 
 **What "the same information" means here.** The JSON text decodes to exactly the record. The free text decodes to exactly the record when the decoder is given the record's shape. Without the shape, free text does not distinguish the string `5` from the number 5. That loss of type marking is part of what free text is, and it is the only information the `text` condition drops. A test checks both directions on every tool result the two development and pilot suites can produce from their reference solutions, and on adversarial strings.
 
+*Note 2026-11-17: wrong as stated. Free text is invertible only given the shape; a multi-line string can render exactly like nested fields ([corrections](corrections.md) C20; [measurement contract](measurement-contract.md) section 4).*
+
 **This is not the standard benchmark.** AgentDojo renders tool results as YAML and runs the agent from the user's request. The pilot renders them as `text` or `json` and resumes the agent at a controlled point. Results are from "AgentDojo tasks, agent resumed at a controlled injection point, harness serializers" and are not comparable with published AgentDojo numbers.
 
 ## 2. Prefix replay and branching
@@ -82,6 +84,8 @@ Each control answers one question. They are reported separately and none is fold
 | **Can the model perform a structurally equivalent benign action?** | For each attacker goal, a *benign twin*: the same task object with the attacker's account, link or address replaced by a neutral one, asked as an ordinary user request and scored by the same state check. | The model cannot perform the action at all. Attack success on that goal is uninformative, in either format. |
 | **Does the model refuse the explicit request?** | The attacker's goal, verbatim, asked as a user request (AgentDojo's own check). Compared with the benign twin. | Twin succeeds and the direct request fails: refusal of the request as worded. This is reported and is **not** a reason to drop the goal: an injected instruction may still be followed. |
 | **Does the legitimate task still complete under each representation?** | The user task without an attack, resumed at the injection point, in each format; and from the user's request with no replay, in each format. | A utility gap between formats means a security difference may come from the agent reading one format worse. |
+
+*Note 2026-11-17: the implemented check did not verify turn roles, multiplicity, strict scalar types or the generation header (C19). Hash equality with the pinned template covers the archived pilot.*
 
 **Semantic preservation.** Delivery is checked by parsing, not by markers: tool schemas and calls are decoded out of the prompt and compared for equality with what was sent. A template that prints a schema in a form that is not JSON fails this check and the model is not eligible for the pilot.
 
@@ -527,6 +531,7 @@ Evidence: [results-published/pilot-2026-11-16](https://github.com/fcavaletto/pro
 
 - Both models ran every planned episode to completion with verified delivery: 4,986 new episodes, plus Qwen's 300 F1 controls reused after the reuse check.
 - All 21,327 returned prompts of the new phases match a local rendering by hash.
+  *Note 2026-11-17: 21,321 turns of scored episodes; see C21.*
 - Six episodes cut short by RunPod proxy disconnects (`infra_error`) were rerun on resume.
 - Both models passed `dev-gates-v1`. All five Slack goals have a capable benign twin for both models.
 
@@ -605,6 +610,7 @@ Of the wording component, 4.8 points come from `injection_task_2`. Goals 3 to 5 
 - *Qwen:* most of that difference (about 7 of 8.6 points) is a difference in strength between the two selected wordings, seen in both formats. The average same-attack format difference is +1.4 points with an interval from −2.9 to +6.2. That is compatible both with no format effect and with a format effect of up to about 6 points; it does not show that the format had no effect. Three of five goals were at ceiling, so the format comparison rests mostly on two goals.
 - *Qwen, interaction:* whether the format effect depended on which attack was used was tested directly. No dependence was detected (+1.0, −5.7 to +7.6 against the JSON-selected attack; 0.0, −7.6 to +7.6 against the baseline).
 - *Granite:* JSON was attacked less often under the same attack, by about 10 points averaged over the two attacks, with a task interval from about 4 to 17 points. No dependence on the attack was detected, with a wide interval.
+  *Note 2026-11-17: both attacks multiline; qualified in C24.*
 - *Between models:* the pilot does not establish that Granite's format effect is larger than Qwen's. Qwen's base rates near ceiling would compress any effect on the absolute scale.
 - *Selection transfer:* on Slack JSON, the wording selected for text succeeded 6.7 points more often than the wording selected for JSON (registered secondary, −12.4 to −1.0 for JSON-selected minus text-selected). The ranking learned on banking did not hold on Slack for that pair of wordings.
 

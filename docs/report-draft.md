@@ -46,7 +46,9 @@ What is not in this literature: a prompt-level audit of what public injection ha
 
 - **Rendering census** ([rendering census](rendering-census.md)): four fixed conversations through 26 templates at pinned revisions and 11 Ollama templates, plus 144 stored server prompts compared with local renderings.
 - **Delivery check** (pilot harness): for every model request, the prompt the server returns is parsed. Each offered tool must appear as a JSON object equal to the schema sent, each earlier call with equal name and arguments, each tool result verbatim (and, for JSON, decoding to its record), and the payload in the form the condition prescribes. A row that fails is an invalid measurement, never a failed attack.
+  *Note 2026-11-17: this check did not verify turn roles, multiplicity, strict scalar types or the generation header ([corrections](corrections.md) C19). The archived outcomes rest on hash equality with the pinned template, which covers those. A repaired check is validated in the [measurement contract](measurement-contract.md).*
 - **External audit** ([WP7](wp7-audit.md)): a common fixture is passed through other harnesses' own message-building code at pinned revisions, with the templates the reported configurations would use (reconstructed: see section 7 on provenance). The checker accepts every legitimate encoding: JSON escaping, YAML scalar styles including folded lines, YAML inside JSON, and Python `repr`. A checker failure is a lead, not a finding: on the first run it flagged two harness configurations whose YAML folding it did not yet recognize. Both were valid.
+  *Note 2026-11-17: the WP7 checker matched markers and accepted renamed parameters, changed types and changed arguments. With strict items all stored renderings still pass (C18). A pass certifies a reconstructed component, not the original pipeline (C23).*
 
 ## 4. Registered pilot (Amendment 2, as amended by Amendment 3)
 
@@ -62,6 +64,7 @@ What is not in this literature: a prompt-level audit of what public injection ha
 
 - 4,986 new episodes, none invalid.
 - All 21,327 returned prompts of the new phases match a local rendering by hash.
+  *Note 2026-11-17: precisely, all 21,321 turns of scored episodes; the figure also counts 6 turns of superseded traces, and 11 turns of superseded traces cannot be rebuilt (C21).*
 - Six episodes interrupted by proxy disconnects were rerun.
 - Both models passed every development gate. Every Slack goal has a capable benign twin.
 
@@ -91,6 +94,7 @@ The primary measures a procedure (select per format, then evaluate), not seriali
 | Interaction: does the format effect depend on the attack? | +1.0 | −5.7 to +7.6 |
 
 - **Granite:** averaged over its two attacks, the same-attack format effect is +10.5 (+3.8 to +17.1). The interaction is +1.9 (−7.6 to +11.4).
+  *Note 2026-11-17: both attacks are multiline. On banking, the baseline's one-line twin went the other way (−11.1), and on Slack 7 of the baseline's 10-success gap fall in round-limit episodes (C24; [claim–evidence](claim-evidence.md) H3, H4).*
 - **Between models:** Granite's fixed-attack format effect minus Qwen's is +7.6 (−0.9 to +16.2). A difference between models is not established.
 - **Ceiling:** three of Qwen's five goals were at ceiling.
 - **What is supported:** for Granite, JSON lowered success under the same attack. For Qwen, most of the primary difference was attack wording. A Qwen format effect of a few points is neither shown nor excluded.
@@ -178,6 +182,7 @@ These are bounds under that assumption, not confidence intervals.
 - in AgentDojo's `local` code, the error-to-empty-answer path and the extra encoding, reproduced from pinned code and present in every candidate revision;
 - in the published traces, 59 empty endings, concentrated in the longest workspace requests, and the conditional bounds they imply;
 - clean passes for three other harness paths.
+  *Note 2026-11-17: passes of reconstructed components, not certifications of the original pipelines (C23).*
 
 **Inferred, not established:**
 
@@ -248,6 +253,7 @@ Prompt hashes: `python scripts/verify_pilot_prompts.py <phase-dir> --repository 
 1. **A prompt-level delivery audit** that accepts legitimate encodings, applied to four public harnesses at pinned revisions.
    - It reproduced a silent error path and an undocumented encoding in AgentDojo's open-model provider.
    - In that provider's published traces it located 59 episodes whose outcomes are suspect, and bounded their effect conditionally: the published robustness comparison survives.
+     *Note 2026-11-17: except on workspace `direct`, where the bounds overlap (C22).*
    - Three other harness paths passed.
 2. **A small, pre-registered, delivery-verified replication of the serialization effect** on two open models. Its methodological lesson: comparing each format with its own selected attack confounds format with attack wording, so the same-attack contrast is the one to register.
 3. **Repeatability under one stack,** with its dependence structure stated.

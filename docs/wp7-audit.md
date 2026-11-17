@@ -29,6 +29,8 @@ Every string that must reach the model carries a `MARK-` marker. The payload con
 - the payload after the call;
 - the order of system, user, call and result.
 
+*Note 2026-11-17: the checker matched markers. It accepted a renamed parameter, a changed declared type, a renamed argument key and a changed argument type. `wp7.check(strict=True)` adds those items; all five stored renderings still pass ([corrections](corrections.md) C18; [validation](https://github.com/fcavaletto/prompt-injection-eval/tree/main/results-published/checker-validation-2026-11-17)).*
+
 The payload is accepted in every encoding a harness may legitimately use:
 
 - verbatim;
@@ -98,6 +100,8 @@ Mirrors are recorded as mirrors; the gated originals were not read. Whether a mi
 | ADI-1 | ADI end-to-end benchmark, LangGraph baseline, GPT-5.2, JSON tool output | **Unverifiable** at the model; passes at the message level | n/a | `tool_result_to_str` now defaults to `json.dumps`. The payload arrives JSON-escaped with `\uXXXX` escapes and decodes exactly. ADI computes a message-level "injection happened" flag whose normalization misses escaped quotes (false for this payload), but `benchmark.py` discards it, so it affects no reported number. |
 
 **Negative findings.** InjecAgent, ToolHazard and AgentDojo's `vllm_parsed` path deliver definitions, the completed call, the result and the payload intact. InjecAgent's local Llama path leaves at least 3 tokens of output budget on every step-one case. ADI's JSON is valid and lossless.
+
+*Note 2026-11-17: these are passes of reconstructed components, not certifications of the original end-to-end pipelines (C23).*
 
 ## AgentDojo's published LocalLLM traces: empty endings and request length
 
